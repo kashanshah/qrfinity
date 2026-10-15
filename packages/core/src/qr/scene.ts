@@ -133,19 +133,40 @@ export function buildScene(payload: string, design: Design): SceneResult {
       // Inner corners stay square without a quiet zone, so they never clip an eye.
       .roundedRect(codeX, codeY, S, S, [innerR, innerR, innerR, innerR])
     if (!design.transparentBackground) {
-      items.push({ kind: 'path', d: new PathBuilder().rect(codeX, codeY, S, S).toString(), fill: bg })
+      items.push({
+        kind: 'path',
+        d: new PathBuilder().rect(codeX, codeY, S, S).toString(),
+        fill: bg,
+      })
     }
-    frameItems.push({ kind: 'path', d: ring.toString(), fill: { type: 'solid', color: frame.color }, evenOdd: true })
+    frameItems.push({
+      kind: 'path',
+      d: ring.toString(),
+      fill: { type: 'solid', color: frame.color },
+      evenOdd: true,
+    })
     const bandTop = frame.style === 'box-bottom' ? b + S : 0
     const bandHeight = frame.style === 'box-bottom' ? height - bandTop : label
-    pushLabel(frameItems, frame.text, frame.textColor, width / 2, bandTop + bandHeight / 2, bandHeight * 0.5, width - 2 * b - bandHeight * 0.6)
+    pushLabel(
+      frameItems,
+      frame.text,
+      frame.textColor,
+      width / 2,
+      bandTop + bandHeight / 2,
+      bandHeight * 0.5,
+      width - 2 * b - bandHeight * 0.6,
+    )
   } else if (frame.style === 'pill-bottom') {
     const gap = S * 0.05
     const pillH = S * 0.17
     width = S
     height = S + gap + pillH
     if (!design.transparentBackground) {
-      items.push({ kind: 'path', d: new PathBuilder().rect(0, 0, width, height).toString(), fill: bg })
+      items.push({
+        kind: 'path',
+        d: new PathBuilder().rect(0, 0, width, height).toString(),
+        fill: bg,
+      })
     }
     const pillW = S - 2 * Math.max(q, 1) * 0.5
     const px = (S - pillW) / 2
@@ -155,7 +176,15 @@ export function buildScene(payload: string, design: Design): SceneResult {
       d: new PathBuilder().roundedRect(px, S + gap, pillW, pillH, [r, r, r, r]).toString(),
       fill: { type: 'solid', color: frame.color },
     })
-    pushLabel(frameItems, frame.text, frame.textColor, width / 2, S + gap + pillH / 2, pillH * 0.55, pillW - pillH)
+    pushLabel(
+      frameItems,
+      frame.text,
+      frame.textColor,
+      width / 2,
+      S + gap + pillH / 2,
+      pillH * 0.55,
+      pillW - pillH,
+    )
   } else if (!design.transparentBackground) {
     items.push({ kind: 'path', d: new PathBuilder().rect(0, 0, S, S).toString(), fill: bg })
   }
@@ -173,7 +202,12 @@ export function buildScene(payload: string, design: Design): SceneResult {
   }
   const m = design.logoMargin
   const clear = logoBox
-    ? { x0: logoBox.x - m, y0: logoBox.y - m, x1: logoBox.x + logoBox.w + m, y1: logoBox.y + logoBox.h + m }
+    ? {
+        x0: logoBox.x - m,
+        y0: logoBox.y - m,
+        x1: logoBox.x + logoBox.w + m,
+        y1: logoBox.y + logoBox.h + m,
+      }
     : null
   const covered = (r: number, c: number) =>
     !!clear && c + 1 > clear.x0 && c < clear.x1 && r + 1 > clear.y0 && r < clear.y1
@@ -218,7 +252,8 @@ export function buildScene(payload: string, design: Design): SceneResult {
       const y = oy + r
       if (style === 'dots') dots.circle(x + 0.5, y + 0.5, 0.5)
       else if (style === 'diamond') dots.diamond(x, y, 1, 1)
-      else if (style === 'rounded') dots.roundedRect(x + 0.04, y + 0.04, 0.92, 0.92, [0.3, 0.3, 0.3, 0.3])
+      else if (style === 'rounded')
+        dots.roundedRect(x + 0.04, y + 0.04, 0.92, 0.92, [0.3, 0.3, 0.3, 0.3])
       else {
         // fluid: round a corner only where both neighbours beside it are empty.
         const up = isOn(r - 1, c)
@@ -303,5 +338,12 @@ function pushLabel(
   if (!value) return
   const w = textWidth(value, fontSize)
   const size = w > maxWidth ? (fontSize * maxWidth) / w : fontSize
-  items.push({ kind: 'text', text: value, x: cx, y: cy + (size * CAP_HEIGHT) / 2, fontSize: size, fill: color })
+  items.push({
+    kind: 'text',
+    text: value,
+    x: cx,
+    y: cy + (size * CAP_HEIGHT) / 2,
+    fontSize: size,
+    fill: color,
+  })
 }

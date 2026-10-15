@@ -5,3 +5,5 @@ onlyBuiltDependencies:
   - '@resvg/resvg-js'
   - sharp
   - unrs-resolver
+ignoredBuiltDependencies:
+  - core-js

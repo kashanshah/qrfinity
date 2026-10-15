@@ -1,0 +1,82 @@
+@import 'tailwindcss';
+/* Brand tokens (colours, fonts, spacing, radii, text styles) — generated from brand/tokens.json. */
+@import '../../../brand/tokens.css';
+
+/* Map Tailwind's theme to the brand CSS variables. Never hard-code hex values in components. */
+@theme inline {
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-surface-sunk: var(--surface-sunk);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-hairline: var(--hairline);
+  --color-control-border: var(--control-border);
+  --color-evergreen: var(--evergreen);
+  --color-on-evergreen: var(--on-evergreen);
+  --color-evergreen-deep: var(--evergreen-deep);
+  --color-mint: var(--mint);
+  --color-signal: var(--signal);
+  --color-on-signal: var(--on-signal);
+  --color-scan-pass: var(--scan-pass);
+  --color-on-scan-pass: var(--on-scan-pass);
+  --color-scan-fail: var(--scan-fail);
+  --color-on-scan-fail: var(--on-scan-fail);
+  --color-focus: var(--focus);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-card: var(--shadow-card);
+}
+
+@layer base {
+  html {
+    color-scheme: light dark;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 26px;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--mint);
+    color: var(--ink);
+  }
+}
+
+/* Hero headline: display-l on phones, display-xl from tablet up. */
+.hero-title {
+  font-family: var(--font-display);
+  font-size: 44px;
+  line-height: 48px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+@media (min-width: 768px) {
+  .hero-title {
+    font-size: 64px;
+    line-height: 64px;
+    letter-spacing: -1.5px;
+  }
+}
+
+/* The generated QR SVG fills its container. */
+.qr-render svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}

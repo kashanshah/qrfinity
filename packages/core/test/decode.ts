@@ -6,12 +6,22 @@ import { prepareZXingModule, readBarcodes } from 'zxing-wasm/reader'
 
 const require = createRequire(import.meta.url)
 const wasm = readFileSync(require.resolve('zxing-wasm/reader/zxing_reader.wasm'))
-prepareZXingModule({ overrides: { wasmBinary: wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength) } })
+prepareZXingModule({
+  overrides: { wasmBinary: wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength) },
+})
 
 export async function decodeSvg(svg: string, width = 400): Promise<string | null> {
-  const img = new Resvg(svg, { fitTo: { mode: 'width', value: width }, background: '#ffffff' }).render()
+  const img = new Resvg(svg, {
+    fitTo: { mode: 'width', value: width },
+    background: '#ffffff',
+  }).render()
   const results = await readBarcodes(
-    { data: new Uint8ClampedArray(img.pixels), width: img.width, height: img.height, colorSpace: 'srgb' } as ImageData,
+    {
+      data: new Uint8ClampedArray(img.pixels),
+      width: img.width,
+      height: img.height,
+      colorSpace: 'srgb',
+    } as ImageData,
     { formats: ['QRCode'], tryHarder: true },
   )
   return results.find((r) => r.isValid)?.text ?? null

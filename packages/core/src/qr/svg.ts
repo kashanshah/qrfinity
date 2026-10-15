@@ -16,6 +16,8 @@ const SAFE_IMAGE = /^data:image\/(png|jpeg|webp|gif);base64,[a-z0-9+/=\s]+$/i
 export type SvgOptions = {
   /** Pixel width written on the root element; the height follows the aspect ratio. */
   width?: number
+  /** Prefix for gradient ids, so several SVGs can share one HTML page. */
+  idPrefix?: string
 }
 
 /** Serialises a scene to a standalone SVG document. */
@@ -27,7 +29,7 @@ export function sceneToSvg(scene: Scene, options: SvgOptions = {}): string {
 
   const paintRef = (paint: Paint): string => {
     if (paint.type === 'solid') return escapeXml(paint.color)
-    const id = `g${defs.length}`
+    const id = `${options.idPrefix ?? 'qrf'}-g${defs.length}`
     const stops = `<stop offset="0" stop-color="${escapeXml(paint.from)}"/><stop offset="1" stop-color="${escapeXml(paint.to)}"/>`
     if (paint.type === 'linear') {
       defs.push(

@@ -63,7 +63,8 @@ export function checkDesign(design: Design, info: SceneInfo, printWidthMm?: numb
   } else if (worst < 4.5) {
     warnings.push({
       id: 'weak-contrast',
-      message: 'The colours have only moderate contrast, so the code may be slow to scan in dim light.',
+      message:
+        'The colours have only moderate contrast, so the code may be slow to scan in dim light.',
       strong: 'More contrast scans faster.',
     })
   }
@@ -72,7 +73,8 @@ export function checkDesign(design: Design, info: SceneInfo, printWidthMm?: numb
   if (!design.transparentBackground && fgLum > luminance(design.background)) {
     warnings.push({
       id: 'inverted',
-      message: 'This is a light code on a dark background. Newer phones read it; some older phones and scanner apps don’t.',
+      message:
+        'This is a light code on a dark background. Newer phones read it; some older phones and scanner apps don’t.',
       strong: 'Use a dark code on a light background to reach everyone.',
     })
   }

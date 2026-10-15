@@ -99,8 +99,7 @@ export type FieldErrors = Record<string, string>
  * `invalid`: something is filled in wrongly; `errors` maps field → message.
  */
 export type EncodeResult =
-  | { ok: true; payload: string }
-  | { ok: false; reason: 'empty' | 'invalid'; errors: FieldErrors }
+  { ok: true; payload: string } | { ok: false; reason: 'empty' | 'invalid'; errors: FieldErrors }
 
 export const DEFAULT_FIELDS: ContentFields = {
   url: { url: 'https://qrfinity.com' },
@@ -421,6 +420,9 @@ const ENCODERS: { [K in ContentType]: (f: ContentFields[K]) => EncodeResult } = 
   social: encodeSocial,
 }
 
-export function encodeContent<K extends ContentType>(type: K, fields: ContentFields[K]): EncodeResult {
+export function encodeContent<K extends ContentType>(
+  type: K,
+  fields: ContentFields[K],
+): EncodeResult {
   return ENCODERS[type](fields)
 }

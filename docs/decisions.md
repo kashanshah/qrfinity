@@ -33,6 +33,14 @@ Full detail in `docs/architecture.md`.
 - DNS: `qrfinity.com` and `qrfinity.ca` stay on Hostinger; `qrfinity.link` nameservers move to Cloudflare in Phase 3.
 - Revised cost: Cloudflare ~$5/month up to 10M scans, ~$48 at 50M (the earlier ~$30 left out KV reads).
 
+## Generator (Phase 2, October 2026)
+
+- **Own renderer instead of `qr-code-styling`.** We need frames, vector PDF and EPS, and identical output in every format; `qr-code-styling` has no frames, PDF or EPS and renders through its own canvas/SVG paths. Ours uses `uqr` (a port of Nayuki's reference encoder) for the matrix and draws one format-neutral scene that SVG and EPS writers serialise. PNG/JPG rasterise the SVG; PDF converts the SVG with jsPDF + svg2pdf (vector, Helvetica text, embedded logo).
+- **EPS is feasible and shipped**: Level 3 PostScript with vector paths, gradient shadings and the logo as an RGB image composited onto the background (EPS has no simple alpha). Verified by rendering in Ghostscript and decoding.
+- **Scan check uses zxing-cpp (`zxing-wasm`)**, the decoder family closest to what phones use, in a Web Worker; the wasm is self-hosted. jsQR was rejected: weaker on stylised codes, unmaintained since 2020. On top of the decode, design rules fail low contrast (< 3:1) and warn on inverted colours, transparency, large logos, tiny margins, dense data and print sizes below 0.4 mm per module (2 cm minimum).
+- **Frame text is Helvetica Bold / Arial**, not our brand fonts: it renders the same in PNG, SVG, PDF and EPS, and print shops already have it. Non-Latin-1 characters in frame text become "?" in EPS only.
+- **Location codes link to Google Maps** (`geo:` URIs don't open from the iPhone camera). **App store codes hold one store link**: device-based routing needs a dynamic code.
+
 ## Monetization (later)
 
 - Competitors gate by number of dynamic codes (Uniqode $5/mo for 3 codes up to $99; QR TIGER from $7/mo; QR Code Generator PRO Professional: 250 codes). We give codes away and charge for professional features.

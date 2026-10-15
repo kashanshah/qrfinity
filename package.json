@@ -2,7 +2,9 @@
   "name": "qrfinity",
   "private": true,
   "packageManager": "pnpm@10.28.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "pnpm --filter @qrfinity/web dev",
     "build": "pnpm --filter @qrfinity/web build",

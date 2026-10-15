@@ -10,8 +10,8 @@ A free QR code generator whose codes never expire, built as an organic traffic m
 
 ## Where things stand
 
-- Repo is new. Brand and final logo are done; no app code yet.
-- Phase 1: architecture decisions approved (2026-10-15) and recorded in `docs/architecture.md`; revision 2 awaits final sign-off. Next: Phase 2.
+- Brand and final logo are done. Phase 1 architecture approved (2026-10-15), recorded in `docs/architecture.md`.
+- Phase 2 (static generator) is built in `apps/web` + `packages/core` and **awaits review**. Next after approval: Phase 3.
 - Domains qrfinity.com, qrfinity.link and qrfinity.ca are registered. Exact-name trademark searches (USPTO, CIPO) came back clear.
 
 ## Non-negotiables
@@ -29,4 +29,6 @@ A free QR code generator whose codes never expire, built as an organic traffic m
 - Design tokens: `brand/tokens.json` is the source of truth. Regenerate CSS with `python3 brand/scripts/build-tokens-css.py brand/tokens.json ./fonts/ > brand/tokens.css`. Map Tailwind theme values to the CSS variables (`var(--evergreen)` etc.); never hard-code hex values in components.
 - Fonts are self-hosted from `brand/fonts/` (SIL OFL 1.1). Logos and app icons are in `brand/logo/`.
 - Copy: sentence case, plain words, no emoji in UI, spell the name **QRfinity**.
+- QR rendering: our own renderer in `packages/core` (uqr for the matrix → scene → SVG/EPS); PDF via jsPDF + svg2pdf; scan check decodes with zxing-wasm in a worker, wasm self-hosted from `public/wasm`. Frame text uses Helvetica/Arial so every format matches.
+- Commands: `pnpm dev`, `pnpm test`, `pnpm test:e2e` (after `pnpm build`), `pnpm lint`, `pnpm typecheck`, `pnpm format:check`.
 - SEO pages are statically rendered, content in MDX, each with unique copy (see Phase 5 of the plan).
