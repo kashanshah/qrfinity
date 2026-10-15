@@ -1,0 +1,118 @@
+/* QRfinity — generated from tokens.json by brand/scripts/build-tokens-css.py. Do not edit by hand. */
+
+@font-face { font-family: "Bricolage Grotesque"; src: url("./fonts/bricolage-grotesque-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Bricolage Grotesque"; src: url("./fonts/bricolage-grotesque-latin-800-normal.woff2") format("woff2"); font-weight: 800; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Manrope"; src: url("./fonts/manrope-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Manrope"; src: url("./fonts/manrope-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "Manrope"; src: url("./fonts/manrope-latin-700-normal.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+
+@font-face { font-family: "JetBrains Mono"; src: url("./fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+
+:root, [data-theme="light"] {
+  --ground: #fafaf7;
+  --surface: #ffffff;
+  --surface-sunk: #eff1ea;
+  --ink: #14201a;
+  --ink-muted: #4f5b54;
+  --hairline: #c9cec4;
+  --control-border: #7e8981;
+  --evergreen: #0f5132;
+  --on-evergreen: #fafaf7;
+  --evergreen-deep: #0a3a24;
+  --mint: #d7ece0;
+  --signal: #f5c542;
+  --on-signal: #14201a;
+  --scan-pass: #0f5132;
+  --on-scan-pass: #fafaf7;
+  --scan-fail: #f29a4a;
+  --on-scan-fail: #14201a;
+  --focus: #0f5132;
+  --shadow-card: 0 1px 2px rgba(20, 32, 26, 0.06), 0 6px 20px rgba(20, 32, 26, 0.06);
+}
+
+[data-theme="dark"] {
+  --ground: #0e1411;
+  --surface: #151d19;
+  --surface-sunk: #1c2621;
+  --ink: #eef2ee;
+  --ink-muted: #a3b0a8;
+  --hairline: #3a4842;
+  --control-border: #6e7d75;
+  --evergreen: #4cc38a;
+  --on-evergreen: #0e1411;
+  --evergreen-deep: #1e7a50;
+  --mint: #1f3a2d;
+  --signal: #f5c542;
+  --on-signal: #14201a;
+  --scan-pass: #1e7a50;
+  --on-scan-pass: #f2f7f3;
+  --scan-fail: #f7b57a;
+  --on-scan-fail: #14201a;
+  --focus: #4cc38a;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0e1411;
+    --surface: #151d19;
+    --surface-sunk: #1c2621;
+    --ink: #eef2ee;
+    --ink-muted: #a3b0a8;
+    --hairline: #3a4842;
+    --control-border: #6e7d75;
+    --evergreen: #4cc38a;
+    --on-evergreen: #0e1411;
+    --evergreen-deep: #1e7a50;
+    --mint: #1f3a2d;
+    --signal: #f5c542;
+    --on-signal: #14201a;
+    --scan-pass: #1e7a50;
+    --on-scan-pass: #f2f7f3;
+    --scan-fail: #f7b57a;
+    --on-scan-fail: #14201a;
+    --focus: #4cc38a;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+  --font-display: "Bricolage Grotesque", "Manrope", system-ui, sans-serif;
+  --font-sans: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+.display-xl { font-family: var(--font-display); font-size: 64px; line-height: 64px; font-weight: 800; letter-spacing: -1.5px; }
+
+.display-l { font-family: var(--font-display); font-size: 44px; line-height: 48px; font-weight: 800; letter-spacing: -1px; }
+
+.heading { font-family: var(--font-display); font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: -0.4px; }
+
+.subheading { font-family: var(--font-sans); font-size: 20px; line-height: 28px; font-weight: 700; }
+
+.body { font-family: var(--font-sans); font-size: 16px; line-height: 26px; font-weight: 400; }
+
+.body-small { font-family: var(--font-sans); font-size: 14px; line-height: 22px; font-weight: 400; }
+
+.label { font-family: var(--font-sans); font-size: 13px; line-height: 18px; font-weight: 500; letter-spacing: 0.2px; }
+
+.button { font-family: var(--font-sans); font-size: 15px; line-height: 20px; font-weight: 700; }
+
+.mono { font-family: var(--font-mono); font-size: 14px; line-height: 20px; font-weight: 500; }
