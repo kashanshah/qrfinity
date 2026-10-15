@@ -21,6 +21,18 @@ Summary of the planning conversation (October 2026) that led to this repo. Read 
 - Dynamic redirects + analytics on Cloudflare: Workers Paid is $5/month with 10M requests included, then $0.30 per million; Analytics Engine includes 10M data points, then $0.25 per million. Estimate: ~$5/month up to 10M scans, ~$30 at 50M, ~$60 at 100M.
 - Budget for URL-reputation screening (abuse protection) from day one.
 
+## Architecture (Phase 1, approved 2026-10-15)
+
+Full detail in `docs/architecture.md`.
+
+- Web app on Vercel (existing Pro plan), built to move: no Vercel-only services, outside services behind interfaces, weekly OpenNext portability build.
+- Redirects on Cloudflare (Worker + KV + Analytics Engine) on `qrfinity.link`, in a separate Cloudflare account. Competitors also isolate redirects on short domains (QR Code Generator PRO: `qrco.de`, `l.ead.me`; QR TIGER: `qr1.be`).
+- Postgres on Neon instead of D1, because D1 is only practical from inside Cloudflare.
+- Better Auth + Resend. Dashboard at `qrfinity.com/dashboard`.
+- KV only on the hot path at launch: edits usually live instantly, up to about a minute where a code was just scanned. Competitors advertise "instant" edits.
+- DNS: `qrfinity.com` and `qrfinity.ca` stay on Hostinger; `qrfinity.link` nameservers move to Cloudflare in Phase 3.
+- Revised cost: Cloudflare ~$5/month up to 10M scans, ~$48 at 50M (the earlier ~$30 left out KV reads).
+
 ## Monetization (later)
 
 - Competitors gate by number of dynamic codes (Uniqode $5/mo for 3 codes up to $99; QR TIGER from $7/mo; QR Code Generator PRO Professional: 250 codes). We give codes away and charge for professional features.

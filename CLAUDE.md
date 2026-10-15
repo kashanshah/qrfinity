@@ -11,7 +11,7 @@ A free QR code generator whose codes never expire, built as an organic traffic m
 ## Where things stand
 
 - Repo is new. Brand and final logo are done; no app code yet.
-- Phase 1 architecture proposal is written in `docs/architecture.md` and **awaits approval**. Next after approval: Phase 2.
+- Phase 1: architecture decisions approved (2026-10-15) and recorded in `docs/architecture.md`; revision 2 awaits final sign-off. Next: Phase 2.
 - Domains qrfinity.com, qrfinity.link and qrfinity.ca are registered. Exact-name trademark searches (USPTO, CIPO) came back clear.
 
 ## Non-negotiables
@@ -25,7 +25,7 @@ A free QR code generator whose codes never expire, built as an organic traffic m
 
 ## Stack and conventions
 
-- Next.js (App Router) + TypeScript + Tailwind + Zustand. Cloudflare preferred for hosting, Workers, KV, D1 and Analytics Engine (confirm in Phase 1).
+- Next.js (App Router) + TypeScript + Tailwind + Zustand. Web app on Vercel, kept portable (no Vercel-only services; outside services behind interfaces in `packages/core`). Postgres on Neon with Drizzle. Redirects on Cloudflare (Workers, KV, Analytics Engine) in a separate account for `qrfinity.link`. Better Auth + Resend. See `docs/architecture.md`.
 - Design tokens: `brand/tokens.json` is the source of truth. Regenerate CSS with `python3 brand/scripts/build-tokens-css.py brand/tokens.json ./fonts/ > brand/tokens.css`. Map Tailwind theme values to the CSS variables (`var(--evergreen)` etc.); never hard-code hex values in components.
 - Fonts are self-hosted from `brand/fonts/` (SIL OFL 1.1). Logos and app icons are in `brand/logo/`.
 - Copy: sentence case, plain words, no emoji in UI, spell the name **QRfinity**.
