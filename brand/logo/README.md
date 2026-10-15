@@ -6,4 +6,4 @@
 - `qrfinity-mark.svg` (`#0f5132`), `qrfinity-mark-reversed.svg` (`#fafaf7`), `qrfinity-mark-mono.svg` (`#14201a`): the woven QR mark alone.
 - `qrfinity-app-icon.svg`: 512 × 512 evergreen tile, corner radius 112, with the paper mark. PNG exports at 512, 180 (Apple touch icon) and 32 (favicon) sit beside it in the repo.
 
-The inks are fixed in each file; pick the file that matches the background rather than recolouring. The wordmark is outlined Bricolage Grotesque 800.
+The inks are fixed in each file; pick the file that matches the background rather than recolouring. The mark is traced from the approved reference drawing; the wordmark is outlined Bricolage Grotesque 800, set 4 % of the mark's height away from it.

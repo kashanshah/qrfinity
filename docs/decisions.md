@@ -38,4 +38,4 @@ Summary of the planning conversation (October 2026) that led to this repo. Read 
 
 ## Brand
 
-See `brand/BRAND.md`. Evergreen + paper + one yellow spark; Bricolage Grotesque for headlines, Manrope for text, JetBrains Mono for short links; the mark spells QR as one woven infinity ribbon (Q = full circle, R's bowl = second loop) with flat-cut tail and leg; "finity" follows in Bricolage 800 with yellow i-dots.
+See `brand/BRAND.md`. Evergreen + paper + one yellow spark; Bricolage Grotesque for headlines, Manrope for text, JetBrains Mono for short links; the mark spells QR as one woven infinity ribbon (traced from the approved reference drawing: open Q loop, R with straight bar and separate leg, cuts square to each strand), with "finity" in Bricolage 800 set tight against it and yellow i-dots.

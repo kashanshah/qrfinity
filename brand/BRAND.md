@@ -36,7 +36,7 @@ Examples:
 
 ## Logo
 
-The mark spells **QR** as one woven infinity ribbon: the Q is a full circle, the R's bowl is the second loop, and the band passes over and under itself where they cross. The Q's tail and the R's leg are straight bars cut flat on the baseline. Read together with "finity", the logo says QRfinity and "forever" at once.
+The mark spells **QR** as one infinity ribbon: the Q is an open loop, the R's bowl is the second loop, and the band passes over and under itself where they cross. The R closes its bowl with a straight bar and has its own straight leg; the Q has a straight tail. Every cut end is square to the direction its strand travels. "finity" follows tight against the mark, so the logo reads as one word: QRfinity.
 
 - `qrfinity-logo` (mark + wordmark): default, on `ground` or `surface`. Mark in `evergreen`, "finity" in `ink`, the two i-dots in `signal` yellow: the one spark of colour.
 - `qrfinity-logo-reversed`: on `evergreen` or dark photos. Mark and wordmark in `on-evergreen`; i-dots stay `signal`.
@@ -44,7 +44,7 @@ The mark spells **QR** as one woven infinity ribbon: the Q is a full circle, the
 - `qrfinity-mark` / `qrfinity-mark-reversed` / `qrfinity-mark-mono`: the woven QR mark alone, when the name is already on screen (mobile header, social avatars).
 - `qrfinity-app-icon`: favicon, PWA and app icon: the paper mark on an `evergreen` tile. Never redraw it at other proportions.
 
-Rules: clear space around the logo equals the ribbon's width × 1.5. Minimum size: mark 24 px tall on screen, 8 mm in print. Never close the gap at the crossing (the weave is the infinity), round the flat cuts, recolour the i-dots in the full-colour logo, rotate, outline or add shadows. The wordmark is outlined Bricolage Grotesque 800; never retype it.
+Rules: clear space around the logo equals the ribbon's width × 1.5. Keep the gap between the mark and "finity" exactly as drawn (4 % of the mark's height); never separate them in the full logo. Minimum size: mark 24 px tall on screen, 8 mm in print. Never close the gaps at the crossings (the weave is the infinity), round or re-angle the cut ends, recolour the i-dots in the full-colour logo, rotate, outline or add shadows. The wordmark is outlined Bricolage Grotesque 800; never retype it.
 ## Colour
 
 - Lead with `ground` and `ink`. Evergreen is the brand, used with restraint: primary buttons, links, the logo, active states.
