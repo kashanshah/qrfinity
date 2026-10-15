@@ -36,16 +36,15 @@ Examples:
 
 ## Logo
 
-The mark is two QR finder "eyes" fused at a shared wall, forming an infinity loop. The right eye's centre is the `signal` yellow dot: the one spark of colour.
+The mark spells **QR** as one woven infinity ribbon: the Q is a full circle, the R's bowl is the second loop, and the band passes over and under itself where they cross. The Q's tail and the R's leg are straight bars cut flat on the baseline. Read together with "finity", the logo says QRfinity and "forever" at once.
 
-- `brand/logo/qrfinity-logo.svg` (mark + wordmark): default, on `ground` or `surface`.
-- `qrfinity-logo-reversed`: on `evergreen` or any dark photo. Wordmark in `on-evergreen`, dot stays `signal`.
-- `qrfinity-logo-mono`: single-ink `ink` for print, embossing, fax-quality contexts.
-- `qrfinity-mark` / `qrfinity-mark-reversed` / `qrfinity-mark-mono`: the mark alone, when the name is already on screen (app header on mobile, social avatars).
-- `qrfinity-app-icon`: favicon, PWA and app icon. Never redraw it at other proportions.
+- `qrfinity-logo` (mark + wordmark): default, on `ground` or `surface`. Mark in `evergreen`, "finity" in `ink`, the two i-dots in `signal` yellow: the one spark of colour.
+- `qrfinity-logo-reversed`: on `evergreen` or dark photos. Mark and wordmark in `on-evergreen`; i-dots stay `signal`.
+- `qrfinity-logo-mono`: single-ink `ink` for print, embossing and one-colour jobs (i-dots in `ink` too).
+- `qrfinity-mark` / `qrfinity-mark-reversed` / `qrfinity-mark-mono`: the woven QR mark alone, when the name is already on screen (mobile header, social avatars).
+- `qrfinity-app-icon`: favicon, PWA and app icon: the paper mark on an `evergreen` tile. Never redraw it at other proportions.
 
-Rules: clear space around the logo equals the height of one inner dot (one third of the mark's height). Minimum size: mark 24 px tall on screen, 8 mm in print. Never recolour the dot, rotate, outline, add shadows or set the wordmark in another font. The wordmark is outlined Bricolage Grotesque 800; never retype it.
-
+Rules: clear space around the logo equals the ribbon's width × 1.5. Minimum size: mark 24 px tall on screen, 8 mm in print. Never close the gap at the crossing (the weave is the infinity), round the flat cuts, recolour the i-dots in the full-colour logo, rotate, outline or add shadows. The wordmark is outlined Bricolage Grotesque 800; never retype it.
 ## Colour
 
 - Lead with `ground` and `ink`. Evergreen is the brand, used with restraint: primary buttons, links, the logo, active states.
