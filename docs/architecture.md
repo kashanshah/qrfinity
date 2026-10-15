@@ -110,7 +110,7 @@ GET https://qrfinity.link/aB3xK9q
 - **302, not 301,** so phones and browsers don't cache the destination.
 - **Latency target p95 < 50 ms:** a KV hit is a few milliseconds at the edge. The Postgres fallback only happens for a slug missing from KV, and it refills KV.
 - **No interstitials, no ads, no cookies** on the short domain.
-- **`noindex`:** `X-Robots-Tag: noindex` on every response; `robots.txt` disallows all; never in a sitemap.
+- **`noindex`:** `X-Robots-Tag: noindex` on every response; never in a sitemap. `robots.txt` does **not** disallow crawling, because a blocked crawler never sees the `noindex` header and can still index bare URLs. Crawlers seeing our warning page also helps clear a Safe Browsing flag after we disable a code.
 - **Report link** on the 404, paused and warning pages: `qrfinity.com/report?code={slug}`, `rel="nofollow"`.
 
 ### edge-api Worker (`edge.qrfinity.link`)
@@ -241,6 +241,8 @@ docs/
 ## 10. Crawler settings
 
 `qrfinity.com` is not behind Cloudflare, so Cloudflare's AI-bot blocking doesn't apply to it. On Vercel we keep bot protection off for marketing pages so Googlebot, Bingbot and AI crawlers can reach them; Turnstile and rate limits protect forms. Phase 5 reports the exact settings.
+
+`qrfinity.link` (Cloudflare, set when the zone is added): Search **Allow** (crawlers must see `noindex` and our warning pages), Agent **Allow** (AI assistants can follow a short link a person asks about), Training **Block** (nothing to train on), "I monetize pages that serve ads" unchecked. The zone also gets `v=spf1 -all` and a `p=reject` DMARC record, since the domain sends no email and phishers like to spoof short domains.
 
 ## 11. Monthly cost estimates
 
