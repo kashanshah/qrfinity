@@ -33,8 +33,10 @@ Summary of the planning conversation (October 2026) that led to this repo. Read 
 ## Name and domains
 
 - Chosen: **QRfinity** (QR + infinity). Rejected: QRLasts (sounds like "QR Last"; qrlast.com belongs to someone else), QRVow (sounds like "QR Wow"), QRLasting (clear but forgettable), InfiniQR (spelling risk).
-- Domains, all available as of 2026-10-15 at ~$11/yr (.com) and $7/yr (.link): **qrfinity.com** (site), **qrfinity.link** (redirects only, isolated for abuse), **qrfinity.ca** (protect the name). Not yet registered.
-- Known risks: people may type qrinfinity.com (owned by someone else); the name rhymes with Comcast's Xfinity. Run a trademark search (CIPO, USPTO) before launch.
+- Domains, all available as of 2026-10-15 at ~$11/yr (.com) and $7/yr (.link): **qrfinity.com** (site), **qrfinity.link** (redirects only, isolated for abuse), **qrfinity.ca** (protect the name). Registered by Kashan on 2026-10-15.
+- Trademark check (2026-10-15): exact-name searches for "QRfinity" returned 0 results on USPTO (wordmark, live and dead) and on CIPO (all fields). This was a knock-out search only; it does not cover similar-sounding marks (e.g. Comcast's Xfinity, "QR Infinity"). Consider a trademark agent's clearance search and filing before heavy marketing.
+- Known risk: people may type qrinfinity.com (owned by someone else).
+- Logo: Kashan confirmed he holds the rights to the reference drawing the mark is traced from.
 
 ## Brand
 

@@ -10,9 +10,9 @@ A free QR code generator whose codes never expire, built as an organic traffic m
 
 ## Where things stand
 
-- Repo is new. Brand assets are done; no app code yet.
+- Repo is new. Brand and final logo are done; no app code yet.
 - Next step: **Phase 1 of the build plan**, the architecture proposal (no code), for approval.
-- Domains qrfinity.com, qrfinity.link and qrfinity.ca are chosen but not yet registered.
+- Domains qrfinity.com, qrfinity.link and qrfinity.ca are registered. Exact-name trademark searches (USPTO, CIPO) came back clear.
 
 ## Non-negotiables
 
