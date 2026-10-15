@@ -11,7 +11,7 @@ A free QR code generator whose codes never expire, built as an organic traffic m
 ## Where things stand
 
 - Repo is new. Brand and final logo are done; no app code yet.
-- Next step: **Phase 1 of the build plan**, the architecture proposal (no code), for approval.
+- Phase 1 architecture proposal is written in `docs/architecture.md` and **awaits approval**. Next after approval: Phase 2.
 - Domains qrfinity.com, qrfinity.link and qrfinity.ca are registered. Exact-name trademark searches (USPTO, CIPO) came back clear.
 
 ## Non-negotiables

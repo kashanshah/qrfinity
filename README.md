@@ -7,6 +7,7 @@
 | Path | What |
 | --- | --- |
 | `docs/build-plan.md` | Phased build plan (architecture → static generator → dynamic codes → abuse protection → SEO pages → monetization hooks) |
+| `docs/architecture.md` | Phase 1 architecture proposal: hosting, redirect service, data, auth, costs |
 | `docs/decisions.md` | Research and decisions: market, ranking strategy, costs, pricing, naming |
 | `brand/BRAND.md` | Brand book: voice, logo, colour, type, spacing, components |
 | `brand/tokens.json` / `brand/tokens.css` | Design tokens (light + dark) and the compiled CSS variables |
@@ -15,4 +16,4 @@
 
 ## Status
 
-Brand done. App development starts with Phase 1 of the build plan.
+Brand done. Phase 1 architecture proposal is in `docs/architecture.md`, awaiting approval.
