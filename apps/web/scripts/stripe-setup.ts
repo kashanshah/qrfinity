@@ -41,7 +41,6 @@ const WEBHOOK_EVENTS: Stripe.WebhookEndpointCreateParams.EnabledEvent[] = [
   'customer.subscription.resumed',
 ]
 
-const codes = (n: number) => (Number.isFinite(n) ? `${n} codes` : 'every code')
 async function main() {
   console.log(`Stripe ${key!.includes('_live_') ? 'LIVE' : 'test'} mode\n`)
   const existing = await stripe.products.list({ limit: 100 })
