@@ -1,0 +1,235 @@
+/**
+ * The contact card page, as HTML. Shared by the redirect Worker (which serves it on the short
+ * domain) and the dashboard (which previews it). Self-contained: inline CSS, no scripts, no
+ * external assets. Every value is escaped; links are tel:, mailto: or http(s) only.
+ */
+import { contrastRatio, isHexColor, normalizeHex, parseHex } from '../color'
+import type { VcardFields } from '../content'
+
+export const PAGE_TEMPLATES = ['classic', 'banner', 'centered', 'minimal'] as const
+export type PageTemplate = (typeof PAGE_TEMPLATES)[number]
+
+export const PAGE_TEMPLATE_LABEL: Record<PageTemplate, { name: string; hint: string }> = {
+  classic: { name: 'Classic', hint: 'A card with your initials' },
+  banner: { name: 'Banner', hint: 'A colour band across the top' },
+  centered: { name: 'Centered', hint: 'Like a printed business card' },
+  minimal: { name: 'Minimal', hint: 'Just your details, no card' },
+}
+
+/** How a contact page looks. `accent` is #rrggbb, or null to match the printed code. */
+export type PageStyle = { template: PageTemplate; accent: string | null }
+
+export const DEFAULT_PAGE_STYLE: PageStyle = { template: 'classic', accent: null }
+
+/** Brand evergreen: the accent when the code's own colour is black, grey or missing. */
+export const BRAND_ACCENT = '#0f5132'
+
+export function isPageTemplate(v: unknown): v is PageTemplate {
+  return (PAGE_TEMPLATES as readonly unknown[]).includes(v)
+}
+
+export function cleanPageStyle(input: unknown): PageStyle {
+  const s = (input && typeof input === 'object' ? input : {}) as Record<string, unknown>
+  return {
+    template: isPageTemplate(s.template) ? s.template : 'classic',
+    accent: typeof s.accent === 'string' && isHexColor(s.accent) ? normalizeHex(s.accent) : null,
+  }
+}
+
+/** A colour with some hue; black, white and greys make a dull accent. */
+function hasHue(hex: string) {
+  const { r, g, b } = parseHex(hex)
+  return Math.max(r, g, b) - Math.min(r, g, b) > 40
+}
+
+/**
+ * The accent to use: the chosen colour, else the printed code's colour if it has a hue, else
+ * the brand green.
+ */
+export function resolveAccent(accent: string | null, codeColor?: string | null): string {
+  if (accent && isHexColor(accent)) return normalizeHex(accent)
+  if (codeColor && isHexColor(codeColor) && hasHue(codeColor)) return normalizeHex(codeColor)
+  return BRAND_ACCENT
+}
+
+function mix(hex: string, toward: string, t: number) {
+  const a = parseHex(hex)
+  const b = parseHex(toward)
+  const c = (x: number, y: number) =>
+    Math.round(x + (y - x) * t)
+      .toString(16)
+      .padStart(2, '0')
+  return `#${c(a.r, b.r)}${c(a.g, b.g)}${c(a.b, b.b)}`
+}
+
+/** Darkens (on light) or lightens (on dark) until text in the accent is readable (4.5:1). */
+export function readableAccent(accent: string, background: string): string {
+  const toward =
+    contrastRatio(background, '#ffffff') > contrastRatio(background, '#000000')
+      ? '#ffffff'
+      : '#000000'
+  let out = normalizeHex(accent)
+  for (let t = 0.1; contrastRatio(out, background) < 4.5 && t <= 1; t += 0.1)
+    out = mix(accent, toward, t)
+  return out
+}
+
+/** Text colour on an accent-coloured button or band. */
+const onAccent = (accent: string) =>
+  contrastRatio(accent, '#ffffff') >= contrastRatio(accent, '#14201a') ? '#ffffff' : '#14201a'
+
+const LIGHT = {
+  ground: '#fafaf7',
+  surface: '#ffffff',
+  sunk: '#eff1ea',
+  ink: '#14201a',
+  muted: '#4f5b54',
+  hairline: '#c9cec4',
+  mint: '#d7ece0',
+}
+const DARK = {
+  ground: '#0e1411',
+  surface: '#151d19',
+  sunk: '#1c2621',
+  ink: '#eef2ee',
+  muted: '#a3b0a8',
+  hairline: '#3a4842',
+  mint: '#1f3a2d',
+}
+
+function vars(c: typeof LIGHT, accent: string) {
+  const a = readableAccent(accent, c.surface)
+  return `--ground:${c.ground};--surface:${c.surface};--sunk:${c.sunk};--ink:${c.ink};--muted:${c.muted};--hairline:${c.hairline};--mint:${c.mint};--accent:${a};--on-accent:${onAccent(a)}`
+}
+
+function esc(s: string) {
+  return s.replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!,
+  )
+}
+
+const telHref = (phone: string) => {
+  const t = phone.trim()
+  return `tel:${(t.startsWith('+') ? '+' : '') + t.replace(/[^\d]/g, '')}`
+}
+
+const webHref = (url: string) => {
+  let v = url.trim()
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(v)) v = `https://${v}`
+  try {
+    const u = new URL(v)
+    return u.protocol === 'https:' || u.protocol === 'http:' ? u.toString() : null
+  } catch {
+    return null
+  }
+}
+
+const CSS = `
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:16px/26px system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:480px;margin:0 auto;padding:32px 16px}
+.card{background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:24px;overflow:hidden}
+.av{width:64px;height:64px;border-radius:50%;background:var(--mint);color:var(--ink);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;letter-spacing:.5px;flex:none}
+h1{font-size:28px;line-height:34px;margin:16px 0 4px;letter-spacing:-.4px;overflow-wrap:anywhere}
+.role{margin:0;color:var(--muted)}
+.save{display:flex;align-items:center;justify-content:center;min-height:48px;margin:24px 0 8px;border-radius:10px;background:var(--accent);color:var(--on-accent);font-weight:700;text-decoration:none}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+ul{list-style:none;margin:16px 0 0;padding:0}
+li{display:flex;flex-direction:column;padding:12px 0;border-top:1px solid var(--hairline)}
+.k{font-size:14px;line-height:20px;color:var(--muted)}
+li a{color:var(--accent);font-weight:600;text-decoration:none;overflow-wrap:anywhere}
+.note{margin:16px 0 0;padding:12px 16px;border-radius:10px;background:var(--sunk);white-space:pre-line;overflow-wrap:anywhere}
+footer{margin-top:24px;font-size:14px;line-height:22px;color:var(--muted)}
+footer a{color:var(--accent)}
+.t-banner .card{padding:0}
+.t-banner .band{height:96px;background:var(--accent)}
+.t-banner .body{padding:0 24px 24px}
+.t-banner .av{width:88px;height:88px;font-size:32px;margin-top:-44px;border:4px solid var(--surface);background:var(--sunk)}
+.t-centered .card{text-align:center}
+.t-centered .av{margin:0 auto}
+.t-centered li{align-items:center}
+.t-centered .note{text-align:left}
+.t-centered footer{text-align:center}
+.t-minimal main{padding-top:48px}
+.t-minimal .card{background:none;border:0;padding:0;border-radius:0}
+.t-minimal .av{display:none}
+.t-minimal h1{font-size:36px;line-height:42px;margin-top:0}
+.t-minimal .role{font-size:18px}
+.t-minimal .save{background:none;color:var(--accent);border:2px solid var(--accent)}
+.t-minimal li{border-top:0;padding:8px 0}
+.t-minimal ul{margin-top:24px;border-left:3px solid var(--accent);padding-left:16px}
+`
+
+/** The contact page for a card. `slug` builds the .vcf and report links. */
+export function renderContactPage(input: {
+  fields: VcardFields
+  style: PageStyle
+  /** Resolved accent (see resolveAccent). */
+  accent: string
+  slug: string
+  siteOrigin: string
+  /** Previews only: show one colour scheme instead of following the device. */
+  scheme?: 'light' | 'dark'
+}): string {
+  const f = Object.fromEntries(
+    Object.entries(input.fields).map(([k, v]) => [k, String(v ?? '').trim()]),
+  ) as VcardFields
+  const name = [f.firstName, f.lastName].filter(Boolean).join(' ') || f.organization
+  const initials =
+    (f.firstName || f.lastName
+      ? `${f.firstName.charAt(0)}${f.lastName.charAt(0)}`
+      : f.organization.charAt(0)
+    ).toUpperCase() || '?'
+  const role = [f.title, f.firstName || f.lastName ? f.organization : '']
+    .filter(Boolean)
+    .join(' · ')
+  const address = [f.street, f.city, f.region, f.postalCode, f.country].filter(Boolean).join(', ')
+  const website = f.website ? webHref(f.website) : null
+
+  const rows: string[] = []
+  const row = (label: string, value: string, href: string | null) =>
+    rows.push(
+      `<li><span class="k">${esc(label)}</span>${
+        href
+          ? `<a href="${esc(href)}" rel="nofollow noopener">${esc(value)}</a>`
+          : `<span>${esc(value)}</span>`
+      }</li>`,
+    )
+  if (f.mobile) row('Mobile', f.mobile, telHref(f.mobile))
+  if (f.workPhone) row('Work', f.workPhone, telHref(f.workPhone))
+  if (f.email) row('Email', f.email, `mailto:${f.email}`)
+  if (website) row('Website', f.website.replace(/^https?:\/\/(www\.)?/i, ''), website)
+  if (address)
+    row(
+      'Address',
+      address,
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`,
+    )
+
+  const template = isPageTemplate(input.style.template) ? input.style.template : 'classic'
+  const accent = isHexColor(input.accent) ? normalizeHex(input.accent) : BRAND_ACCENT
+  const report = `${input.siteOrigin}/report?code=${encodeURIComponent(input.slug)}`
+  const details = `<div class="av" aria-hidden="true">${esc(initials.slice(0, 2))}</div>
+<h1>${esc(name)}</h1>${role ? `<p class="role">${esc(role)}</p>` : ''}
+<a class="save" href="/${esc(encodeURIComponent(input.slug))}.vcf">Save contact</a>
+${rows.length ? `<ul>${rows.join('')}</ul>` : ''}${f.note ? `<p class="note">${esc(f.note)}</p>` : ''}`
+
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>${esc(name)}</title>
+<meta name="color-scheme" content="light dark">
+<style>
+${
+  input.scheme
+    ? `:root{${vars(input.scheme === 'dark' ? DARK : LIGHT, accent)}}`
+    : `:root{${vars(LIGHT, accent)}}
+@media (prefers-color-scheme:dark){:root{${vars(DARK, accent)}}}`
+}
+${CSS}</style></head>
+<body class="t-${template}"><main><div class="card">${
+    template === 'banner' ? `<div class="band"></div><div class="body">${details}</div>` : details
+  }</div>
+<footer>Contact card by QRfinity, a free QR code generator. <a href="${esc(report)}" rel="nofollow">Report this page</a></footer>
+</main></body></html>`
+}

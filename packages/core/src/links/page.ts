@@ -10,11 +10,16 @@ import {
   type ContentType,
   type VcardFields,
 } from '../content'
+import { cleanPageStyle, type PageStyle } from './page-html'
 
 export const PAGE_TYPES = ['vcard'] as const satisfies readonly ContentType[]
 export type PageType = (typeof PAGE_TYPES)[number]
 
-export type HostedPage = { type: 'vcard'; fields: VcardFields }
+/**
+ * A contact card. In the edge record, `style.accent` is already resolved to a colour; in the
+ * database it may be null ("match the printed code").
+ */
+export type HostedPage = { type: 'vcard'; fields: VcardFields; style?: PageStyle }
 
 const FIELD_MAX = 300
 const NOTE_MAX = 1000
@@ -40,7 +45,9 @@ export function parsePage(value: unknown): HostedPage | undefined {
   const v = value as { type?: unknown; fields?: unknown }
   if (v.type !== 'vcard') return undefined
   const fields = cleanVcardFields(v.fields)
-  return encodeContent('vcard', fields).ok ? { type: 'vcard', fields } : undefined
+  if (!encodeContent('vcard', fields).ok) return undefined
+  const style = (value as { style?: unknown }).style
+  return { type: 'vcard', fields, ...(style ? { style: cleanPageStyle(style) } : {}) }
 }
 
 /** The .vcf file served for "Save contact" (vCard 3.0, CRLF line endings as the spec asks). */

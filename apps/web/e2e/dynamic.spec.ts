@@ -196,6 +196,15 @@ test('a dynamic contact card opens a contact page you can update', async ({ page
   expect(vcf.headers()['content-type']).toBe('text/vcard; charset=utf-8')
   expect(await vcf.text()).toContain('FN:Jane Doe')
 
+  // Pick a template: the live page uses it.
+  await expect(page.getByTitle('Contact page preview')).toBeVisible()
+  await page.getByRole('radio', { name: 'Banner' }).check({ force: true })
+  await page.getByRole('button', { name: 'Save look' }).click()
+  await expect(page.getByText('Saved. Scans show the new look')).toBeVisible()
+  await expect
+    .poll(async () => (await (await request.get(link)).text()).includes('class="t-banner"'))
+    .toBe(true)
+
   // Update the card: same printed code, new details.
   await page.getByLabel('Last name').fill('Smith')
   await page.getByRole('button', { name: 'Save changes' }).click()

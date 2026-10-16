@@ -8,6 +8,7 @@ import type {
   ContentType,
   Design,
   LinkStatus,
+  PageStyle,
   PaidPlan,
   Plan,
   RedirectRule,
@@ -116,7 +117,10 @@ export const verification = pgTable(
 // ---- Codes
 
 export type CodeKind = 'static' | 'dynamic'
-export type CodeContent = { [K in ContentType]: { type: K; fields: ContentFields[K] } }[ContentType]
+/** What a code holds. Contact cards also keep how their page looks (`style`). */
+export type CodeContent = {
+  [K in ContentType]: { type: K; fields: ContentFields[K]; style?: PageStyle }
+}[ContentType]
 
 export const folders = pgTable(
   'folders',
