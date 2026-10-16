@@ -1,0 +1,51 @@
+export const faq = [
+  {
+    q: 'Which apps can read this Pix code?',
+    a: 'Any bank or payment app in Brazil that offers Pix. The code follows the central bank’s BR Code standard for static Pix codes, so it works whichever bank you use yourself.',
+  },
+  {
+    q: 'Which Pix key can I use?',
+    a: 'Any key registered to your account: CPF, CNPJ, email, phone number or random key (chave aleatória). Write a phone key with +55, like +55 11 91234 5678.',
+  },
+  {
+    q: 'Does the code need my name and city?',
+    a: 'Yes, the Pix standard asks for both. Before paying, the payer’s app also shows the name registered with your key, so use the same name. Accents are removed automatically, as the standard requires.',
+  },
+  {
+    q: 'What’s the difference from a Pix code my bank makes?',
+    a: 'Banks can also make dynamic Pix codes, which carry a transaction ID so each payment matches an order. Ours are static: the same code takes any number of payments, for a fixed or open amount. For one code on a counter or a poster, static is what you want.',
+  },
+  {
+    q: 'Is my Pix key sent to QRfinity?',
+    a: 'No. The code is made entirely in your browser, and your key, name and amount never reach our servers. We never handle the payment either.',
+  },
+]
+
+## What a Pix QR code does
+
+A Pix QR code lets anyone in Brazil pay you from their bank app in seconds. They scan, check your name and the amount, confirm, and the money arrives in your account at once, any day and at any hour. Nobody has to type a CPF or a long random key.
+
+Market stalls, hairdressers, food trucks, freelancers and churches put them on counters, invoices, delivery bags and donation posters.
+
+## How to make a Pix QR code
+
+1. **Check that Payment and Pix are selected.** This page loads the Payment type with Pix chosen.
+2. **Enter your Pix key.** CPF, CNPJ, email, phone with +55, or random key.
+3. **Add your name and city.** Use the name registered with your key, so it matches what the payer’s bank shows.
+4. **Add an amount and a message, if you want them.** A fixed amount suits a set price; leave it empty for tips and bills that vary.
+5. **Make it yours, then test it.** Pick colours and a frame like “Pague com Pix”. Pay yourself a small amount from another bank app before you print.
+
+<Screenshot name="pix" alt="The QRfinity generator with Payment selected, Pix chosen, a Pix key, name and city filled in, and a code with the Pix logo in the middle." />
+
+## Design and print tips
+
+- **Write the frame in Portuguese.** “Pague com Pix” or “Aponte a câmera e pague” works as frame text, accents included; it’s drawn as shapes, so it prints the same everywhere.
+- **Show your name beside the code.** Payers can match it with the name their bank shows before they confirm.
+- **Make tampering obvious.** Print the code into the sign or laminate it, and check it regularly for stickers on top.
+- **Size it for the distance.** 2.5 cm is enough on an invoice, 4 to 5 cm on a counter, and 20 cm or more on a poster.
+
+## Static or dynamic?
+
+<Recommendation pick="static">
+Bank apps only pay Pix codes that hold the BR Code directly, so a Pix code made here is always static. It keeps working for as long as your Pix key is registered, with nothing in between.
+</Recommendation>

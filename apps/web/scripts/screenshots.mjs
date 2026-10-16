@@ -62,6 +62,25 @@ const FILLS = {
   'payment-link': [['Website address', 'https://buy.stripe.com/test_maplecafe']],
   'amazon-review': [['Website address', 'https://maplecafe.ca/setup-guide']],
   telegram: [['Username or profile link', 'maplecafe']],
+  paypal: [
+    ['PayPal.Me name or link', 'MapleCafeTO'],
+    ['Amount (optional)', '12.50'],
+  ],
+  venmo: [['Venmo username or link', 'maple-cafe']],
+  'cash-app': [
+    ['$Cashtag or link', '$maplecafe'],
+    ['Amount (optional)', '5'],
+  ],
+  upi: [
+    ['UPI ID', 'chaicorner@okhdfcbank'],
+    ['Name people see', 'Chai Corner'],
+    ['Amount (optional)', '40'],
+  ],
+  pix: [
+    ['Pix key', 'contato@cafebordo.com.br'],
+    ['Name on the account', 'Café Bordô'],
+    ['City', 'São Paulo'],
+  ],
   // Restyles an uploaded code instead of filling a form (see below).
   wechat: [],
   bulk: [],

@@ -4,7 +4,14 @@
  * common formats other generators use (MATMSG email, `sms:` links, `geo:` points, vCards with
  * folded lines, events wrapped in VCALENDAR).
  */
-import { DEFAULT_FIELDS, normalizeWebUrl, type ContentFields, type ContentType } from './index'
+import {
+  DEFAULT_FIELDS,
+  encodeContent,
+  normalizeWebUrl,
+  type ContentFields,
+  type ContentType,
+} from './index'
+import { parsePayment } from './payment'
 
 export type ParsedContent = {
   [K in ContentType]: { type: K; fields: ContentFields[K] }
@@ -22,6 +29,13 @@ export function parseContent(raw: string): ParsedContent {
   const text = raw.trim()
   if (!text) return with_('text', { text: raw })
   const upper = text.toUpperCase()
+
+  // Payment codes count only if re-making them gives back exactly the same code.
+  const payment = parsePayment(text)
+  if (payment) {
+    const again = encodeContent('payment', payment)
+    if (again.ok && again.payload === text) return with_('payment', payment)
+  }
 
   if (upper.startsWith('WIFI:')) return parseWifi(text)
   if (upper.startsWith('BEGIN:VCARD')) return parseVcard(text)

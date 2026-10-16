@@ -155,6 +155,35 @@ test('saves a design in this browser and applies it later', async ({ page, isMob
   await expect(page.getByRole('radio', { name: 'Dots' })).toBeChecked()
 })
 
+test('a Pix payment code encodes and scans', async ({ page }) => {
+  await page.goto('/qr-code-generator/pix')
+  // Typing before React is up would be lost: retry until the key sticks.
+  const key = page.getByLabel('Pix key')
+  await expect(async () => {
+    await key.fill('+55 11 91234 5678')
+    await expect(key).toHaveValue('+55 11 91234 5678', { timeout: 500 })
+    await page.waitForTimeout(300)
+    await expect(key).toHaveValue('+55 11 91234 5678', { timeout: 100 })
+  }).toPass()
+  await page.getByLabel('Name on the account').fill('Café Bordô')
+  await page.getByLabel('City', { exact: true }).fill('São Paulo')
+  await page.getByLabel('Amount (optional)').fill('12,50')
+  await expectScans(page)
+  // UPI and Pix are read by the payer's app, so their pages make static codes only.
+  await expect(page.getByRole('radio', { name: /^Dynamic/ })).toHaveCount(0)
+})
+
+test('dynamic payment codes offer only link methods', async ({ page }) => {
+  await openGenerator(page)
+  await page.getByRole('radio', { name: /^Dynamic/ }).check({ force: true })
+  await page.getByRole('radio', { name: 'Payment' }).check({ force: true })
+  await expect(page.getByLabel('Pay with').locator('option')).toHaveText([
+    'PayPal',
+    'Venmo',
+    'Cash App',
+  ])
+})
+
 test('frame text in any language is drawn as outlines and still scans', async ({
   page,
   isMobile,

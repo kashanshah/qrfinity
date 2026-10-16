@@ -80,10 +80,10 @@ visitors going on to make a code.
 Same template as today: preset generator, unique copy, FAQ, structured data. Pick from the appendix
 after the Keyword Planner check. The strongest candidates by intent:
 
-- **Payments:** PayPal, Venmo, Cash App, UPI (India), Pix (Brazil), crypto wallet. PayPal, Venmo
-  and Cash App are links; UPI (`upi://pay?…`) and Pix (an EMV "BR Code" payload) need their own
-  encoders in `packages/core`, a small content-type addition each.
-- **Social and apps not yet covered:** TikTok, LinkedIn, Facebook, X, Telegram, Snapchat, Pinterest,
+- **Payments:** done (2026-10-16): PayPal, Venmo, Cash App, UPI and Pix pages on a new Payment
+  content type (`packages/core/src/content/payment.ts`; UPI and Pix are static only). Left: crypto
+  wallet.
+- **Social and apps not yet covered:** TikTok, LinkedIn, Facebook, X, Snapchat, Pinterest,
   Reddit, Discord.
 - **Work tools:** Google Forms, Google Docs/Drive, Calendly, Zoom/Teams meeting, Linktree-style
   "all my links".

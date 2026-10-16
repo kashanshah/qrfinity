@@ -1,6 +1,6 @@
 'use client'
 
-import { DYNAMIC_TYPES, formatPrintSize, parseContent, type TestCheck } from '@qrfinity/core'
+import { canBeDynamic, formatPrintSize, parseContent, type TestCheck } from '@qrfinity/core'
 import { CircleCheck, CircleX, RotateCcw, TriangleAlert } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { Generator } from '@/components/generator/Generator'
@@ -190,7 +190,7 @@ function Report({
               fields: { [parsed.type]: parsed.fields },
               kind: 'static',
             }}
-            kindChoice={DYNAMIC_TYPES.includes(parsed.type)}
+            kindChoice={canBeDynamic(parsed.type, parsed.fields)}
             shortLinkBase={shortLinkBase}
           />
         ) : (

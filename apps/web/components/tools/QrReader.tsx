@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  DYNAMIC_TYPES,
+  canBeDynamic,
   identifyQrService,
   isQrfinityLink,
   parseContent,
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
-import { CONTENT_TYPE_OPTIONS } from '@/components/generator/ContentForm'
+import { CONTENT_TYPE_OPTIONS, PAYMENT_LABELS } from '@/components/generator/ContentForm'
 import { Generator } from '@/components/generator/Generator'
 import { Button } from '@/components/ui/Button'
 import { track } from '@/lib/analytics'
@@ -381,6 +381,18 @@ export function details(p: ParsedContent): [string, string][] {
       ])
     case 'social':
       return rows([['Profile', p.fields.handle]])
+    case 'payment':
+      return rows([
+        ['Pay with', PAYMENT_LABELS[p.fields.method]],
+        [
+          p.fields.method === 'pix' ? 'Pix key' : p.fields.method === 'upi' ? 'UPI ID' : 'Account',
+          p.fields.account,
+        ],
+        ['Name', p.fields.name],
+        ['City', p.fields.city],
+        ['Amount', p.fields.amount],
+        ['Note', p.fields.note],
+      ])
   }
 }
 
@@ -451,7 +463,7 @@ function Result({
         type: parsed.type,
         fields: { [parsed.type]: parsed.fields },
         kind:
-          mode === 'checker' && DYNAMIC_TYPES.includes(parsed.type)
+          mode === 'checker' && canBeDynamic(parsed.type, parsed.fields)
             ? ('dynamic' as const)
             : ('static' as const),
       }
@@ -586,7 +598,7 @@ function Result({
           <Generator
             key={finalUrl}
             init={init}
-            kindChoice={DYNAMIC_TYPES.includes(init.type)}
+            kindChoice={redirects || canBeDynamic(parsed.type, parsed.fields)}
             shortLinkBase={shortLinkBase}
           />
         ) : (

@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url'
 import {
   mdiCalendarMonth,
   mdiCardAccountDetails,
+  mdiCash,
   mdiEmail,
   mdiLinkVariant,
   mdiMapMarker,
@@ -50,6 +51,10 @@ const ICONS = {
   xiaohongshu: { icon: si.siXiaohongshu, bg: '#FF2442', mark: '#FFFFFF' },
   wechat: { icon: si.siWechat },
   alipay: { icon: si.siAlipay },
+  paypal: { icon: si.siPaypal },
+  venmo: { icon: si.siVenmo },
+  cashapp: { icon: si.siCashapp },
+  pix: { icon: si.siPix },
   spotify: { icon: si.siSpotify },
   appstore: { icon: si.siAppstore },
   googleplay: { icon: si.siGoogleplay },
@@ -68,6 +73,7 @@ const ICONS = {
       location: ['Location', mdiMapMarker],
       event: ['Event', mdiCalendarMonth],
       text: ['Text', mdiTextBox],
+      payment: ['Payment', mdiCash],
     }).map(([id, [title, path]]) => [
       id,
       { icon: { title, path, hex: 'FFFFFF' }, bg: '#14201A', mark: '#FFFFFF' },

@@ -3,7 +3,12 @@
  * The sitemap, metadata, breadcrumbs, related links and footer all read from here.
  * Titles stay ≤ 60 characters and descriptions ≤ 155 (enforced by test/registry.test.ts).
  */
-import type { ContentFields, ContentType } from '@qrfinity/core'
+import {
+  DEFAULT_PAYMENT,
+  type ContentFields,
+  type ContentType,
+  type PaymentMethod,
+} from '@qrfinity/core'
 
 export const SITE_URL = 'https://qrfinity.com'
 export const SITE_NAME = 'QRfinity'
@@ -49,6 +54,11 @@ export type ContentPage = {
 }
 
 const U = '2026-10-16'
+
+const payment = (method: PaymentMethod): GeneratorPreset => ({
+  type: 'payment',
+  fields: { payment: { ...DEFAULT_PAYMENT, method } },
+})
 
 const makeUseCase = (
   slug: string,
@@ -270,8 +280,63 @@ export const USE_CASES: ContentPage[] = [
     'Turn a PayPal, Stripe or Square payment link into a QR code customers scan to pay. Free to make; your payment provider handles the money.',
     'Customers scan and pay through the provider you already use.',
     { type: 'url' },
-    ['menu', 'url', 'whatsapp'],
+    ['paypal', 'cash-app', 'menu'],
     ['static-vs-dynamic-qr-codes', 'qr-code-design-best-practices'],
+  ),
+  makeUseCase(
+    'paypal',
+    'PayPal',
+    'Free PayPal QR code generator',
+    'Free PayPal QR code generator for PayPal.Me links',
+    'Make a QR code that opens your PayPal.Me link, with an amount filled in if you like. People scan and pay in PayPal. Free, no watermark.',
+    'Scan to pay you on PayPal, with the amount already filled in.',
+    payment('paypal'),
+    ['venmo', 'cash-app', 'payment-link'],
+    ['static-vs-dynamic-qr-codes', 'qr-code-design-best-practices'],
+  ),
+  makeUseCase(
+    'venmo',
+    'Venmo',
+    'Free Venmo QR code generator',
+    'Free Venmo QR code generator for your profile',
+    'Make a QR code that opens your Venmo profile so people can pay you in the app. Add your colours and a “Pay with Venmo” frame. Free.',
+    'Scan to open your Venmo profile and pay you in a few taps.',
+    payment('venmo'),
+    ['cash-app', 'paypal', 'payment-link'],
+    ['static-vs-dynamic-qr-codes', 'qr-code-size-for-print'],
+  ),
+  makeUseCase(
+    'cash-app',
+    'Cash App',
+    'Free Cash App QR code generator',
+    'Free Cash App QR code generator for your $Cashtag',
+    'Make a QR code that opens your $Cashtag in Cash App, with an amount if you want one. Free, in your colours, with no watermark.',
+    'Scan to pay your $Cashtag, with the amount already filled in.',
+    payment('cashapp'),
+    ['venmo', 'paypal', 'payment-link'],
+    ['static-vs-dynamic-qr-codes', 'qr-code-design-best-practices'],
+  ),
+  makeUseCase(
+    'upi',
+    'UPI',
+    'Free UPI QR code generator',
+    'Free UPI QR code generator for any UPI app',
+    'Make a UPI QR code from your UPI ID. People pay you from Google Pay, PhonePe, Paytm, BHIM or their bank’s app. Free, made in your browser.',
+    'Scan with any UPI app to pay straight into your bank account.',
+    { ...payment('upi'), kind: 'static' },
+    ['pix', 'wechat', 'payment-link'],
+    ['qr-code-size-for-print', 'qr-code-design-best-practices'],
+  ),
+  makeUseCase(
+    'pix',
+    'Pix',
+    'Free Pix QR code generator',
+    'Free Pix QR code generator for your Pix key',
+    'Make a static Pix QR code from your Pix key, with a fixed amount or an open one. Any bank app with Pix can read it. Free, no sign-up.',
+    'Scan with any Brazilian bank app to pay you by Pix.',
+    { ...payment('pix'), kind: 'static' },
+    ['upi', 'whatsapp', 'payment-link'],
+    ['qr-code-size-for-print', 'qr-code-design-best-practices'],
   ),
   makeUseCase(
     'amazon-review',
