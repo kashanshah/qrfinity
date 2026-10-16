@@ -7,9 +7,11 @@ import {
   parseLinkRecord,
   parseUserAgent,
   pickDestination,
+  vcardFile,
+  vcardFileName,
   type LinkRecord,
 } from '@qrfinity/core/edge'
-import { disabledPage, notFoundPage, pausedPage } from './pages'
+import { contactPage, disabledPage, notFoundPage, pausedPage } from './pages'
 
 export type RedirectDeps = {
   defaultDomain: string
@@ -90,7 +92,10 @@ export async function handleRequest(request: Request, deps: RedirectDeps): Promi
     })
   }
 
-  const slug = url.pathname.slice(1).replace(/\/$/, '')
+  const path = url.pathname.slice(1).replace(/\/$/, '')
+  // "Save contact" on a contact card downloads /{slug}.vcf.
+  const wantsVcf = path.endsWith('.vcf')
+  const slug = wantsVcf ? path.slice(0, -4) : path
   if (!isValidSlug(slug)) return html(notFoundPage(deps.siteOrigin), 404)
 
   const domain = deps.defaultDomain
@@ -98,6 +103,25 @@ export async function handleRequest(request: Request, deps: RedirectDeps): Promi
   if (!record) return html(notFoundPage(deps.siteOrigin, slug), 404)
   if (record.status === 'disabled') return html(disabledPage(deps.siteOrigin, slug), 403)
   if (record.status === 'paused') return html(pausedPage(deps.siteOrigin, slug), 200)
+
+  if (record.page) {
+    if (wantsVcf) {
+      const file = vcardFile(record.page.fields)
+      if (!file) return html(notFoundPage(deps.siteOrigin, slug), 404)
+      return new Response(file, {
+        headers: {
+          ...baseHeaders,
+          'Content-Type': 'text/vcard; charset=utf-8',
+          'Content-Disposition': `inline; filename="${vcardFileName(record.page.fields)}"`,
+        },
+      })
+    }
+    // The page view is the scan; saving the contact afterwards isn't counted again.
+    if (request.method === 'GET')
+      deps.waitUntil(deps.recordScan(request, record, '').catch(() => undefined))
+    return html(contactPage(deps.siteOrigin, slug, record.page.fields), 200)
+  }
+  if (wantsVcf) return html(notFoundPage(deps.siteOrigin, slug), 404)
 
   // Redirect rules: the first that matches the phone, country or time picks the destination.
   const cf = (request as Request & { cf?: { country?: string } }).cf

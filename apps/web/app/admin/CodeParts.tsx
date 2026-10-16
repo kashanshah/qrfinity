@@ -3,12 +3,15 @@ import { StatusPill } from '@/components/dashboard/StatusPill'
 import { shortLinkFor } from '@/lib/short-link'
 import { ActionButton } from './ActionButton'
 import { clearFlagAction, disableCodeAction, restoreCodeAction } from './actions'
+import { codeTarget } from '@/lib/code-target'
 
 export type AdminCode = {
   id: string
   name: string
   slug: string | null
   destination: string | null
+  /** For a contact card code (no destination), its details. */
+  content?: { type: string; fields: unknown } | null
   status: LinkStatus
   riskStatus?: string
   riskDetail?: string | null
@@ -31,7 +34,7 @@ export function CodeSummary({ code, badge = true }: { code: AdminCode; badge?: b
           </span>
         ) : null}
       </p>
-      <p className="break-all text-ink-muted">→ {code.destination}</p>
+      <p className="break-all text-ink-muted">→ {codeTarget(code)}</p>
       {code.disabledReason ? (
         <p className="text-ink-muted">Turned off: {code.disabledReason}</p>
       ) : null}

@@ -204,4 +204,64 @@ describe('redirect worker', () => {
       expect(res.headers.get('location')).toBe('https://example.com/menu')
     })
   })
+
+  describe('contact cards', () => {
+    const card = rec({
+      dest: '',
+      page: {
+        type: 'vcard',
+        fields: {
+          firstName: 'Jane',
+          lastName: 'Doe <b>',
+          organization: 'Acme',
+          title: 'Owner',
+          mobile: '+1 (416) 555-0100',
+          workPhone: '',
+          email: 'jane@acme.example',
+          website: 'acme.example',
+          street: '',
+          city: 'Toronto',
+          region: 'ON',
+          postalCode: '',
+          country: 'Canada',
+          note: 'Call after 9',
+        },
+      },
+    })
+
+    it('shows the contact page, escaped, and counts it as a scan', async () => {
+      const { get, deps } = setup({ kv: { aB3xK9q: card } })
+      const res = await get('/aB3xK9q')
+      expect(res.status).toBe(200)
+      expect(res.headers.get('content-type')).toContain('text/html')
+      const body = await res.text()
+      expect(body).toContain('Jane Doe &lt;b&gt;')
+      expect(body).not.toContain('<b>')
+      expect(body).toContain('href="/aB3xK9q.vcf"')
+      expect(body).toContain('href="tel:+14165550100"')
+      expect(body).toContain('href="mailto:jane@acme.example"')
+      expect(body).toContain('href="https://acme.example/"')
+      expect(body).toContain('Report this page')
+      expect(deps.recordScan).toHaveBeenCalledOnce()
+    })
+
+    it('serves the .vcf without counting another scan', async () => {
+      const { get, deps } = setup({ kv: { aB3xK9q: card } })
+      const res = await get('/aB3xK9q.vcf')
+      expect(res.status).toBe(200)
+      expect(res.headers.get('content-type')).toBe('text/vcard; charset=utf-8')
+      expect(res.headers.get('content-disposition')).toBe('inline; filename="jane-doe-b.vcf"')
+      const vcf = await res.text()
+      expect(vcf).toContain('FN:Jane Doe <b>\r\n')
+      expect(vcf).toContain('TEL;TYPE=CELL:+14165550100')
+      expect(deps.recordScan).not.toHaveBeenCalled()
+    })
+
+    it('gives a .vcf only for contact cards, and respects pause and disable', async () => {
+      const { get } = setup({ kv: { aB3xK9q: rec(), pause01: { ...card, status: 'paused' } } })
+      expect((await get('/aB3xK9q.vcf')).status).toBe(404)
+      const paused = await get('/pause01')
+      expect(await paused.text()).not.toContain('Save contact')
+    })
+  })
 })

@@ -8,6 +8,7 @@ import {
   type EdgeSync,
   type Mailer,
   type UrlReputation,
+  pageWebsite,
 } from '@qrfinity/core'
 import {
   and,
@@ -32,7 +33,7 @@ import {
   type ReportStatus,
   type SQL,
 } from '@qrfinity/db'
-import { syncCode } from './codes'
+import { pageOf, syncCode } from './codes'
 import { codeDisabledEmail } from './emails'
 import { ServiceError } from './errors'
 import { likePattern, lower, paged, type ListOptions, type Orderable } from './listing'
@@ -139,6 +140,7 @@ export async function listReports(
             name: codes.name,
             slug: codes.slug,
             destination: codes.destination,
+            content: codes.content,
             status: codes.status,
           },
           ownerEmail: user.email,
@@ -545,10 +547,26 @@ export async function runRiskChecks(
   const system: AdminContext = { ...ctx, actor: 'system' }
 
   codes: for (const code of due) {
-    if (!code.destination) continue
     const now = new Date()
-    // The main destination and every redirect rule's destination are checked together.
-    const urls = [...new Set([code.destination, ...(code.rules ?? []).map((r) => r.dest)])]
+    // Everything a scan can reach: the destination (or a contact card's website) and every
+    // redirect rule's destination, checked together.
+    const page = pageOf(code)
+    const urls = [
+      ...new Set(
+        [
+          code.destination ?? (page ? pageWebsite(page) : null),
+          ...(code.rules ?? []).map((r) => r.dest),
+        ].filter((u): u is string => !!u),
+      ),
+    ]
+    if (!urls.length) {
+      // A contact card without a website: nothing to look up.
+      await ctx.db
+        .update(codes)
+        .set({ nextRiskCheckAt: nextRiskCheck(3, now) })
+        .where(eq(codes.id, code.id))
+      continue
+    }
     const hit = urls.map((u) => screenDestination(u, list)).find(Boolean)
     if (hit) {
       await ctx.db

@@ -172,3 +172,35 @@ test('redirect rules send each phone to its own store', async ({ page, request }
   await expect(page).toHaveURL(/\/dashboard\/codes\/[0-9a-f-]{36}\?created=1/)
   await expect(page.getByText('advanced features on 1 of 1 code', { exact: false })).toBeVisible()
 })
+
+test('a dynamic contact card opens a contact page you can update', async ({ page, request }) => {
+  await signIn(page, request, `e2e-card-${Date.now()}@example.com`)
+  await page.goto('/dashboard/new')
+  await page.getByRole('radio', { name: 'Contact' }).check({ force: true })
+  await page.getByLabel('First name').fill('Jane')
+  await page.getByLabel('Last name').fill('Doe')
+  await page.getByLabel('Mobile').fill('+1 416 555 0100')
+  await expect(page.getByPlaceholder('Jane Doe')).toBeVisible()
+  await page.getByRole('button', { name: 'Create dynamic code' }).click()
+  await expect(page).toHaveURL(/\/dashboard\/codes\/[0-9a-f-]{36}\?created=1/)
+  const link = `http://${await page.locator('header .mono').first().innerText()}`
+  // A contact card has no redirect rules.
+  await expect(page.getByRole('heading', { name: /Redirect rules/ })).toHaveCount(0)
+
+  const res = await request.get(link, { maxRedirects: 0 })
+  expect(res.status()).toBe(200)
+  const html = await res.text()
+  expect(html).toContain('<h1>Jane Doe</h1>')
+  expect(html).toContain('href="tel:+14165550100"')
+  const vcf = await request.get(`${link}.vcf`)
+  expect(vcf.headers()['content-type']).toBe('text/vcard; charset=utf-8')
+  expect(await vcf.text()).toContain('FN:Jane Doe')
+
+  // Update the card: same printed code, new details.
+  await page.getByLabel('Last name').fill('Smith')
+  await page.getByRole('button', { name: 'Save changes' }).click()
+  await expect(page.getByText('Scans show the updated card')).toBeVisible()
+  await expect
+    .poll(async () => (await (await request.get(link)).text()).includes('<h1>Jane Smith</h1>'))
+    .toBe(true)
+})
