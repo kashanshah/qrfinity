@@ -20,6 +20,7 @@ const COLUMNS = [
       ['/qr-code-stopped-working', 'Code stopped working?'],
       ['/qr-code-checker', 'QR code checker'],
       ['/qr-code-scanner', 'QR code scanner'],
+      ['/qr-code-tester', 'QR code tester'],
       [PRICING.path, PRICING.label],
     ],
   },

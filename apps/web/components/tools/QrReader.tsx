@@ -65,11 +65,17 @@ export function QrInput({
   heading,
   onFound,
   onRead,
+  analyze,
 }: {
   heading: string
   onFound: (text: string) => void
   /** Every read attempt, found or not (for analytics). */
   onRead?: (source: 'image' | 'camera', text: string | null) => void
+  /**
+   * Takes over reading the image (the tester measures the design, not just the text): resolves
+   * to the code's text, or null when there's none. Hides the camera, which can't test a design.
+   */
+  analyze?: (file: Blob) => Promise<string | null>
 }) {
   const [phase, setPhase] = useState<Phase>({ s: 'idle' })
   const fileInput = useRef<HTMLInputElement>(null)
@@ -83,7 +89,7 @@ export function QrInput({
       }
       setPhase({ s: 'reading' })
       try {
-        const text = await decodeImageFile(file)
+        const text = analyze ? await analyze(file) : await decodeImageFile(file)
         onRead?.('image', text)
         if (text === null) {
           setPhase({
@@ -99,7 +105,7 @@ export function QrInput({
         setPhase({ s: 'none', message: 'That image couldn’t be opened. Try a JPG or PNG.' })
       }
     },
-    [onFound, onRead],
+    [onFound, onRead, analyze],
   )
 
   // Paste a screenshot anywhere on the page.
@@ -142,8 +148,9 @@ export function QrInput({
       >
         <p className="subheading text-ink">{heading}</p>
         <p className="body-small max-w-[48ch] text-ink-muted">
-          Drop an image here, paste a screenshot, or use your camera. The image is read in your
-          browser and never uploaded.
+          {analyze
+            ? 'Drop your design here (PNG, JPG or a screenshot), or paste it. It’s tested in your browser and never uploaded.'
+            : 'Drop an image here, paste a screenshot, or use your camera. The image is read in your browser and never uploaded.'}
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           <Button
@@ -153,12 +160,14 @@ export function QrInput({
           >
             Choose an image
           </Button>
-          <Button
-            icon={<Camera aria-hidden="true" size={18} strokeWidth={1.75} />}
-            onClick={() => setPhase({ s: 'camera' })}
-          >
-            Use the camera
-          </Button>
+          {analyze ? null : (
+            <Button
+              icon={<Camera aria-hidden="true" size={18} strokeWidth={1.75} />}
+              onClick={() => setPhase({ s: 'camera' })}
+            >
+              Use the camera
+            </Button>
+          )}
         </div>
         <label htmlFor={inputId} className="sr-only">
           QR code image
@@ -300,10 +309,10 @@ function CameraScan({
 // ---------------------------------------------------------------------------
 // Result
 
-const TYPE_LABEL = Object.fromEntries(CONTENT_TYPE_OPTIONS.map((o) => [o.value, o.label]))
+export const TYPE_LABEL = Object.fromEntries(CONTENT_TYPE_OPTIONS.map((o) => [o.value, o.label]))
 
 /** The code's content as label/value rows, in the words the generator uses. */
-function details(p: ParsedContent): [string, string][] {
+export function details(p: ParsedContent): [string, string][] {
   const rows = (pairs: [string, string | undefined][]) =>
     pairs.filter((r): r is [string, string] => Boolean(r[1]?.trim()))
   switch (p.type) {

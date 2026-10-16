@@ -573,6 +573,19 @@ export const TOOLS: ContentPage[] = [
     related: ['/qr-code-stopped-working', '/dynamic-qr-code-generator', '/qr-code-scanner'],
     guides: ['/guides/do-qr-codes-expire', '/guides/static-vs-dynamic-qr-codes'],
   },
+  {
+    path: '/qr-code-tester',
+    kind: 'tool',
+    label: 'QR code tester',
+    h1: 'QR code tester: will your code scan?',
+    title: 'QR code tester: check if your QR code will scan',
+    description:
+      'Upload a QR code design and test it before you print: contrast, margin, size, blur and error correction, with a plain verdict. Free, in your browser.',
+    intro: 'Test a design before you print it, from any QR code generator.',
+    updated: U,
+    related: ['/qr-code-scanner', '/qr-code-checker', '/qr-code-generator/with-logo'],
+    guides: ['/guides/qr-code-design-best-practices', '/guides/qr-code-size-for-print'],
+  },
 ]
 
 export const PRICING: ContentPage = {

@@ -6,6 +6,15 @@ export async function signIn(
   email: string,
   next = '/dashboard',
 ) {
+  // Links already in the mailbox belong to earlier sign-ins (another test may use the same
+  // account at the same time): wait for a new one, so nobody follows a used link.
+  const links = async () =>
+    (
+      (await (await request.get(`/api/dev/mailbox?to=${encodeURIComponent(email)}`)).json()) as {
+        text: string
+      }[]
+    ).flatMap((m) => m.text.match(/https?:\/\/\S+/)?.[0] ?? [])
+  const before = new Set(await links())
   if (!page.url().includes('/login')) await page.goto(`/login?next=${encodeURIComponent(next)}`)
   await page.getByLabel('Email').fill(email)
   await page.getByRole('button', { name: 'Email me a sign-in link' }).click()
@@ -13,10 +22,7 @@ export async function signIn(
   let link = ''
   await expect
     .poll(async () => {
-      const mail = (await (
-        await request.get(`/api/dev/mailbox?to=${encodeURIComponent(email)}`)
-      ).json()) as { text: string }[]
-      link = mail[0]?.text.match(/https?:\/\/\S+/)?.[0] ?? ''
+      link = (await links()).find((l) => !before.has(l)) ?? ''
       return link
     })
     .not.toBe('')

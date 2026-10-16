@@ -62,7 +62,7 @@ export type AnalyticsEvent =
   | {
       name: 'qr_read'
       props: {
-        tool: 'scanner' | 'checker' | 'restyle'
+        tool: 'scanner' | 'checker' | 'restyle' | 'tester'
         source: 'image' | 'camera'
         found: boolean
         content_type: string | null
@@ -74,6 +74,7 @@ export type AnalyticsEvent =
     }
   | { name: 'checkout_started'; props: { plan: string; interval: 'month' | 'year' } }
   | { name: 'upgrade_prompt_shown'; props: { feature: string } }
+  | { name: 'qr_tested'; props: { verdict: string; warnings: number; failures: number } }
 
 type Gtag = (...args: unknown[]) => void
 type PostHogLike = { capture: (event: string, props?: Record<string, unknown>) => void }
