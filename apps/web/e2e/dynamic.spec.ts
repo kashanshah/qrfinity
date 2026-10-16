@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
-import { scan, setPlan, signIn } from './helpers'
+import { openGenerator, scan, setPlan, signIn } from './helpers'
 
 test('create a dynamic code, scan it, edit the destination, scan again', async ({
   page,
@@ -80,10 +80,8 @@ test('create a dynamic code, scan it, edit the destination, scan again', async (
 
 test('a dynamic code designed on the homepage survives sign-in', async ({ page, request }) => {
   await page.goto('/')
-  // Wait for hydration (the live scan check only runs once React is up) before typing.
-  await expect(
-    page.getByRole('complementary', { name: 'Your QR code' }).getByText('Scans', { exact: true }),
-  ).toBeVisible({ timeout: 15_000 })
+  // Wait for hydration (the typing hint only runs once React is up) before typing.
+  await expect(page.locator('.typing-caret')).toBeVisible()
   await page.getByRole('radio', { name: /^Dynamic/ }).check({ force: true })
   await page.getByLabel('Website address').fill('example.com/from-home')
   await page.getByText('Dots', { exact: true }).click()
@@ -298,7 +296,7 @@ test('a paid plan downloads SVG, PDF and EPS', async ({ page, request }) => {
   const email = `e2e-plus-${Date.now()}@example.com`
   await signIn(page, request, email)
   await setPlan(email, 'plus')
-  await page.goto('/')
+  await openGenerator(page)
   await expect(
     page.getByRole('complementary', { name: 'Your QR code' }).getByText(/^(Scans|Won’t scan)$/),
   ).toHaveText('Scans', { timeout: 15_000 })

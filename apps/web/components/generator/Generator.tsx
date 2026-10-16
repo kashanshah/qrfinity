@@ -67,6 +67,9 @@ export function Generator(props: GeneratorProps) {
   )
 }
 
+// What the placeholder preview encodes before anything is filled in (only to show the design).
+const SAMPLE_PAYLOAD = 'https://qrfinity.com'
+
 // Same length as a real slug, so the preview is exactly as dense as the final code.
 const PLACEHOLDER_SLUG = 'aB3xK9q'
 
@@ -213,6 +216,17 @@ function GeneratorBody({
     ? shortLink.replace(/^https?:\/\//, '')
     : `${new URL(shortLinkBase).host}/·······`
 
+  // Before there's anything to encode, a faded sample in the current design shows the style.
+  const ghostSvg = useMemo(() => {
+    if (ok) return null
+    try {
+      const { scene } = buildScene(SAMPLE_PAYLOAD, design, { frameText: frameText.outline })
+      return sceneToSvg(scene, { width: 600, idPrefix: `${uid}g` })
+    } catch {
+      return null
+    }
+  }, [ok, design, frameText.outline, uid])
+
   const preview = (compact: boolean) => (
     <div className={`rounded-xl bg-surface-sunk ${compact ? 'p-3' : 'p-6'}`}>
       {ok ? (
@@ -224,16 +238,28 @@ function GeneratorBody({
           dangerouslySetInnerHTML={{ __html: compact ? previewSvg!.compact : previewSvg!.full }}
         />
       ) : (
-        <div
-          className={`mx-auto flex aspect-square items-center justify-center rounded-lg border-2 border-dashed border-hairline text-center ${compact ? 'w-28 p-2' : 'w-full max-w-[360px] p-8'}`}
-        >
-          <p className="body-small text-ink-muted">
-            {render.kind === 'too-long'
-              ? 'That’s more than a QR code can hold. Shorten it.'
-              : render.kind === 'invalid'
-                ? 'Check the highlighted field.'
-                : 'Fill in the details to see your code.'}
-          </p>
+        <div className={`relative mx-auto ${compact ? 'w-28' : 'w-full max-w-[360px]'}`}>
+          {ghostSvg ? (
+            <div
+              aria-hidden="true"
+              className="qr-render opacity-20 grayscale"
+              // A sample code drawn by our renderer, only to show the design.
+              dangerouslySetInnerHTML={{ __html: ghostSvg }}
+            />
+          ) : (
+            <div aria-hidden="true" className="aspect-square" />
+          )}
+          <div className="absolute inset-0 flex items-center justify-center p-2 text-center">
+            <p
+              className={`body-small rounded-md bg-surface px-3 py-2 text-ink shadow-card ${compact ? 'sr-only' : ''}`}
+            >
+              {render.kind === 'too-long'
+                ? 'That’s more than a QR code can hold. Shorten it.'
+                : render.kind === 'invalid'
+                  ? 'Check the highlighted field.'
+                  : 'Fill in the details to see your code.'}
+            </p>
+          </div>
         </div>
       )}
     </div>

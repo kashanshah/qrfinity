@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test, type Page } from '@playwright/test'
+import { openGenerator } from './helpers'
 
 const scanBadge = (page: Page) =>
   page
@@ -12,7 +13,7 @@ async function expectScans(page: Page) {
 }
 
 test('default code renders and passes the scan check', async ({ page }) => {
-  await page.goto('/')
+  await openGenerator(page)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'Free QR codes that never expire.',
   )
@@ -23,14 +24,14 @@ test('default code renders and passes the scan check', async ({ page }) => {
 })
 
 test('typing a link updates the code and it still scans', async ({ page }) => {
-  await page.goto('/')
+  await openGenerator(page)
   await page.getByLabel('Website address').fill('example.com/menu')
   await expectScans(page)
 })
 
 test('a low-contrast design fails the scan check', async ({ page, isMobile }) => {
   test.skip(isMobile, 'covered on desktop')
-  await page.goto('/')
+  await openGenerator(page)
   await page.getByText('Colours', { exact: true }).click()
   await page.getByRole('textbox', { name: 'Code colour', exact: true }).fill('#f5c542')
   await expect(scanBadge(page)).toHaveText('Won’t scan', { timeout: 15_000 })
@@ -40,7 +41,7 @@ test('a low-contrast design fails the scan check', async ({ page, isMobile }) =>
 })
 
 test('Wi-Fi content encodes and scans', async ({ page }) => {
-  await page.goto('/')
+  await openGenerator(page)
   await page.getByRole('radio', { name: 'Wi-Fi' }).check({ force: true })
   await page.getByLabel('Network name (SSID)').fill('Café Guest')
   await page.getByLabel('Password', { exact: true }).fill('welcome123')
@@ -50,7 +51,7 @@ test('Wi-Fi content encodes and scans', async ({ page }) => {
 for (const format of ['PNG', 'JPG'] as const) {
   test(`downloads ${format}`, async ({ page, isMobile }) => {
     test.skip(isMobile, 'covered on desktop')
-    await page.goto('/')
+    await openGenerator(page)
     await expectScans(page)
     const name = format === 'PNG' ? 'Download PNG' : format
     const [download] = await Promise.all([
@@ -67,7 +68,7 @@ for (const format of ['PNG', 'JPG'] as const) {
 
 test('SVG, PDF and EPS point to paid plans on the free plan', async ({ page, isMobile }) => {
   test.skip(isMobile, 'covered on desktop')
-  await page.goto('/')
+  await openGenerator(page)
   await expectScans(page)
   let downloaded = false
   page.on('download', () => (downloaded = true))
@@ -79,7 +80,7 @@ test('SVG, PDF and EPS point to paid plans on the free plan', async ({ page, isM
 
 test('the free zip holds PNG and JPG in every size', async ({ page, isMobile }) => {
   test.skip(isMobile, 'covered on desktop')
-  await page.goto('/')
+  await openGenerator(page)
   await expectScans(page)
   const [download] = await Promise.all([
     page.waitForEvent('download'),
@@ -95,7 +96,7 @@ test('the free zip holds PNG and JPG in every size', async ({ page, isMobile }) 
 
 test('no horizontal scroll on phones', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'phones only')
-  await page.goto('/')
+  await openGenerator(page)
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - window.innerWidth,
   )
@@ -103,7 +104,7 @@ test('no horizontal scroll on phones', async ({ page, isMobile }) => {
 })
 
 test('gradient previews reference gradients inside their own SVG', async ({ page }) => {
-  await page.goto('/')
+  await openGenerator(page)
   await page.getByText('Colours', { exact: true }).click()
   await page.getByText('Linear gradient').click()
   await expectScans(page)
@@ -119,7 +120,7 @@ test('gradient previews reference gradients inside their own SVG', async ({ page
 
 test('a logo raises error correction and still scans', async ({ page, isMobile }) => {
   test.skip(isMobile, 'covered on desktop')
-  await page.goto('/')
+  await openGenerator(page)
   await page.getByText('Logo', { exact: true }).click()
   // A 64×64 evergreen square PNG, drawn in the page.
   const png = await page.evaluate(() => {
@@ -141,7 +142,7 @@ test('a logo raises error correction and still scans', async ({ page, isMobile }
 
 test('saves a design in this browser and applies it later', async ({ page, isMobile }) => {
   test.skip(isMobile, 'covered on desktop')
-  await page.goto('/')
+  await openGenerator(page)
   await page.getByText('Dots', { exact: true }).click()
   await page.getByText('Saved designs', { exact: true }).click()
   await page.getByLabel('Name', { exact: true }).fill('Round dots')
@@ -159,7 +160,7 @@ test('frame text in any language is drawn as outlines and still scans', async ({
   isMobile,
 }) => {
   test.skip(isMobile, 'covered on desktop')
-  await page.goto('/')
+  await openGenerator(page)
   await page.locator('summary', { hasText: /^Frame/ }).click()
   await page.getByRole('radio', { name: /Label below/ }).check({ force: true })
   const field = page.getByRole('textbox', { name: 'Frame text' })
@@ -177,17 +178,24 @@ test('frame text in any language is drawn as outlines and still scans', async ({
   await expect(page.getByText('We can’t draw 😀 yet, so it’s left out.')).toBeVisible()
 })
 
-test('the website address field shows a typing hint until you click in', async ({ page }) => {
+test('the website address field types a hint while it is empty', async ({ page }) => {
   await page.goto('/')
   const field = page.getByLabel('Website address')
+  await expect(field).toHaveValue('')
   await expect(page.locator('.typing-caret')).toBeVisible()
   await expect(field).toHaveClass(/url-hint-ring/)
+  // In the field, the hint keeps typing (the browser's caret blinks instead of ours)...
   await field.click()
-  await expect(page.locator('.typing-caret')).toHaveCount(0)
   await expect(field).not.toHaveClass(/url-hint-ring/)
-  // The example is selected on click, so typing replaces it.
-  await page.keyboard.type('example.com/menu')
+  await expect(page.locator('[data-url-hint]')).toBeVisible()
+  // ...until the first letter, and it comes back when the field is cleared.
+  await page.keyboard.type('e')
+  await expect(page.locator('[data-url-hint]')).toHaveCount(0)
+  await page.keyboard.type('xample.com/menu')
   await expect(field).toHaveValue('example.com/menu')
+  await field.fill('')
+  await field.blur()
+  await expect(page.locator('.typing-caret')).toBeVisible()
 })
 
 test('the typing hint stays still for people who prefer less motion', async ({ page }) => {
@@ -195,4 +203,8 @@ test('the typing hint stays still for people who prefer less motion', async ({ p
   await page.goto('/')
   await expect(page.getByLabel('Website address')).toHaveClass(/url-hint-ring/)
   await expect(page.locator('.typing-caret')).toHaveCount(0)
+  await expect(page.getByLabel('Website address')).toHaveAttribute(
+    'placeholder',
+    'yourcafe.com/menu',
+  )
 })
