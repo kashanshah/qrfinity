@@ -8,6 +8,7 @@ describe('plans', () => {
       [
         'allFormats',
         'analytics90',
+        'customSlugs',
         'dataExport',
         'dynamicCodes',
         'editDestination',

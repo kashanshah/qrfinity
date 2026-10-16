@@ -14,6 +14,7 @@ import {
 } from '@/lib/server/admin'
 import { adminContext } from '@/lib/server/context'
 import { setFlag, setUserPlan } from '@/lib/server/entitlements'
+import { setFreeCustomSlugAllowance } from '@/lib/server/settings'
 import { ServiceError } from '@/lib/server/errors'
 
 type Result = { ok: true } | { ok: false; error: string }
@@ -47,3 +48,5 @@ export const setUserPlanAction = async (id: string, plan: string) =>
   run((c) => setUserPlan(c, id, plan))
 export const setFlagAction = async (key: string, enabled: boolean, emails: string[]) =>
   run((c) => setFlag(c, key, { enabled, emails }))
+export const setFreeCustomSlugsAction = async (value: number) =>
+  run((c) => setFreeCustomSlugAllowance(c, value))

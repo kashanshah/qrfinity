@@ -1,13 +1,11 @@
-export const metadata = {
-  title: 'Acceptable use policy',
-  description: 'What QRfinity codes may and may not be used for, and how we handle abuse.',
-}
+import { getPage } from '@/content/registry'
+import { pageMetadata } from '@/lib/seo'
 
-{/* DRAFT for legal review. */}
+export const metadata = pageMetadata(getPage('/acceptable-use'))
 
 # Acceptable use policy
 
-Last updated: October 16, 2026
+Effective October 16, 2026
 
 QR codes are trusted: people scan them on menus, posters and packaging without seeing where they lead. This policy keeps that trust. It applies to every dynamic code and to anything else you create with QRfinity.
 

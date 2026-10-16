@@ -44,6 +44,7 @@ export async function createCodeAction(input: {
   content: CodeContent | null
   design: Design
   folderId: string | null
+  slug?: string | null
 }) {
   return run(async (ctx) => (await createDynamicCode(ctx, input)).id)
 }

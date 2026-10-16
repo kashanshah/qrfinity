@@ -4,6 +4,8 @@
  * the same transaction, then push to the edge; the cron retries anything left behind.
  */
 import {
+  checkCustomSlug,
+  customSlugAllowance,
   generateSlug,
   validateDestination,
   CONTENT_TYPES,
@@ -37,7 +39,9 @@ import {
   sql,
 } from '@qrfinity/db'
 
+import { getEntitlements } from './entitlements'
 import { ServiceError } from './errors'
+import { getFreeCustomSlugAllowance } from './settings'
 import { LIMITS, rateKey, retryMessage } from './rate-limit'
 import { screenForCode } from './screening'
 
@@ -262,6 +266,8 @@ export type CreateDynamicInput = {
   content?: CodeContent | null
   design: Design
   folderId?: string | null
+  /** Optional custom short link, e.g. "joes-menu". Fixed once created. */
+  slug?: string | null
 }
 
 export async function createDynamicCode(
@@ -274,10 +280,11 @@ export async function createDynamicCode(
   await limit(ctx, 'create-hour', LIMITS.createPerHour)
   await limit(ctx, 'create-day', LIMITS.createPerDay)
   // After the rate limits, so spam can't spend the Web Risk quota.
+  const custom = input.slug?.trim() ? await claimableCustomSlug(ctx, input.slug) : null
   const risk = await screenForCode(ctx.db, ctx.reputation, destination)
 
   for (let attempt = 0; attempt < 6; attempt++) {
-    const slug = generateSlug()
+    const slug = custom ?? generateSlug()
     try {
       const created = await ctx.db.transaction(async (tx) => {
         const [row] = await tx
@@ -292,6 +299,7 @@ export async function createDynamicCode(
             content: cleanContent(input.content),
             design: sanitizeDesign(input.design),
             folderId: input.folderId ?? null,
+            customSlug: custom !== null,
             ...risk,
           })
           .returning()
@@ -307,16 +315,53 @@ export async function createDynamicCode(
       await syncCode(ctx.db, ctx.edge, created.id)
       return getCode(ctx, created.id)
     } catch (error) {
-      // Unique violation on (domain, slug): try another slug.
+      // Unique violation on (domain, slug): try another slug, or tell the owner theirs is taken.
       if (
         (error as { code?: string; cause?: { code?: string } }).code === '23505' ||
         (error as { cause?: { code?: string } }).cause?.code === '23505'
-      )
+      ) {
+        if (custom) throw new ServiceError('That short link is taken. Try another.', 'invalid')
         continue
+      }
       throw error
     }
   }
   throw new Error('Could not allocate a unique short link')
+}
+
+/** How many custom short links the user has and may have. */
+export async function customSlugUsage(ctx: ServiceContext) {
+  const [features, free, [row]] = await Promise.all([
+    getEntitlements(ctx.db, ctx.userId),
+    getFreeCustomSlugAllowance(ctx.db),
+    ctx.db
+      .select({ used: sql<number>`count(*)::int` })
+      .from(codes)
+      .where(
+        and(eq(codes.userId, ctx.userId), eq(codes.customSlug, true), isNull(codes.deletedAt)),
+      ),
+  ])
+  return { used: row?.used ?? 0, allowance: customSlugAllowance(features, free) }
+}
+
+async function claimableCustomSlug(ctx: ServiceContext, requested: string): Promise<string> {
+  const check = checkCustomSlug(requested)
+  if (!check.ok) throw new ServiceError(check.error, 'invalid')
+  const { used, allowance } = await customSlugUsage(ctx)
+  if (used >= allowance)
+    throw new ServiceError(
+      allowance === 0
+        ? 'Custom short links aren’t available on your account yet. Leave it empty to get a random one.'
+        : `You’ve used your ${allowance} custom short ${allowance === 1 ? 'link' : 'links'}. Leave it empty to get a random one; more are coming with Pro.`,
+      'invalid',
+    )
+  // Taken includes deleted codes: a printed short link is never handed to someone else.
+  const [taken] = await ctx.db
+    .select({ id: codes.id })
+    .from(codes)
+    .where(and(eq(codes.domain, ctx.shortDomain), eq(codes.slug, check.slug)))
+  if (taken) throw new ServiceError('That short link is taken. Try another.', 'invalid')
+  return check.slug
 }
 
 export async function updateDestination(

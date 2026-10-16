@@ -1,11 +1,11 @@
-import { listFolders } from '@/lib/server/codes'
+import { customSlugUsage, listFolders } from '@/lib/server/codes'
 import { serviceContext } from '@/lib/server/context'
 import { shortLinkBase } from '@/lib/short-link'
 import { CreateCodeLoader } from './CreateCodeLoader'
 
 export default async function NewCodePage() {
   const ctx = await serviceContext('/dashboard/new')
-  const folders = await listFolders(ctx)
+  const [folders, slugs] = await Promise.all([listFolders(ctx), customSlugUsage(ctx)])
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -18,6 +18,7 @@ export default async function NewCodePage() {
       <CreateCodeLoader
         shortLinkBase={shortLinkBase()}
         folders={folders.map((f) => ({ id: f.id, name: f.name }))}
+        slugs={slugs}
       />
     </div>
   )

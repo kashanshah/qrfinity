@@ -43,6 +43,13 @@
       "when": 1792118039180,
       "tag": "0005_plans_flags_scan_daily",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792122180660,
+      "tag": "0006_custom_slugs",
+      "breakpoints": true
     }
   ]
 }
