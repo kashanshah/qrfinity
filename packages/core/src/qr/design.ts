@@ -19,12 +19,29 @@ export type Fill =
   /** `from` at the centre, `to` at the corners. */
   | { type: 'radial'; from: string; to: string }
 
-export type Logo = {
+/** An uploaded logo. */
+export type ImageLogo = {
+  type?: 'image'
   /** A data: URL (PNG or JPEG). Logos are processed in the browser and never uploaded. */
   src: string
   width: number
   height: number
 }
+
+/**
+ * A logo drawn as shapes (the platform icons), so every format keeps it sharp. Paths use only
+ * absolute M, L, C and Z commands, in a `width` × `height` box with its corner at 0,0.
+ */
+export type VectorLogo = {
+  type: 'vector'
+  width: number
+  height: number
+  paths: { d: string; fill: string }[]
+}
+
+export type Logo = ImageLogo | VectorLogo
+
+export const isVectorLogo = (logo: Logo | null): logo is VectorLogo => logo?.type === 'vector'
 
 export type Design = {
   dotStyle: DotStyle

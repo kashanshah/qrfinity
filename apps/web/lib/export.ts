@@ -1,6 +1,6 @@
 'use client'
 
-import { sceneToEps, sceneToSvg, type Design, type Scene } from '@qrfinity/core'
+import { isVectorLogo, sceneToEps, sceneToSvg, type Design, type Scene } from '@qrfinity/core'
 import { canvasToBlob, imagePixels, svgToCanvas } from './raster'
 
 export const PRINT_DPI = 300
@@ -95,8 +95,9 @@ export async function exportPdf(job: ExportJob): Promise<Blob> {
 }
 
 export async function exportEps(job: ExportJob): Promise<Blob> {
+  // Vector logos are paths in the scene; only an uploaded image needs its pixels.
   const logo = job.design.logo
-  const logoPixels = logo ? await imagePixels(logo.src, 384) : undefined
+  const logoPixels = logo && !isVectorLogo(logo) ? await imagePixels(logo.src, 384) : undefined
   const eps = sceneToEps(job.scene, {
     widthPt: (job.printWidthMm / 25.4) * 72,
     logoPixels,

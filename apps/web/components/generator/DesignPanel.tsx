@@ -2,6 +2,7 @@
 
 import {
   BRAND_ICONS,
+  isVectorLogo,
   DOT_STYLES,
   EYE_BALL_STYLES,
   EYE_FRAME_STYLES,
@@ -17,7 +18,7 @@ import {
 } from '@qrfinity/core'
 import { ArrowLeftRight, ImagePlus, RotateCcw, Trash2 } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { useBrand } from '@/lib/brand-logo'
+import { brandIconUrl, useBrand } from '@/lib/brand-logo'
 import { useGenerator } from '@/lib/generator-context'
 import { LogoError, processLogo } from '@/lib/logo'
 import { Button } from '../ui/Button'
@@ -399,10 +400,10 @@ function LogoSection({
       />
       {choice === 'auto' ? (
         <div className="flex flex-wrap items-center gap-3">
-          {design.logo && brandName ? (
-            // eslint-disable-next-line @next/next/no-img-element -- local data URL
+          {design.logo && brand && brandName ? (
+            // eslint-disable-next-line @next/next/no-img-element -- static icon
             <img
-              src={design.logo.src}
+              src={brandIconUrl(brand)}
               alt={`${brandName} icon`}
               className="size-14 rounded-sm border border-hairline bg-surface object-contain p-1"
             />
@@ -417,7 +418,7 @@ function LogoSection({
       {choice === 'custom' ? (
         <>
           <div className="flex flex-wrap items-center gap-3">
-            {design.logo ? (
+            {design.logo && !isVectorLogo(design.logo) ? (
               // eslint-disable-next-line @next/next/no-img-element -- local data URL
               <img
                 src={design.logo.src}

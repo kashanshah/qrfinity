@@ -18,5 +18,7 @@ The icons the generator puts in the middle of a code by default when it opens Wh
 profile, an app store or another known app (the logo's "Automatic" choice). Each is the platform's
 single-colour mark from Simple Icons (https://simpleicons.org, `simple-icons` 16.35.0, CC0 data;
 the marks stay their owners' trademarks), in the platform's own colour on a rounded tile. Built by
-`scripts/build-brand-icons.mjs`; don't edit the SVGs by hand. Each brand's guidelines link is in
+`scripts/build-brand-icons.mjs`, which rewrites every path to absolute M/L/C/Z commands so the icon
+goes into codes as vector shapes (SVG, PDF and EPS downloads stay sharp); don't edit the SVGs by
+hand. Each brand's guidelines link is in
 the Simple Icons data. LinkedIn is missing because it asked Simple Icons to remove its mark.

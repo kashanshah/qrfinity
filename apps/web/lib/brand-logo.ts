@@ -1,25 +1,30 @@
 'use client'
 
-import { brandFor, type BrandIcon, type Logo } from '@qrfinity/core'
+import { brandFor, type BrandIcon, type Logo, type VectorLogo } from '@qrfinity/core'
 import { useEffect } from 'react'
 import { useGenerator, useGeneratorStore } from './generator-context'
 
-const SIDE = 512
-const cache = new Map<BrandIcon, Promise<Logo>>()
+const cache = new Map<BrandIcon, Promise<VectorLogo>>()
 
-/** A platform icon from /brand-icons, drawn as a PNG data URL like an uploaded logo. */
-export function loadBrandLogo(brand: BrandIcon): Promise<Logo> {
+/**
+ * A platform icon from /brand-icons as a vector logo: the SVG's paths (absolute M/L/C/Z, made
+ * by scripts/build-brand-icons.mjs) and its viewBox size.
+ */
+export function loadBrandLogo(brand: BrandIcon): Promise<VectorLogo> {
   let logo = cache.get(brand)
   if (!logo) {
     logo = (async () => {
-      const img = new Image()
-      img.src = `/brand-icons/${brand}.svg`
-      await img.decode()
-      const canvas = document.createElement('canvas')
-      canvas.width = SIDE
-      canvas.height = SIDE
-      canvas.getContext('2d')!.drawImage(img, 0, 0, SIDE, SIDE)
-      return { src: canvas.toDataURL('image/png'), width: SIDE, height: SIDE }
+      const res = await fetch(brandIconUrl(brand))
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const svg = new DOMParser().parseFromString(await res.text(), 'image/svg+xml').documentElement
+      const [, , width = 24, height = 24] = (svg.getAttribute('viewBox') ?? '')
+        .split(/\s+/)
+        .map(Number)
+      const paths = [...svg.querySelectorAll('path')].map((p) => ({
+        d: p.getAttribute('d') ?? '',
+        fill: p.getAttribute('fill') ?? '#000000',
+      }))
+      return { type: 'vector' as const, width, height, paths }
     })()
     // A failed load (offline) can be retried later.
     logo.catch(() => cache.delete(brand))
@@ -27,6 +32,10 @@ export function loadBrandLogo(brand: BrandIcon): Promise<Logo> {
   }
   return logo
 }
+
+export const brandIconUrl = (brand: BrandIcon) => `/brand-icons/${brand}.svg`
+
+const sameLogo = (a: Logo | null, b: Logo) => JSON.stringify(a) === JSON.stringify(b)
 
 /** The platform the generator's current content points to. */
 export function useBrand(): BrandIcon | null {
@@ -49,7 +58,7 @@ export function useAutoLogo() {
     loadBrandLogo(brand)
       .then((logo) => {
         const s = store.getState()
-        if (cancelled || !s.design.logoAuto || s.design.logo?.src === logo.src) return
+        if (cancelled || !s.design.logoAuto || sameLogo(s.design.logo, logo)) return
         s.setDesign({ logo })
       })
       .catch((e) => console.warn('The platform icon could not be loaded.', e))

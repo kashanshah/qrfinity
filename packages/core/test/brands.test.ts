@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_FIELDS, brandFor, brandForUrl, encodeContent, sanitizeDesign } from '../src'
+import {
+  DEFAULT_DESIGN,
+  DEFAULT_FIELDS,
+  brandFor,
+  brandForUrl,
+  buildScene,
+  effectiveEcc,
+  encodeContent,
+  sanitizeDesign,
+  sceneToEps,
+  sceneToSvg,
+} from '../src'
 
 describe('brandFor', () => {
   it('follows the content type and the platform picked', () => {
@@ -62,5 +73,57 @@ describe('automatic logo setting', () => {
     expect(sanitizeDesign({ logoAuto: true }).logoAuto).toBe(true)
     expect(sanitizeDesign({}).logoAuto).toBe(false)
     expect(sanitizeDesign({ logoAuto: 'yes' }).logoAuto).toBe(false)
+  })
+})
+
+describe('vector logos', () => {
+  const logo = {
+    type: 'vector' as const,
+    width: 30,
+    height: 30,
+    paths: [
+      { d: 'M0 0L30 0L30 30L0 30Z', fill: '#FFFFFF' },
+      { d: 'M5 5C10 5 25 10 25 25Z', fill: '#25D366' },
+    ],
+  }
+  const design = { ...DEFAULT_DESIGN, logo, logoAuto: true }
+
+  it('draws the logo as paths inside the logo box, not as an image', () => {
+    const { scene, info } = buildScene('https://wa.me/14165550100', design)
+    expect(scene.items.some((i) => i.kind === 'image')).toBe(false)
+    const logoPaths = scene.items.filter(
+      (i) => i.kind === 'path' && i.fill.type === 'solid' && i.fill.color === '#25D366',
+    )
+    expect(logoPaths).toHaveLength(1)
+    const nums = (logoPaths[0] as { d: string }).d.match(/-?[\d.]+/g)!.map(Number)
+    const { x, size } = info.codeBox
+    for (const v of nums) {
+      expect(v).toBeGreaterThan(x + size * 0.3)
+      expect(v).toBeLessThan(x + size * 0.7)
+    }
+    expect(effectiveEcc(design)).toBe('H')
+  })
+
+  it('stays vector in SVG and EPS', () => {
+    const { scene } = buildScene('https://wa.me/14165550100', design)
+    const svg = sceneToSvg(scene)
+    expect(svg).not.toContain('<image')
+    expect(svg).toContain('fill="#25D366"')
+    const eps = sceneToEps(scene, { widthPt: 144 })
+    expect(eps).not.toMatch(/\bimage\b/)
+    expect(eps).toContain('c')
+  })
+
+  it('keeps a valid vector logo and drops anything else', () => {
+    expect(sanitizeDesign(design).logo).toEqual({
+      ...logo,
+      paths: logo.paths.map((p) => ({ ...p, fill: p.fill.toLowerCase() })),
+    })
+    const bad = (paths: unknown) => sanitizeDesign({ logo: { ...logo, paths } }).logo
+    expect(bad([{ d: 'M0 0"/><script>alert(1)</script>', fill: '#000000' }])).toBeNull()
+    expect(bad([{ d: 'M0 0a1 1 0 0 0 2 2', fill: '#000000' }])).toBeNull()
+    expect(bad([{ d: 'M0 0L1 1Z', fill: 'red;x' }])).toBeNull()
+    expect(bad([])).toBeNull()
+    expect(bad(Array(17).fill({ d: 'M0 0Z', fill: '#000000' }))).toBeNull()
   })
 })
