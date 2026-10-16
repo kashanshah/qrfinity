@@ -155,7 +155,8 @@ export async function searchUsers(db: Database, q: string) {
       suspendedAt: user.suspendedAt,
       role: user.role,
       plan: user.plan,
-      codes: sql<number>`(select count(*)::int from codes where codes.user_id = ${user.id} and codes.deleted_at is null)`,
+      // Qualified on purpose: inside the subquery a bare "id" would mean codes.id (a uuid), not the user's id.
+      codes: sql<number>`(select count(*)::int from codes c where c.user_id = "user"."id" and c.deleted_at is null)`,
     })
     .from(user)
     .where(term ? ilike(user.email, like) : undefined)

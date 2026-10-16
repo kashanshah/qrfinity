@@ -75,3 +75,22 @@ test('legal pages are reachable from the footer and in effect', async ({ page })
   await expect(page.getByText('Draft for legal review')).toHaveCount(0)
   await expect(page.getByText('Codes never expire.').first()).toBeVisible()
 })
+
+test('every admin page opens for an admin', async ({ page, request }) => {
+  await signIn(page, request, 'e2e-admin@example.com', '/admin')
+  for (const [path, heading] of [
+    ['/admin', null],
+    ['/admin/codes', null],
+    ['/admin/users', 'Users'],
+    ['/admin/blocklist', null],
+    ['/admin/flags', 'Feature flags'],
+    ['/admin/usage', 'Usage'],
+    ['/admin/settings', 'Settings'],
+    ['/admin/audit', null],
+  ] as const) {
+    const res = await page.goto(path)
+    expect(res?.status(), path).toBe(200)
+    if (heading) await expect(page.getByRole('heading', { level: 1 }), path).toHaveText(heading)
+    await expect(page.getByText('Application error'), path).toHaveCount(0)
+  }
+})

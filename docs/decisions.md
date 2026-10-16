@@ -110,6 +110,10 @@ Kashan's model: every paid capability comes with a free allowance (usually 1), a
 - Nothing typed into the generator is captured: session recording off, autocapture limited to clicks on links and buttons with text and attributes masked. Events: `qr_downloaded`, `dynamic_code_created`, `sign_in_requested`, `pro_waitlist_joined`, with type and format only.
 - PostHog project must have "Discard client IP data" on (our no-raw-IP rule) and "Cookieless server hash mode" on (otherwise pre-consent events are dropped). The privacy policy describes all of this.
 
+### Usage panel (2026-10-16)
+
+Admin → Usage compares the qrfinity.link Cloudflare account with its plan's limits: Worker requests, KV reads, writes and deletes from Cloudflare's GraphQL analytics API (same `CF_ANALYTICS_TOKEN`, needs Account Analytics: Read), plus our own per-day code creates, destination changes, scans (from roll-ups) and the sync queue. On the free plan the busiest of the last 7 days is compared with the daily limit (green under 50%, watch 50–80%, upgrade over 80%); on paid, the month to date with the included amount. Which plan the account is on is an admin setting. Without the API it estimates KV writes from the database and says Worker requests can't be checked.
+
 ## Name and domains
 
 - Chosen: **QRfinity** (QR + infinity). Rejected: QRLasts (sounds like "QR Last"; qrlast.com belongs to someone else), QRVow (sounds like "QR Wow"), QRLasting (clear but forgettable), InfiniQR (spelling risk).

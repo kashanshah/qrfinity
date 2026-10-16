@@ -11,6 +11,7 @@ const LINKS = [
   ['/admin/users', 'Users'],
   ['/admin/blocklist', 'Blocklist'],
   ['/admin/flags', 'Feature flags'],
+  ['/admin/usage', 'Usage'],
   ['/admin/settings', 'Settings'],
   ['/admin/audit', 'Audit log'],
 ] as const

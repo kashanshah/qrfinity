@@ -16,7 +16,7 @@ import {
 import { adminContext } from '@/lib/server/context'
 import { pagesToSubmit, submitToIndexNow } from '@/lib/server/indexnow'
 import { setFlag, setUserPlan } from '@/lib/server/entitlements'
-import { setFreeCustomSlugAllowance } from '@/lib/server/settings'
+import { setCloudflarePlan, setFreeCustomSlugAllowance } from '@/lib/server/settings'
 import { ServiceError } from '@/lib/server/errors'
 
 type Result = { ok: true } | { ok: false; error: string }
@@ -85,3 +85,5 @@ export async function submitIndexNowAction(
     return { ok: false, message: 'Couldn’t reach IndexNow. Try again in a minute.' }
   }
 }
+export const setCloudflarePlanAction = async (plan: string) =>
+  run((c) => setCloudflarePlan(c, plan))
