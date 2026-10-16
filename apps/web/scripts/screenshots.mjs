@@ -62,6 +62,12 @@ const FILLS = {
   'payment-link': [['Website address', 'https://buy.stripe.com/test_maplecafe']],
   'amazon-review': [['Website address', 'https://maplecafe.ca/setup-guide']],
   telegram: [['Username or profile link', 'maplecafe']],
+  tiktok: [['Username or profile link', '@maplecafe']],
+  linkedin: [['Username or profile link', 'amira-haddad']],
+  facebook: [['Username or profile link', 'maplecafe']],
+  'google-forms': [['Website address', 'https://forms.gle/M4pLeCaFe2026']],
+  resume: [['Website address', 'https://amirahaddad.design/portfolio']],
+  wedding: [['Website address', 'https://withjoy.com/amira-and-sam/rsvp']],
   paypal: [
     ['PayPal.Me name or link', 'MapleCafeTO'],
     ['Amount (optional)', '12.50'],
