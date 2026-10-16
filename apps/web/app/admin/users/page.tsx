@@ -1,3 +1,4 @@
+import { PLAN_DETAILS, isPlan } from '@qrfinity/core'
 import Link from 'next/link'
 import { searchUsers } from '@/lib/server/admin'
 import { adminContext } from '@/lib/server/context'
@@ -32,8 +33,8 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
       />
       <p className="body-small text-ink-muted">
         Suspending signs the person out and blocks sign-in. Their codes keep working; disable
-        abusive codes one by one. Plans are set by hand until billing exists; a plan only sets how
-        many codes can use advanced features.
+        abusive codes one by one. The plan picker grants a plan without payment; someone who also
+        pays gets the higher of the two. A plan only sets how many codes can use advanced features.
       </p>
       <ListBar path={PATH} params={params} noun={noun} {...list} />
       {list.rows.length === 0 ? (
@@ -79,6 +80,11 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                   </td>
                   <td className={td}>
                     <PlanSelect userId={u.id} email={u.email} plan={u.plan} />
+                    {u.paidPlan && isPlan(u.paidPlan) ? (
+                      <p className="body-small mt-1 text-ink-muted">
+                        Pays for {PLAN_DETAILS[u.paidPlan].name}
+                      </p>
+                    ) : null}
                   </td>
                   <td className={`${td} whitespace-nowrap`}>
                     {u.suspendedAt ? `Suspended ${formatDate(u.suspendedAt)}` : 'Active'}

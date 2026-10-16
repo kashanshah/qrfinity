@@ -125,7 +125,8 @@ Kashan's direction: keep every feature free unless it costs us; charge for volum
 - **Rules carried over:** stopping paying never breaks anything (codes with advanced features keep working; you can't add more); an allowance never shrinks for what already exists; free features never move behind a paywall.
 - **Dropped:** retargeting pixels (would track scanners on qrfinity.link). **Made free:** analytics history and its CSV. **Undecided:** bulk creation, team seats, API. **Later, only if customers ask:** custom domains (low demand among small businesses, the most work, and a per-domain cost); not shown on the pricing page.
 - **Billing: Stripe** (already in use), with Stripe Tax to calculate and collect tax. Canadian GST/HST is generally zero-rated for customers outside Canada, but EU and UK VAT apply to consumer sales from the first sale, US states after their thresholds, and GST/HST to Canadian customers past the $30k small-supplier threshold: confirm with an accountant before launch.
-- **Not built yet:** billing, redirect rules, password protection. Until billing exists an admin sets plans, and the pricing page shows plans as "Coming soon" with a waitlist.
+- **Billing built (2026-10-16), see `docs/billing.md`:** Stripe Checkout and customer portal, prices by lookup key, USD tax-exclusive with Stripe Tax. The plan in effect is the higher of the admin-granted plan and a paying subscription (past due keeps it during retries). Upgrades apply now with proration; downgrades at period end. Refunds: in full within 14 days of a plan's first payment, renewals not refunded (also satisfies the EU/UK 14-day withdrawal right without a waiver step). Deleting an account cancels its subscription. Plans stay "Coming soon" until the Stripe keys are set.
+- **Not built yet:** redirect rules, password protection.
 
 ## Name and domains
 

@@ -77,6 +77,14 @@ export const env = {
     const k = read('INDEXNOW_KEY')
     return k && /^[A-Za-z0-9-]{8,128}$/.test(k) ? k : null
   },
+  /** Stripe billing. Paid plans stay "coming soon" until both keys are set. */
+  get stripe() {
+    const secretKey = read('STRIPE_SECRET_KEY')
+    const webhookSecret = read('STRIPE_WEBHOOK_SECRET')
+    return secretKey && webhookSecret
+      ? { secretKey, webhookSecret, portalConfiguration: read('STRIPE_PORTAL_CONFIGURATION') }
+      : null
+  },
   get webRiskApiKey() {
     return read('WEB_RISK_API_KEY')
   },

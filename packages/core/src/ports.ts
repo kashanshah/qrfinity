@@ -46,3 +46,34 @@ export interface CloudflareUsage {
   /** One row per UTC day from `from` to `to` inclusive (YYYY-MM-DD). */
   daily(from: string, to: string): Promise<import('./usage').UsageDay[]>
 }
+
+/** Subscriptions and payments (Stripe today, with Stripe Tax). */
+export interface Billing {
+  /** Creates the provider's customer record for a user. Returns its id. */
+  createCustomer(input: { userId: string; email: string }): Promise<string>
+  /** A hosted checkout page for a new subscription. */
+  checkoutUrl(input: {
+    customerId: string
+    plan: import('./billing').PaidPlan
+    interval: import('./billing').BillingInterval
+    successUrl: string
+    cancelUrl: string
+  }): Promise<string>
+  /** A hosted page where the customer changes plan, updates their card, sees invoices or cancels. */
+  portalUrl(customerId: string, returnUrl: string): Promise<string>
+  /** The current state of a subscription, or null when it isn't one of our plans. */
+  subscription(id: string): Promise<import('./billing').SubscriptionState | null>
+  /** Subscriptions created by a finished checkout (for syncing without waiting for the webhook). */
+  checkoutSubscription(
+    checkoutId: string,
+  ): Promise<{ customerId: string; subscriptionId: string } | null>
+  /** Ids of the customer's subscriptions that haven't ended. */
+  openSubscriptions(customerId: string): Promise<string[]>
+  /** Ends a subscription now (account deletion). */
+  cancelNow(subscriptionId: string): Promise<void>
+  /**
+   * Verifies a webhook and says which subscription to re-read, or null for events we ignore.
+   * Throws when the signature is wrong.
+   */
+  webhook(rawBody: string, signature: string): Promise<{ subscriptionId: string } | null>
+}

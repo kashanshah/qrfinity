@@ -103,11 +103,21 @@ function CreateStep({
               />
             </div>
             <p id="custom-slug-hint" className="body-small text-ink-muted">
-              {!Number.isFinite(slugs.allowance)
-                ? 'An advanced feature. Your plan covers every code. Leave empty for a random link. It can’t be changed after you create the code.'
-                : slugsLeft === 0
-                  ? `An advanced feature: you’re using advanced features on ${slugs.used} of ${slugs.allowance} ${slugs.allowance === 1 ? 'code' : 'codes'}, so this code gets a random link. Choose a plan for more.`
-                  : `An advanced feature: ${slugs.used} of ${slugs.allowance} ${slugs.allowance === 1 ? 'code' : 'codes'} used. Leave empty for a random link. It can’t be changed after you create the code.`}
+              {!Number.isFinite(slugs.allowance) ? (
+                'An advanced feature. Your plan covers every code. Leave empty for a random link. It can’t be changed after you create the code.'
+              ) : slugsLeft === 0 ? (
+                <>
+                  An advanced feature: you’re using advanced features on {slugs.used} of{' '}
+                  {slugs.allowance} {slugs.allowance === 1 ? 'code' : 'codes'}, so this code gets a
+                  random link.{' '}
+                  <a href="/pricing#plans" className="text-evergreen underline">
+                    Choose a plan for more
+                  </a>
+                  .
+                </>
+              ) : (
+                `An advanced feature: ${slugs.used} of ${slugs.allowance} ${slugs.allowance === 1 ? 'code' : 'codes'} used. Leave empty for a random link. It can’t be changed after you create the code.`
+              )}
             </p>
           </div>
         ) : null}
