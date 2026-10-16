@@ -201,15 +201,42 @@ describe('admin search', () => {
     })
     await deleteCode(ctx, gone.id)
     await makeUser(db, 'bob')
-    const all = await searchUsers(db, '')
+    const { rows: all } = await searchUsers(db, '')
     expect(all.find((u) => u.id === 'alice')).toMatchObject({
       email: 'alice@example.com',
       plan: 'free',
       codes: 1,
     })
     expect(all.find((u) => u.id === 'bob')).toMatchObject({ codes: 0 })
-    expect((await searchUsers(db, 'ALICE')).map((u) => u.id)).toEqual(['alice'])
+    expect((await searchUsers(db, 'ALICE')).rows.map((u) => u.id)).toEqual(['alice'])
     expect((await searchCodes(db, 'alice@example.com')).length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('user search pages through results, newest first, and clamps bad input', async () => {
+    // alice exists already; add 11 more, each a minute newer than the last.
+    for (let i = 1; i <= 11; i++) {
+      const id = `user${String(i).padStart(2, '0')}`
+      await makeUser(db, id)
+      await db
+        .update(user)
+        .set({ createdAt: sql`now() + make_interval(mins => ${i})` })
+        .where(eq(user.id, id))
+    }
+    const first = await searchUsers(db, '', { page: 1, perPage: 10 })
+    expect(first).toMatchObject({ total: 12, page: 1, pages: 2, perPage: 10 })
+    expect(first.rows.map((u) => u.id).slice(0, 2)).toEqual(['user11', 'user10'])
+    const second = await searchUsers(db, '', { page: 2, perPage: 10 })
+    expect(second.rows.map((u) => u.id)).toEqual(['user01', 'alice'])
+    // Past the end clamps to the last page; an unknown size falls back to the default.
+    expect((await searchUsers(db, '', { page: 99, perPage: 10 })).page).toBe(2)
+    expect((await searchUsers(db, '', { perPage: 7 })).perPage).toBe(25)
+    // Search covers names too, and counts only the matches.
+    await db.update(user).set({ name: 'Zed Example' }).where(eq(user.id, 'user05'))
+    expect(await searchUsers(db, 'zed', { perPage: 10 })).toMatchObject({
+      total: 1,
+      pages: 1,
+      rows: [{ id: 'user05' }],
+    })
   })
 })
 
