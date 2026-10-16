@@ -1,5 +1,5 @@
-import { SITE_URL } from '@/content/registry'
-import { INDEXABLE } from '@/lib/seo'
+import { ALL_PAGES, SITE_URL } from '@/content/registry'
+import { INDEXABLE, absoluteUrl } from '@/lib/seo'
 import { env } from './env'
 
 export const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow'
@@ -29,4 +29,20 @@ export async function submitToIndexNow(
   })
   // 200 and 202 both mean accepted.
   return { submitted: res.ok ? urls.length : 0, status: res.status }
+}
+
+/** Every public page, or only those whose `updated` date is within the last two days. */
+export function pagesToSubmit(all: boolean, now = new Date()): string[] {
+  const since = new Date(now.getTime() - 2 * 86_400_000).toISOString().slice(0, 10)
+  return ALL_PAGES.filter((p) => all || p.updated >= since).map((p) => absoluteUrl(p.path))
+}
+
+/** What the admin page shows before anyone presses the button. */
+export function indexNowStatus() {
+  return {
+    indexable: INDEXABLE,
+    keySet: env.indexNowKey !== null,
+    keyUrl: `${SITE_URL}/indexnow-key.txt`,
+    pages: ALL_PAGES.length,
+  }
 }
