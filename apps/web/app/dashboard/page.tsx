@@ -149,13 +149,13 @@ export default async function CodesPage({
                         {c.name}
                       </Link>
                       <StatusPill status={c.status} />
-                      {c.customSlug || c.rules ? (
+                      {c.customSlug || c.rules || c.hasPassword ? (
                         <span
                           className="label rounded-pill border border-hairline px-2 py-0.5 text-ink-muted"
                           title={
                             c.advancedPaused && c.rules
                               ? 'Redirect rules are paused: your plan covers fewer codes with advanced features.'
-                              : `Uses advanced features (${[c.customSlug ? 'custom short link' : '', c.rules ? 'redirect rules' : ''].filter(Boolean).join(', ')}). Counts toward your plan’s codes with advanced features.`
+                              : `Uses advanced features (${[c.customSlug ? 'custom short link' : '', c.rules ? 'redirect rules' : '', c.hasPassword ? 'password' : ''].filter(Boolean).join(', ')}). Counts toward your plan’s codes with advanced features.`
                           }
                         >
                           {c.advancedPaused && c.rules ? 'Rules paused' : 'Advanced'}

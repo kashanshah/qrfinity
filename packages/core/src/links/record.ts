@@ -1,5 +1,6 @@
 /** The record the redirect Worker reads from KV for every scan. Postgres is the source of truth. */
 import { parsePage, type HostedPage } from './page'
+import { isPasswordHash } from './password'
 import { parseRules, type RedirectRule } from './rules'
 
 export const LINK_STATUSES = ['active', 'paused', 'disabled'] as const
@@ -19,6 +20,8 @@ export type LinkRecord = {
   rules?: RedirectRule[]
   /** A page served on the short domain instead of a redirect (a contact card). */
   page?: HostedPage
+  /** Password protection: the PBKDF2 hash a typed password must match (never the password). */
+  lock?: string
 }
 
 export function linkKey(domain: string, slug: string): string {
@@ -49,6 +52,7 @@ export function parseLinkRecord(value: unknown): LinkRecord | null {
     v: r.v,
     ...(rules ? { rules } : {}),
     ...(page ? { page } : {}),
+    ...(isPasswordHash(r.lock) ? { lock: r.lock } : {}),
   }
 }
 

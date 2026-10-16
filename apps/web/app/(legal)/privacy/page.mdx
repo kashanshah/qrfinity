@@ -36,6 +36,8 @@ We use your email only to sign you in and to tell you about your codes, for exam
 
 For each dynamic code we store its name, short link, destination, design, folder and tags, and a history of destination changes. For a dynamic contact card we store the details you enter; they're shown on the card's page to anyone who scans the code, which is the point of it, so only add what you're happy to share. If you add a logo to a saved design, we store the logo image.
 
+If you protect a code with a password, we store only a one-way, salted hash of it, never the password itself, so nobody (including us) can read it back. When someone types a password to open a protected code, we check it and throw it away: attempts aren't stored. To slow down guessing, Cloudflare counts attempts for a minute per code using a hash of the visitor's IP address, never the address itself.
+
 ## Scans of dynamic codes
 
 When someone scans a dynamic code, we record:

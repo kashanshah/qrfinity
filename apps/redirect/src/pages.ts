@@ -39,6 +39,12 @@ p{margin:0 0 16px;color:${C.muted}}
 .bar{width:48px;height:6px;border-radius:3px;background:${opts.warning ? C.warn : C.evergreen};margin-bottom:24px}
 footer{margin-top:32px;padding-top:16px;border-top:1px solid ${C.hairline};font-size:14px;line-height:22px;color:${C.muted}}
 a{color:${C.evergreen}}
+label{display:block;font-weight:600;margin:0 0 6px}
+input{box-sizing:border-box;width:100%;min-height:48px;padding:10px 12px;border:1.5px solid ${C.hairline};border-radius:8px;font:inherit;color:${C.ink};background:#fff}
+input:focus{outline:2px solid ${C.evergreen};outline-offset:2px}
+button{width:100%;min-height:48px;margin-top:12px;border:0;border-radius:8px;background:${C.evergreen};color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.err{color:${C.ink};margin:12px 0 0}
+.err::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:${C.warn};margin-right:8px}
 </style></head>
 <body><main><div class="bar"></div><h1>${esc(opts.heading)}</h1>${opts.body}
 <footer>This short link is run by QRfinity, a free QR code generator. <a href="${esc(report)}" rel="nofollow">Report this QR code</a></footer>
@@ -73,5 +79,34 @@ export function disabledPage(siteOrigin: string, slug: string) {
     siteOrigin,
     slug,
     warning: true,
+  })
+}
+
+/**
+ * Asked before a password-protected code opens. The form posts back to the same short link; there
+ * are no cookies, so the password is asked on every scan.
+ */
+export function passwordPage(
+  siteOrigin: string,
+  slug: string,
+  opts: { error?: 'wrong' | 'slow-down'; vcf?: boolean } = {},
+) {
+  const message =
+    opts.error === 'wrong'
+      ? '<p class="err" role="alert">That password isn’t right. Try again.</p>'
+      : opts.error === 'slow-down'
+        ? '<p class="err" role="alert">Too many tries. Wait a minute, then try again.</p>'
+        : ''
+  return page({
+    title: 'Password needed',
+    heading: 'This QR code is protected',
+    body: `<p>Its owner added a password. Enter it to continue.</p>
+<form method="post" action="/${esc(encodeURIComponent(slug))}${opts.vcf ? '.vcf' : ''}">
+<label for="pw">Password</label>
+<input id="pw" name="password" type="password" autocomplete="off" required maxlength="64" autofocus>
+<button type="submit">Continue</button>${message}
+</form>`,
+    siteOrigin,
+    slug,
   })
 }

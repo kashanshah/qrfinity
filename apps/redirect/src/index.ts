@@ -15,6 +15,8 @@ export interface Env {
   SCANS: AnalyticsEngineDataset
   HYPERDRIVE?: Hyperdrive
   MISS_LIMIT?: RateLimit
+  /** Password attempts per visitor and code. */
+  UNLOCK_LIMIT?: RateLimit
   DEFAULT_DOMAIN: string
   SITE_ORIGIN: string
   /** Local development only: also send scans to the app's Postgres analytics backend. */
@@ -58,9 +60,10 @@ async function lookupDatabase(
         version: number
         rules: unknown
         page: unknown
+        password_hash: string | null
       }[]
     >`
-      select id, user_id, destination, status, version, rules, page from redirect_lookup where domain = ${domain} and slug = ${slug} limit 1`
+      select id, user_id, destination, status, version, rules, page, password_hash from redirect_lookup where domain = ${domain} and slug = ${slug} limit 1`
     const r = rows[0]
     if (!r || (!r.destination && !r.page)) return null
     // Same checks as a KV record, so malformed rules are dropped rather than followed.
@@ -72,6 +75,7 @@ async function lookupDatabase(
       v: r.version,
       rules: r.rules,
       page: r.page,
+      lock: r.password_hash,
     })
   } finally {
     ctx.waitUntil(sql.end())
@@ -108,6 +112,12 @@ export default {
         // The limiter only sees a hash of the IP.
         const key = (await sha256Hex(req.headers.get('cf-connecting-ip') ?? 'unknown')).slice(0, 16)
         return (await env.MISS_LIMIT.limit({ key })).success
+      },
+      allowUnlock: async (req, record) => {
+        if (!env.UNLOCK_LIMIT) return true
+        // Keyed on a hash of the IP and the code: guessing one code doesn't lock out others.
+        const ip = (await sha256Hex(req.headers.get('cf-connecting-ip') ?? 'unknown')).slice(0, 16)
+        return (await env.UNLOCK_LIMIT.limit({ key: `${ip}:${record.id}` })).success
       },
       recordScan: async (req, record, rule) => {
         const cf = (req.cf ?? {}) as { country?: string; region?: string; city?: string }

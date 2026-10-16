@@ -18,6 +18,8 @@
   ],
   "ratelimits": [
     { "name": "MISS_LIMIT", "namespace_id": "1001", "simple": { "limit": 30, "period": 10 } },
+    // Password attempts: 10 a minute per visitor per code.
+    { "name": "UNLOCK_LIMIT", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } },
   ],
   "vars": {
     "DEFAULT_DOMAIN": "qrfinity.link",
