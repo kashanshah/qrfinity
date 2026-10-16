@@ -37,6 +37,11 @@ export type Design = {
   background: string
   transparentBackground: boolean
   logo: Logo | null
+  /**
+   * The logo follows the content: the platform's icon for WhatsApp, social profiles, app stores
+   * and other known links, none otherwise. Picking "None" or uploading a logo turns it off.
+   */
+  logoAuto: boolean
   /** Logo box as a fraction of the code's width (0.1–0.3). */
   logoSize: number
   /** Clear space around the logo, in modules. */
@@ -59,6 +64,7 @@ export const DEFAULT_DESIGN: Design = {
   background: '#ffffff',
   transparentBackground: false,
   logo: null,
+  logoAuto: true,
   logoSize: 0.22,
   logoMargin: 1,
   clearBehindLogo: true,

@@ -1,6 +1,7 @@
 export * from './color'
 export * from './content'
 export * from './content/parse'
+export * from './content/brands'
 export * from './qr/design'
 export * from './qr/scene'
 export * from './qr/svg'

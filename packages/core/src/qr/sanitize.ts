@@ -67,6 +67,8 @@ export function sanitizeDesign(input: unknown): Design {
     background: color(d.background, DEFAULT_DESIGN.background),
     transparentBackground: d.transparentBackground === true,
     logo,
+    // Designs saved before automatic logos existed keep exactly the logo they had.
+    logoAuto: d.logoAuto === true,
     logoSize: num(d.logoSize, LOGO_SIZE_MIN, LOGO_SIZE_MAX, DEFAULT_DESIGN.logoSize),
     logoMargin: num(d.logoMargin, 0, 3, DEFAULT_DESIGN.logoMargin),
     clearBehindLogo: d.clearBehindLogo !== false,

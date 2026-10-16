@@ -87,6 +87,13 @@ export const SOCIAL_PLATFORMS = [
   'youtube',
   'threads',
   'pinterest',
+  'telegram',
+  'line',
+  'kakaotalk',
+  'weibo',
+  'bilibili',
+  'douyin',
+  'xiaohongshu',
 ] as const
 export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number]
 export type SocialFields = { platform: SocialPlatform; handle: string }
@@ -398,7 +405,11 @@ function encodeApp(f: AppFields): EncodeResult {
   return ok(url)
 }
 
-const SOCIAL_URL: Record<SocialPlatform, (handle: string) => string> = {
+/**
+ * Profile address from a username, per platform; null where a username alone can't make one
+ * (the person pastes the link from the app's share button instead).
+ */
+const SOCIAL_URL: Record<SocialPlatform, (handle: string) => string | null> = {
   instagram: (h) => `https://www.instagram.com/${h}`,
   facebook: (h) => `https://www.facebook.com/${h}`,
   x: (h) => `https://x.com/${h}`,
@@ -407,21 +418,46 @@ const SOCIAL_URL: Record<SocialPlatform, (handle: string) => string> = {
   youtube: (h) => `https://www.youtube.com/@${h}`,
   threads: (h) => `https://www.threads.com/@${h}`,
   pinterest: (h) => `https://www.pinterest.com/${h}`,
+  telegram: (h) => `https://t.me/${h}`,
+  // Official accounts have IDs starting with @; personal LINE IDs use the ~ form.
+  line: (h) => (h.startsWith('@') ? `https://line.me/R/ti/p/${h}` : `https://line.me/ti/p/~${h}`),
+  kakaotalk: () => null,
+  weibo: (h) => (/^\d+$/.test(h) ? `https://weibo.com/u/${h}` : null),
+  bilibili: (h) => (/^\d+$/.test(h) ? `https://space.bilibili.com/${h}` : null),
+  douyin: () => null,
+  xiaohongshu: () => null,
+}
+
+const SOCIAL_LINK_ONLY: Partial<Record<SocialPlatform, string>> = {
+  kakaotalk: 'Paste the link to your KakaoTalk channel or open chat.',
+  weibo: 'Enter your numeric user ID, or paste your profile link.',
+  bilibili: 'Enter your numeric UID, or paste your space link.',
+  douyin: 'Paste the share link from Douyin.',
+  xiaohongshu: 'Paste the share link from Xiaohongshu.',
 }
 
 function encodeSocial(f: SocialFields): EncodeResult {
-  const value = f.handle.trim()
+  let value = f.handle.trim()
   if (!value) return empty()
+  // Share buttons (Douyin, Xiaohongshu…) copy a sentence with the link in it: keep the link.
+  if (/\s/.test(value)) {
+    const link = /https?:\/\/[^\s\u3000-\u303f\uff00-\uffef]+/i.exec(value)
+    if (link) value = link[0]
+  }
   // A pasted profile link is used as is.
   if (/^(https?:\/\/|www\.)/i.test(value) || /\.[a-z]{2,}\//i.test(value)) {
     const url = normalizeWebUrl(value)
     return url ? ok(url) : invalid({ handle: 'Check the profile link.' })
   }
-  const handle = value.replace(/^@/, '')
-  if (!/^[\w.-]{1,100}$/.test(handle)) {
+  // LINE official-account IDs keep their @.
+  const handle = f.platform === 'line' ? value : value.replace(/^@/, '')
+  if (!/^@?[\w.-]{1,100}$/.test(handle)) {
     return invalid({ handle: 'Enter the username without spaces, or paste the profile link.' })
   }
-  return ok(SOCIAL_URL[f.platform](handle))
+  const url = SOCIAL_URL[f.platform](handle)
+  return url
+    ? ok(url)
+    : invalid({ handle: SOCIAL_LINK_ONLY[f.platform] ?? 'Paste the profile link.' })
 }
 
 const ENCODERS: { [K in ContentType]: (f: ContentFields[K]) => EncodeResult } = {

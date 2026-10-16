@@ -15,6 +15,7 @@ import {
   type SceneInfo,
 } from '@qrfinity/core'
 import { useId, useMemo, type ReactNode } from 'react'
+import { useAutoLogo } from '@/lib/brand-logo'
 import type { ExportJob } from '@/lib/export'
 import { GeneratorProvider, useGenerator } from '@/lib/generator-context'
 import { useScanCheck } from '@/lib/scan'
@@ -107,6 +108,7 @@ function GeneratorBody({
   const design = useGenerator((s) => s.design)
   const printWidthMm = useGenerator((s) => s.printWidthMm)
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '')
+  useAutoLogo()
 
   const content = useMemo<EncodeResult>(() => {
     const r = encodeContent(type, fields[type])
