@@ -53,11 +53,25 @@ export function shortLinkOrigin() {
 export async function adminContext(): Promise<AdminContext> {
   const user = await requireUser('/admin')
   if (!isAdmin(user as { email: string; role?: string }, env.adminEmails)) notFound()
+  return adminContextFor(user.id)
+}
+
+/**
+ * For route handlers, which answer with a 404 themselves instead of rendering the not-found page:
+ * the admin context, or null when the visitor isn't a signed-in admin.
+ */
+export async function adminContextOrNull(): Promise<AdminContext | null> {
+  const user = await getSessionUser()
+  if (!user || !isAdmin(user as { email: string; role?: string }, env.adminEmails)) return null
+  return adminContextFor(user.id)
+}
+
+function adminContextFor(actor: string): AdminContext {
   return {
     db: getDb(),
     edge: getEdgeSync(),
     mailer: getMailer(),
-    actor: user.id,
+    actor,
     abuseEmail: env.abuseEmail,
     siteUrl: env.appUrl,
   }
