@@ -114,6 +114,19 @@ Kashan's model: every paid capability comes with a free allowance (usually 1), a
 
 Admin → Usage compares the qrfinity.link Cloudflare account with its plan's limits: Worker requests, KV reads, writes and deletes from Cloudflare's GraphQL analytics API (same `CF_ANALYTICS_TOKEN`, needs Account Analytics: Read), plus our own per-day code creates, destination changes, scans (from roll-ups) and the sync queue. On the free plan the busiest of the last 7 days is compared with the daily limit (green under 50%, watch 50–80%, upgrade over 80%); on paid, the month to date with the included amount. Which plan the account is on is an admin setting. Without the API it estimates KV writes from the database and says Worker requests can't be checked.
 
+## Pricing model (decided 2026-10-16, replaces the Pro/Business plan above)
+
+Kashan's direction: keep every feature free unless it costs us; charge for volume.
+
+- **Free, unlimited:** static codes, dynamic codes, editing, full design, every format, scan analytics including up to 2 years of history (daily roll-ups cost almost nothing), data export.
+- **Advanced features** count toward a per-account allowance of codes that may use them: custom short links (live), redirect rules by device/country/time and password protection (planned). A code counts once however many advanced features it uses. Plain dynamic codes never count.
+- **No new jargon for users.** They see "static" and "dynamic" codes, and "advanced features on N codes". Internally: "advanced codes".
+- **Plans** (`PLAN_DETAILS` in `packages/core/src/plans`): Free, advanced features on 1 code (admin setting, default 1); Plus 10 codes, $5/month; Pro 100, $20; Unlimited, every code, $50. A $2 tier for 3 codes was dropped (fees would take about a third of it). Yearly prices are 10× monthly (2 months free), a proposal to confirm.
+- **Rules carried over:** stopping paying never breaks anything (codes with advanced features keep working; you can't add more); an allowance never shrinks for what already exists; free features never move behind a paywall.
+- **Dropped:** retargeting pixels (would track scanners on qrfinity.link). **Made free:** analytics history and its CSV. **Undecided:** bulk creation, team seats, API. **Later, only if customers ask:** custom domains (low demand among small businesses, the most work, and a per-domain cost); not shown on the pricing page.
+- **Billing: Stripe** (already in use), with Stripe Tax to calculate and collect tax. Canadian GST/HST is generally zero-rated for customers outside Canada, but EU and UK VAT apply to consumer sales from the first sale, US states after their thresholds, and GST/HST to Canadian customers past the $30k small-supplier threshold: confirm with an accountant before launch.
+- **Not built yet:** billing, redirect rules, password protection. Until billing exists an admin sets plans, and the pricing page shows plans as "Coming soon" with a waitlist.
+
 ## Name and domains
 
 - Chosen: **QRfinity** (QR + infinity). Rejected: QRLasts (sounds like "QR Last"; qrlast.com belongs to someone else), QRVow (sounds like "QR Wow"), QRLasting (clear but forgettable), InfiniQR (spelling risk).

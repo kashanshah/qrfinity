@@ -5,7 +5,8 @@
  */
 import {
   checkCustomSlug,
-  customSlugAllowance,
+  advancedCodeAllowance,
+  isPlan,
   generateSlug,
   validateDestination,
   CONTENT_TYPES,
@@ -25,6 +26,7 @@ import {
   edgeSyncOutbox,
   folders,
   tags,
+  user,
   type CodeContent,
   type Database,
   and,
@@ -39,9 +41,8 @@ import {
   sql,
 } from '@qrfinity/db'
 
-import { getEntitlements } from './entitlements'
 import { ServiceError } from './errors'
-import { getFreeCustomSlugAllowance } from './settings'
+import { getFreeAdvancedCodeAllowance } from './settings'
 import { LIMITS, rateKey, retryMessage } from './rate-limit'
 import { screenForCode } from './screening'
 
@@ -329,11 +330,15 @@ export async function createDynamicCode(
   throw new Error('Could not allocate a unique short link')
 }
 
-/** How many custom short links the user has and may have. */
-export async function customSlugUsage(ctx: ServiceContext) {
-  const [features, free, [row]] = await Promise.all([
-    getEntitlements(ctx.db, ctx.userId),
-    getFreeCustomSlugAllowance(ctx.db),
+/**
+ * Codes using advanced features, and how many the user's plan allows. A code counts once however
+ * many advanced features it uses. Today that's custom short links; redirect rules and passwords
+ * will count here too.
+ */
+export async function advancedCodeUsage(ctx: ServiceContext) {
+  const [[owner], free, [row]] = await Promise.all([
+    ctx.db.select({ plan: user.plan }).from(user).where(eq(user.id, ctx.userId)),
+    getFreeAdvancedCodeAllowance(ctx.db),
     ctx.db
       .select({ used: sql<number>`count(*)::int` })
       .from(codes)
@@ -341,18 +346,19 @@ export async function customSlugUsage(ctx: ServiceContext) {
         and(eq(codes.userId, ctx.userId), eq(codes.customSlug, true), isNull(codes.deletedAt)),
       ),
   ])
-  return { used: row?.used ?? 0, allowance: customSlugAllowance(features, free) }
+  const plan = isPlan(owner?.plan) ? owner.plan : 'free'
+  return { used: row?.used ?? 0, allowance: advancedCodeAllowance(plan, free), plan }
 }
 
 async function claimableCustomSlug(ctx: ServiceContext, requested: string): Promise<string> {
   const check = checkCustomSlug(requested)
   if (!check.ok) throw new ServiceError(check.error, 'invalid')
-  const { used, allowance } = await customSlugUsage(ctx)
+  const { used, allowance } = await advancedCodeUsage(ctx)
   if (used >= allowance)
     throw new ServiceError(
       allowance === 0
-        ? 'Custom short links aren’t available on your account yet. Leave it empty to get a random one.'
-        : `You’ve used your ${allowance} custom short ${allowance === 1 ? 'link' : 'links'}. Leave it empty to get a random one; more are coming with Pro.`,
+        ? 'Advanced features aren’t available on your account. Leave the short link empty to get a random one.'
+        : `You’re using advanced features on ${used} of ${allowance} ${allowance === 1 ? 'code' : 'codes'}. Leave the short link empty to get a random one, or choose a plan for more.`,
       'invalid',
     )
   // Taken includes deleted codes: a printed short link is never handed to someone else.

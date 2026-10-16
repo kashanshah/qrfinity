@@ -42,7 +42,7 @@ const FAQ: FaqItem[] = [
   },
   {
     q: 'How is this free?',
-    a: 'Static codes are made in your browser and cost us nothing. Redirects for dynamic codes cost a few dollars per ten million scans. A Pro plan will add extra tools for teams later; nothing free will move behind it.',
+    a: 'Static codes are made in your browser and cost us nothing. Redirects for dynamic codes cost a few dollars per ten million scans. Paid plans will let you use advanced features, like custom short links, on more codes; nothing free will move behind them.',
   },
 ]
 

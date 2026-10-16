@@ -77,11 +77,12 @@ export default function AboutPage() {
           </h2>
           <p className="mb-4">
             Static codes cost us nothing: they’re made on your device. Dynamic codes run on an edge
-            network that costs a few dollars per ten million scans. A{' '}
+            network that costs a few dollars per ten million scans. Every feature is free;{' '}
             <Link href="/pricing" className="text-evergreen underline">
-              Pro plan
+              paid plans
             </Link>{' '}
-            will add tools for teams and heavy users. We don’t show ads and we don’t sell data.
+            let heavy users put advanced features on more codes. We don’t show ads and we don’t sell
+            data.
           </p>
         </section>
 

@@ -30,18 +30,18 @@ const admin = (): AdminContext => ({
 })
 
 describe('plans and feature flags', () => {
-  it('starts everyone on free with every free feature', async () => {
+  it('gives everyone every released feature, on any plan', async () => {
     const e = await getEntitlements(db, 'alice')
     expect(e.has('dynamicCodes')).toBe(true)
-    expect(e.has('analytics90')).toBe(true)
-    expect(e.has('analyticsHistory')).toBe(false)
+    expect(e.has('analyticsHistory')).toBe(true)
+    expect(e.has('customSlugs')).toBe(true)
+    expect(e.has('redirectRules')).toBe(false)
   })
 
   it('lets an admin set a plan, audited', async () => {
-    await setUserPlan(admin(), 'alice', 'pro')
-    expect((await getEntitlements(db, 'alice')).has('analyticsHistory')).toBe(true)
+    await setUserPlan(admin(), 'alice', 'plus')
     await expect(setUserPlan(admin(), 'alice', 'gold')).rejects.toThrow(
-      'Choose free, pro or business',
+      'Choose free, plus, pro or unlimited',
     )
     expect(await db.select().from(auditLog)).toMatchObject([
       { action: 'user.plan', targetId: 'alice' },
@@ -128,12 +128,9 @@ describe('analytics roll-ups', () => {
     expect(report.hourOfDay[13]).toBe(2)
     expect((await historyReport(db, { kind: 'owner', ownerId: 'bob' }, 365)).totals.scans).toBe(0)
 
-    // Free users get up to 90 days; with history, a year comes from the roll-ups.
+    // Long history is free for everyone: a year comes from the roll-ups.
     const free = await scanReportFor(ctx, { kind: 'owner', ownerId: 'alice' }, '365')
-    expect(free.days).toBe(30)
-    expect(free.ranges).toEqual([7, 30, 90])
-    await setUserPlan(admin(), 'alice', 'pro')
-    const pro = await scanReportFor(ctx, { kind: 'owner', ownerId: 'alice' }, '365')
-    expect(pro).toMatchObject({ days: 365, history: true })
+    expect(free.ranges).toEqual([7, 30, 90, 365, 730])
+    expect(free).toMatchObject({ days: 365, history: true })
   })
 })

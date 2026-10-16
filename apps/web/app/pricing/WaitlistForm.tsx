@@ -19,7 +19,7 @@ export function WaitlistForm({ siteKey }: { siteKey?: string }) {
   if (done) {
     return (
       <p role="status" className="rounded-lg bg-mint p-4 text-ink">
-        You’re on the list. We’ll email you once when Pro launches, and that’s all.
+        You’re on the list. We’ll email you once when paid plans launch, and that’s all.
       </p>
     )
   }
@@ -49,11 +49,11 @@ export function WaitlistForm({ siteKey }: { siteKey?: string }) {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         error={error ?? undefined}
-        hint="One email when Pro launches. No newsletter."
+        hint="One email when paid plans launch. No newsletter."
       />
       {engaged ? <Turnstile siteKey={siteKey} onToken={setToken} /> : null}
       <Button type="submit" variant="primary" disabled={pending}>
-        {pending ? 'Adding you…' : 'Tell me when Pro launches'}
+        {pending ? 'Adding you…' : 'Tell me when plans launch'}
       </Button>
     </form>
   )

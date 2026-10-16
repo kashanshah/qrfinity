@@ -115,7 +115,7 @@ test('a custom short link redirects, and the free allowance is shown', async ({
   await signIn(page, request, email)
   await page.goto('/dashboard/new')
   await page.getByLabel('Website address').fill('example.com/custom')
-  await expect(page.getByText('1 of 1 free custom link left.', { exact: false })).toBeVisible()
+  await expect(page.getByText('0 of 1 code used.', { exact: false })).toBeVisible()
   await page.getByLabel('Custom short link (optional)').fill(slug)
   await page.getByRole('button', { name: 'Create dynamic code' }).click()
   await expect(page).toHaveURL(/\/dashboard\/codes\/[0-9a-f-]{36}\?created=1/)
@@ -125,7 +125,5 @@ test('a custom short link redirects, and the free allowance is shown', async ({
     location: 'https://example.com/custom',
   })
   await page.goto('/dashboard/new')
-  await expect(
-    page.getByText('You’ve used your 1 custom short link.', { exact: false }),
-  ).toBeVisible()
+  await expect(page.getByText('advanced features on 1 of 1 code', { exact: false })).toBeVisible()
 })

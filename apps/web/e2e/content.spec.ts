@@ -79,7 +79,7 @@ test.describe('content pages', () => {
   test('the pricing waitlist accepts an email', async ({ page }) => {
     await page.goto('/pricing')
     await page.getByLabel('Your email').fill(`waitlist-${Date.now()}@example.com`)
-    await page.getByRole('button', { name: 'Tell me when Pro launches' }).click()
+    await page.getByRole('button', { name: 'Tell me when plans launch' }).click()
     await expect(page.getByText('You’re on the list.')).toBeVisible()
   })
 })

@@ -3,7 +3,7 @@ import { proWaitlist, type Database } from '@qrfinity/db'
 import { ServiceError } from './errors'
 import { rateKey, retryMessage } from './rate-limit'
 
-/** Adds an address to the Pro waitlist. Joining twice is not an error; the reply is the same. */
+/** Adds an address to the waitlist for paid plans. Joining twice is not an error; the reply is the same. */
 export async function joinWaitlist(
   db: Database,
   limiter: RateLimiter,

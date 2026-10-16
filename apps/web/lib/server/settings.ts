@@ -1,35 +1,36 @@
-import { CLOUDFLARE_PLANS, DEFAULT_FREE_CUSTOM_SLUGS, type CloudflarePlan } from '@qrfinity/core'
+import { CLOUDFLARE_PLANS, DEFAULT_FREE_ADVANCED_CODES, type CloudflarePlan } from '@qrfinity/core'
 import { appSettings, eq, type Database } from '@qrfinity/db'
 import { audit, type AdminContext } from './admin'
 import { ServiceError } from './errors'
 
-const FREE_CUSTOM_SLUGS = 'free_custom_slugs'
+// Stored under its original name, from when custom short links were the only advanced feature.
+const FREE_ADVANCED_CODES = 'free_custom_slugs'
 
-/** Free custom short links per account (admin setting; default 1). */
-export async function getFreeCustomSlugAllowance(db: Database): Promise<number> {
+/** Free codes with advanced features per account (admin setting; default 1). */
+export async function getFreeAdvancedCodeAllowance(db: Database): Promise<number> {
   const [row] = await db
     .select({ value: appSettings.value })
     .from(appSettings)
-    .where(eq(appSettings.key, FREE_CUSTOM_SLUGS))
+    .where(eq(appSettings.key, FREE_ADVANCED_CODES))
   const n = Number(row?.value)
-  return Number.isInteger(n) && n >= 0 ? n : DEFAULT_FREE_CUSTOM_SLUGS
+  return Number.isInteger(n) && n >= 0 ? n : DEFAULT_FREE_ADVANCED_CODES
 }
 
 /**
- * Changes the free allowance. Lowering it only affects new links: custom links people already
- * have keep working and stay theirs.
+ * Changes the free allowance. Lowering it only affects new codes: advanced features people already
+ * use keep working and stay theirs.
  */
-export async function setFreeCustomSlugAllowance(ctx: AdminContext, value: number) {
+export async function setFreeAdvancedCodeAllowance(ctx: AdminContext, value: number) {
   if (!Number.isInteger(value) || value < 0 || value > 50)
     throw new ServiceError('Enter a whole number from 0 to 50.', 'invalid')
   await ctx.db
     .insert(appSettings)
-    .values({ key: FREE_CUSTOM_SLUGS, value, updatedBy: ctx.actor })
+    .values({ key: FREE_ADVANCED_CODES, value, updatedBy: ctx.actor })
     .onConflictDoUpdate({
       target: appSettings.key,
       set: { value, updatedBy: ctx.actor, updatedAt: new Date() },
     })
-  await audit(ctx.db, ctx.actor, 'setting.free_custom_slugs', 'setting', FREE_CUSTOM_SLUGS, {
+  await audit(ctx.db, ctx.actor, 'setting.free_advanced_codes', 'setting', FREE_ADVANCED_CODES, {
     value,
   })
 }
