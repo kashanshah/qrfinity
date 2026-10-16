@@ -1,4 +1,4 @@
-import { Check, Clock } from 'lucide-react'
+import { Check, Clock, Crown } from 'lucide-react'
 import { Breadcrumbs } from '@/components/content/Breadcrumbs'
 import { Faq, type FaqItem } from '@/components/content/Faq'
 import { JsonLd, softwareApplication } from '@/components/content/JsonLd'
@@ -39,20 +39,30 @@ const ADVANCED: { name: string; detail: string; ready: boolean }[] = [
     detail: 'Only people with the password can open the link or contact card',
     ready: true,
   },
+  {
+    name: 'Split traffic',
+    detail: 'Share scans between up to five versions of a page and compare them (A/B test)',
+    ready: true,
+  },
+  {
+    name: 'Date and scan limits',
+    detail: 'After a date or a number of scans, send people to another page, like “offer ended”',
+    ready: true,
+  },
 ]
 
 const FAQ: FaqItem[] = [
   {
     q: 'Is QRfinity really free?',
-    a: 'Yes. Every feature is free: unlimited static and dynamic codes, analytics, every design option and every download format. Paid plans only let you use advanced features, like custom short links, redirect rules and passwords, on more than one code.',
+    a: 'Yes. Every feature is free: unlimited static and dynamic codes, analytics, every design option and every download format. Paid plans only let you use advanced features, like custom short links, redirect rules, passwords, split traffic and date or scan limits, on more than one code.',
   },
   {
     q: 'What counts as a code with advanced features?',
-    a: 'Any dynamic code that uses at least one advanced feature, such as a custom short link, redirect rules or a password. A code counts once however many advanced features it uses. Plain dynamic codes never count and are always unlimited.',
+    a: 'Any dynamic code that uses at least one advanced feature, such as a custom short link, redirect rules, a password, split traffic or a date or scan limit. A code counts once however many advanced features it uses. Plain dynamic codes never count and are always unlimited.',
   },
   {
     q: 'What happens if I stop paying?',
-    a: 'Every code keeps working, and custom short links keep working too, so nothing you printed breaks. Advanced features stay on as many codes as the free plan covers (your oldest); on the others, redirect rules pause and scans go to each code’s main destination. Passwords stay on, so a protected code never opens to everyone. Choose a plan again and the rules switch straight back on.',
+    a: 'Every code keeps working, and custom short links keep working too, so nothing you printed breaks. Advanced features stay on as many codes as the free plan covers (your oldest); on the others, redirect rules, splits and limits pause and scans go to each code’s main destination. Passwords stay on, so a protected code never opens to everyone. Choose a plan again and the rules switch straight back on.',
   },
   {
     q: 'Will my free codes ever stop working?',
@@ -61,6 +71,10 @@ const FAQ: FaqItem[] = [
   {
     q: 'How does password protection work?',
     a: 'People who scan the code type the password before they see the link or contact card, every time they scan. We store only a scrambled copy (a salted hash), so we can’t tell you the password if you forget it; you can set a new one at any time. Wrong guesses are slowed down to stop anyone trying password after password.',
+  },
+  {
+    q: 'What does the crown mean?',
+    a: 'In your dashboard, a crown marks an advanced feature while you’re on the free plan. It’s faint while you still have a free code to use it on, and solid once you’ve used it; features you can’t add yet are faded until you choose a plan. On a plan, the crowns go away.',
   },
   {
     q: 'Could a free feature move to a paid plan later?',
@@ -148,21 +162,23 @@ export default function PricingPage() {
           aria-labelledby="advanced"
           className="rounded-xl border border-hairline bg-surface p-6 md:p-8"
         >
-          <h2 id="advanced" className="heading text-ink">
+          <h2 id="advanced" className="heading flex items-center gap-2 text-ink">
             Advanced features
+            <Crown aria-hidden="true" size={24} strokeWidth={1.75} />
           </h2>
           <p className="mt-1 text-ink-muted">
-            Free on one code. Use them on more codes with a plan.
+            Free on one code. Use them on more codes with a plan. On a free account they’re marked
+            with a crown.
           </p>
           <ul className="mt-5 flex flex-col gap-4">
             {ADVANCED.map((a) => (
               <li key={a.name} className="flex gap-3 text-ink">
                 {a.ready ? (
-                  <Check
+                  <Crown
                     aria-hidden="true"
                     size={20}
                     strokeWidth={1.75}
-                    className="mt-[3px] shrink-0 text-evergreen"
+                    className="mt-[3px] shrink-0 text-ink"
                   />
                 ) : (
                   <Clock

@@ -7,6 +7,9 @@ import {
   parseLinkRecord,
   parseUserAgent,
   pickDestination,
+  pickVersion,
+  limitReached,
+  LIMIT_LABEL,
   renderContactPage,
   resolveAccent,
   vcardFile,
@@ -34,8 +37,10 @@ export type RedirectDeps = {
   /** Records the scan after the response is sent, with the redirect rule that matched ('' = none). */
   recordScan(request: Request, record: LinkRecord, rule: string): Promise<void>
   waitUntil(promise: Promise<unknown>): void
-  /** The clock for time-based rules (tests pass a fixed one). */
+  /** The clock for time-based rules and date limits (tests pass a fixed one). */
   now?: () => Date
+  /** Random number in [0, 1) for split traffic (tests pass a fixed one). */
+  random?: () => number
   /** Throttles password attempts per visitor and code. Returns false when over the limit. */
   allowUnlock?: (request: Request, record: LinkRecord) => Promise<boolean>
 }
@@ -171,13 +176,7 @@ export async function handleRequest(request: Request, deps: RedirectDeps): Promi
   }
   if (wantsVcf) return html(notFoundPage(deps.siteOrigin, slug), 404)
 
-  // Redirect rules: the first that matches the phone, country or time picks the destination.
-  const cf = (request as Request & { cf?: { country?: string } }).cf
-  const { dest, rule } = pickDestination(record.dest, record.rules, {
-    os: parseUserAgent(request.headers.get('user-agent')).os,
-    country: cf?.country ?? '',
-    now: deps.now?.() ?? new Date(),
-  })
+  const { dest, rule } = chooseDestination(request, record, deps)
 
   if (request.method === 'GET')
     deps.waitUntil(deps.recordScan(request, record, rule).catch(() => undefined))
@@ -187,4 +186,28 @@ export async function handleRequest(request: Request, deps: RedirectDeps): Promi
     status: request.method === 'POST' ? 303 : 302,
     headers: { ...baseHeaders, Location: dest },
   })
+}
+
+/**
+ * Where a scan goes, and the label to record: a reached date or scan limit wins; otherwise the
+ * first redirect rule that matches the phone, country or time; otherwise the split picks a version
+ * of the main destination.
+ */
+function chooseDestination(
+  request: Request,
+  record: LinkRecord,
+  deps: Pick<RedirectDeps, 'now' | 'random'>,
+): { dest: string; rule: string } {
+  const now = deps.now?.() ?? new Date()
+  if (record.limit && limitReached(record.limit, now))
+    return { dest: record.limit.dest, rule: LIMIT_LABEL }
+  const cf = (request as Request & { cf?: { country?: string } }).cf
+  const ruled = pickDestination(record.dest, record.rules, {
+    os: parseUserAgent(request.headers.get('user-agent')).os,
+    country: cf?.country ?? '',
+    now,
+  })
+  if (ruled.rule) return ruled
+  const v = pickVersion(record.dest, record.split, deps.random?.() ?? Math.random())
+  return { dest: v.dest, rule: v.label }
 }

@@ -6,6 +6,7 @@ import {
   ANALYTICS_WINDOW_DAYS,
   BREAKDOWNS,
   aeCodeTotalsQuery,
+  aeScanCountQuery,
   aeQueries,
   aeRollupQueries,
   assembleReport,
@@ -59,6 +60,11 @@ export class AnalyticsEngineBackend implements ScanAnalytics {
   async codeTotals(ownerId: string, days?: number) {
     const res = await this.query(aeCodeTotalsQuery(ownerId, clampDays(days)))
     return new Map(res.data.map((r) => [String(r.code), Math.round(Number(r.scans) || 0)]))
+  }
+
+  async scanCount(codeId: string, since: Date) {
+    const res = await this.query(aeScanCountQuery(codeId, since))
+    return Math.round(Number(res.data[0]?.scans) || 0)
   }
 
   async dailyRollup(day: string): Promise<DailyRollup[]> {
@@ -134,6 +140,20 @@ export class PostgresAnalyticsBackend implements ScanAnalytics {
     return new Map(rows.map((r) => [r.code, r.scans]))
   }
 
+  async scanCount(codeId: string, since: Date) {
+    const [row] = await this.db
+      .select({ scans: sql<number>`count(*)::int` })
+      .from(scanEvents)
+      .where(
+        and(
+          eq(scanEvents.codeId, codeId),
+          sql`${scanEvents.at} >= ${since.toISOString()}`,
+          ne(scanEvents.device, 'bot'),
+        ),
+      )
+    return row?.scans ?? 0
+  }
+
   async dailyRollup(day: string): Promise<DailyRollup[]> {
     const where = and(
       sql`${scanEvents.at} >= ${day}::date at time zone 'UTC'`,
@@ -191,6 +211,9 @@ export class UnconfiguredAnalytics implements ScanAnalytics {
   }
   async codeTotals() {
     return new Map<string, number>()
+  }
+  async scanCount() {
+    return 0
   }
   async dailyRollup(): Promise<DailyRollup[]> {
     return []

@@ -1,7 +1,9 @@
 /** The record the redirect Worker reads from KV for every scan. Postgres is the source of truth. */
+import { parseLinkLimit, type LinkLimit } from './limits'
 import { parsePage, type HostedPage } from './page'
 import { isPasswordHash } from './password'
 import { parseRules, type RedirectRule } from './rules'
+import { parseSplit, type Split } from './split'
 
 export const LINK_STATUSES = ['active', 'paused', 'disabled'] as const
 export type LinkStatus = (typeof LINK_STATUSES)[number]
@@ -22,6 +24,10 @@ export type LinkRecord = {
   page?: HostedPage
   /** Password protection: the PBKDF2 hash a typed password must match (never the password). */
   lock?: string
+  /** Split traffic: shares of the scans no rule catches. Absent when none, or when paused. */
+  split?: Split
+  /** Date or scan limit: from `at` on, every scan goes to `dest`. Absent when none, or when paused. */
+  limit?: LinkLimit
 }
 
 export function linkKey(domain: string, slug: string): string {
@@ -42,8 +48,10 @@ export function parseLinkRecord(value: unknown): LinkRecord | null {
   }
   const page = parsePage(r.page)
   if (r.status === 'active' && !page && !/^https?:\/\//i.test(r.dest)) return null
-  // A hosted page never redirects, so rules don't apply to it.
+  // A hosted page never redirects, so rules, splits and limits don't apply to it.
   const rules = page ? undefined : parseRules(r.rules)
+  const split = page ? undefined : parseSplit(r.split)
+  const limit = page ? undefined : parseLinkLimit(r.limit)
   return {
     id: r.id,
     dest: page ? '' : r.dest,
@@ -53,6 +61,8 @@ export function parseLinkRecord(value: unknown): LinkRecord | null {
     ...(rules ? { rules } : {}),
     ...(page ? { page } : {}),
     ...(isPasswordHash(r.lock) ? { lock: r.lock } : {}),
+    ...(split ? { split } : {}),
+    ...(limit ? { limit } : {}),
   }
 }
 

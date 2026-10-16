@@ -268,6 +268,69 @@ describe('redirect worker', () => {
     })
   })
 
+  describe('split traffic and limits', () => {
+    const split = {
+      variants: [{ name: 'New menu', dest: 'https://example.com/new', percent: 40 }],
+    }
+
+    it('shares scans between versions and records which one', async () => {
+      const { get, deps } = setup({ kv: { aB3xK9q: rec({ split }) } })
+      deps.random = () => 0.1
+      expect((await get('/aB3xK9q')).headers.get('location')).toBe('https://example.com/new')
+      expect(deps.recordScan).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.anything(),
+        'New menu',
+      )
+      deps.random = () => 0.9
+      expect((await get('/aB3xK9q')).headers.get('location')).toBe('https://example.com/menu')
+      expect(deps.recordScan).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.anything(),
+        'Version A',
+      )
+    })
+
+    it('lets a matching rule win over the split', async () => {
+      const rules = [
+        {
+          name: 'Apple',
+          when: { type: 'device' as const, devices: ['ios' as const] },
+          dest: 'https://apps.apple.com/x',
+        },
+      ]
+      const { get, deps } = setup({ kv: { aB3xK9q: rec({ split, rules }) } })
+      deps.random = () => 0.1
+      const iphone = {
+        headers: {
+          'user-agent':
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148 Safari/604.1',
+        },
+      }
+      expect((await get('/aB3xK9q', iphone)).headers.get('location')).toBe(
+        'https://apps.apple.com/x',
+      )
+      expect((await get('/aB3xK9q')).headers.get('location')).toBe('https://example.com/new')
+    })
+
+    it('switches every scan once the limit is reached', async () => {
+      const limit = { at: '2026-12-31T05:00:00.000Z', dest: 'https://example.com/ended' }
+      const { get, deps } = setup({ kv: { aB3xK9q: rec({ split, limit }) } })
+      deps.random = () => 0.1
+      deps.now = () => new Date('2026-12-31T04:59:59Z')
+      expect((await get('/aB3xK9q')).headers.get('location')).toBe('https://example.com/new')
+      deps.now = () => new Date('2026-12-31T05:00:00Z')
+      const res = await get('/aB3xK9q')
+      expect(res.status).toBe(302)
+      expect(res.headers.get('location')).toBe('https://example.com/ended')
+      expect(deps.recordScan).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.anything(),
+        'After the limit',
+      )
+    })
+  })
+
   describe('password protection', () => {
     const post = (password: string) => ({
       method: 'POST',

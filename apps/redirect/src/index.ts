@@ -6,6 +6,7 @@ import {
   signedHeaders,
   toDataPoint,
   type LinkRecord,
+  limitSwitch,
 } from '@qrfinity/core/edge'
 import postgres from 'postgres'
 import { handleRequest } from './handler'
@@ -61,9 +62,11 @@ async function lookupDatabase(
         rules: unknown
         page: unknown
         password_hash: string | null
+        split: unknown
+        limits: unknown
       }[]
     >`
-      select id, user_id, destination, status, version, rules, page, password_hash from redirect_lookup where domain = ${domain} and slug = ${slug} limit 1`
+      select id, user_id, destination, status, version, rules, page, password_hash, split, limits from redirect_lookup where domain = ${domain} and slug = ${slug} limit 1`
     const r = rows[0]
     if (!r || (!r.destination && !r.page)) return null
     // Same checks as a KV record, so malformed rules are dropped rather than followed.
@@ -76,6 +79,8 @@ async function lookupDatabase(
       rules: r.rules,
       page: r.page,
       lock: r.password_hash,
+      split: r.split,
+      limit: limitSwitch(r.limits),
     })
   } finally {
     ctx.waitUntil(sql.end())
