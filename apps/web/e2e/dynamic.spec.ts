@@ -170,8 +170,48 @@ test('redirect rules send each phone to its own store', async ({ page, request }
   await page.getByLabel('Website address').fill('example.com/second')
   await page.getByRole('button', { name: 'Create dynamic code' }).click()
   await expect(page).toHaveURL(/\/dashboard\/codes\/[0-9a-f-]{36}\?created=1/)
-  // Both the rules and password sections say so.
-  await expect(page.getByText('advanced features on 1 of 1 code', { exact: false })).toHaveCount(2)
+  // Every advanced section says so (rules, split, limits, password), faded, with a solid crown.
+  await expect(page.getByText('advanced features on 1 of 1 code', { exact: false })).toHaveCount(4)
+  await expect(
+    page.getByTitle('Advanced feature: you’ve used your free 1 code').first(),
+  ).toBeVisible()
+})
+
+test('split traffic and a date limit change where scans go', async ({ page, request }) => {
+  await signIn(page, request, `e2e-split-${Date.now()}@example.com`)
+  await page.goto('/dashboard/new')
+  // A free account sees a faint crown beside the custom short link while its free code is unused.
+  await expect(page.getByTitle('Advanced feature: free on 1 code, 0 used').first()).toBeVisible()
+  await page.getByLabel('Website address').fill('example.com/a')
+  await page.getByRole('button', { name: 'Create dynamic code' }).click()
+  await expect(page).toHaveURL(/\/dashboard\/codes\/[0-9a-f-]{36}\?created=1/)
+  const link = `http://${await page.locator('header .mono').first().innerText()}`
+
+  await page.getByRole('button', { name: 'Split traffic 50/50' }).click()
+  await page
+    .getByRole('region', { name: 'Split traffic' })
+    .getByLabel('Send people to')
+    .fill('example.com/b')
+  await page.getByRole('button', { name: 'Save split' }).click()
+  await expect(page.getByText('Saved. Scans follow the new split')).toBeVisible()
+  const seen = new Set<string>()
+  for (let i = 0; i < 20 && seen.size < 2; i++) seen.add((await scan(request, link)).location!)
+  expect([...seen].sort()).toEqual(['https://example.com/a', 'https://example.com/b'])
+
+  // A date in the past switches every scan to the "ended" page.
+  const limits = page.getByRole('region', { name: 'Date and scan limits' })
+  await limits.getByLabel('After this date').fill('2020-01-01')
+  await limits.getByLabel('Then send people to').fill('example.com/ended')
+  await page.getByRole('button', { name: 'Save limits' }).click()
+  await expect(page.getByText(/^Limit reached/)).toBeVisible()
+  expect(await scan(request, link)).toMatchObject({
+    status: 302,
+    location: 'https://example.com/ended',
+  })
+  // The crown is now solid: the free code is used.
+  await expect(
+    page.getByTitle('Advanced feature: you’ve used your free 1 code').first(),
+  ).toBeVisible()
 })
 
 test('a password-protected code asks for the password on every scan', async ({ page, request }) => {

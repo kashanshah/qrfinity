@@ -67,6 +67,13 @@ export function aeCodeTotalsQuery(ownerId: string, days = ANALYTICS_WINDOW_DAYS)
   return `SELECT index1 AS code, SUM(_sample_interval) AS scans FROM ${SCAN_DATASET} WHERE ${scopeWhere({ kind: 'owner', ownerId }, days)} GROUP BY code FORMAT JSON`
 }
 
+/** Scans of one code since a moment, for scan limits. */
+export function aeScanCountQuery(codeId: string, since: Date): string {
+  if (!SAFE_ID.test(codeId)) throw new Error('Invalid analytics scope id')
+  const t = since.toISOString().slice(0, 19).replace('T', ' ')
+  return `SELECT SUM(_sample_interval) AS scans FROM ${SCAN_DATASET} WHERE index1 = '${codeId}' AND timestamp >= toDateTime('${t}') AND ${blobColumn('device')} != 'bot' FORMAT JSON`
+}
+
 export type AeResponse = { data: Record<string, unknown>[] }
 
 const num = (v: unknown) => (typeof v === 'number' ? v : Number(v) || 0)

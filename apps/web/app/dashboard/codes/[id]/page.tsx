@@ -1,6 +1,7 @@
 import type { ContentType } from '@qrfinity/core'
 import { notFound } from 'next/navigation'
 import { AnalyticsView } from '@/components/analytics/AnalyticsView'
+import { advancedAccess } from '@/components/dashboard/Advanced'
 import { CopyButton } from '@/components/dashboard/CopyButton'
 import { StatusPill } from '@/components/dashboard/StatusPill'
 import { CodeTypeBadge, NeverExpiresBadge } from '@/components/generator/Badges'
@@ -19,7 +20,9 @@ import { CodeSettings } from './CodeSettings'
 import { EditCode } from './EditCode'
 import { RenameCode } from './RenameCode'
 import { PageStyleEditor } from './PageStyleEditor'
+import { LimitsEditor } from './LimitsEditor'
 import { PasswordEditor } from './PasswordEditor'
+import { SplitEditor } from './SplitEditor'
 import { RulesEditor } from './RulesEditor'
 
 const dateTime = new Intl.DateTimeFormat('en-CA', { dateStyle: 'medium', timeStyle: 'short' })
@@ -49,7 +52,13 @@ export default async function CodePage({
   ])
   const page = pageOf(code)
   // A code that already uses an advanced feature can add rules without taking another place.
-  const isAdvanced = code.customSlug || code.rules !== null || code.hasPassword
+  const isAdvanced =
+    code.customSlug ||
+    code.rules !== null ||
+    code.hasPassword ||
+    code.split !== null ||
+    code.limits !== null
+  const access = advancedAccess(usage)
   const canAddAdvanced = isAdvanced ? !code.advancedPaused : usage.used < usage.allowance
   const link = shortLinkFor(code.slug!)
   const content = code.content ?? {
@@ -126,6 +135,34 @@ export default async function CodePage({
           canAdd={canAddAdvanced}
           used={usage.used}
           allowance={usage.allowance}
+          access={access}
+          disabled={code.status === 'disabled'}
+        />
+      ) : null}
+
+      {code.destination ? (
+        <SplitEditor
+          id={code.id}
+          destination={code.destination}
+          split={code.split}
+          paused={code.advancedPaused && code.split !== null}
+          canAdd={canAddAdvanced}
+          used={usage.used}
+          allowance={usage.allowance}
+          access={access}
+          disabled={code.status === 'disabled'}
+        />
+      ) : null}
+
+      {code.destination ? (
+        <LimitsEditor
+          id={code.id}
+          limits={code.limits}
+          paused={code.advancedPaused && code.limits !== null}
+          canAdd={canAddAdvanced}
+          used={usage.used}
+          allowance={usage.allowance}
+          access={access}
           disabled={code.status === 'disabled'}
         />
       ) : null}
@@ -136,6 +173,7 @@ export default async function CodePage({
         canAdd={canAddAdvanced}
         used={usage.used}
         allowance={usage.allowance}
+        access={access}
         disabled={code.status === 'disabled'}
       />
 

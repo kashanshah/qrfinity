@@ -9,6 +9,12 @@ import {
   generateSlug,
   validateDestination,
   validateRules,
+  validateSplit,
+  validateLimits,
+  limitSwitch,
+  type CodeLimits,
+  type ScanAnalytics,
+  type Split,
   checkPassword,
   hashPassword,
   cleanVcardFields,
@@ -37,6 +43,7 @@ import {
   destinationHistory,
   edgeSyncOutbox,
   folders,
+  scanDaily,
   tags,
   type CodeContent,
   type Database,
@@ -236,6 +243,10 @@ export async function syncCode(db: Database, edge: EdgeSync, codeId: string): Pr
               },
             }
           : {}),
+        ...(row.split && !row.advancedPaused && !page ? { split: row.split } : {}),
+        ...(limitSwitch(row.limits) && !row.advancedPaused && !page
+          ? { limit: limitSwitch(row.limits) }
+          : {}),
         // Kept even when advanced features are paused: protected stays protected.
         ...(row.passwordHash ? { lock: row.passwordHash } : {}),
       }
@@ -432,12 +443,51 @@ export async function createDynamicCode(
   throw new Error('Could not allocate a unique short link')
 }
 
-/** A live code that uses at least one advanced feature (custom short link, rules or a password). */
-const usesAdvanced = sql`(${codes.customSlug} or ${codes.rules} is not null or ${codes.passwordHash} is not null)`
+/** A live code that uses at least one advanced feature. Keep in step with `isAdvanced`. */
+const usesAdvanced = sql`(${codes.customSlug} or ${codes.rules} is not null or ${codes.passwordHash} is not null or ${codes.split} is not null or ${codes.limits} is not null)`
+
+type AdvancedFields = Pick<CodeRow, 'customSlug' | 'rules' | 'passwordHash' | 'split' | 'limits'>
 
 /** Whether a stored code uses any advanced feature. Keep in step with `usesAdvanced`. */
-const isAdvanced = (row: Pick<CodeRow, 'customSlug' | 'rules' | 'passwordHash'>) =>
-  row.customSlug || row.rules !== null || row.passwordHash !== null
+const isAdvanced = (row: AdvancedFields) =>
+  row.customSlug ||
+  row.rules !== null ||
+  row.passwordHash !== null ||
+  row.split !== null ||
+  row.limits !== null
+
+/** Advanced features that change where scans go: paused beyond the allowance. */
+const redirectsDifferently = (row: Pick<CodeRow, 'rules' | 'split' | 'limits'>) =>
+  row.rules !== null || row.split !== null || row.limits !== null
+
+/**
+ * After a change: if it removed the code's last advanced feature, a place is free and a paused
+ * code may get its features back.
+ */
+async function refreshIfFreed(ctx: ServiceContext, before: AdvancedFields, after: AdvancedFields) {
+  if (isAdvanced(before) && !isAdvanced(after))
+    await refreshAdvancedFeatures(ctx.db, ctx.userId, ctx.edge)
+}
+
+/**
+ * Refuses to add an advanced feature when the code doesn't use one yet and the allowance is used
+ * up, or when the code's advanced features are paused (`what`: e.g. "redirect rules").
+ */
+async function assertCanUseAdvanced(ctx: ServiceContext, row: CodeRow, what: string) {
+  if (!isAdvanced(row)) {
+    const { used, allowance } = await advancedCodeUsage(ctx)
+    if (used >= allowance)
+      throw new ServiceError(
+        `You’re using advanced features on ${used} of ${allowance} ${allowance === 1 ? 'code' : 'codes'}. Choose a plan to add ${what} to more codes.`,
+        'invalid',
+      )
+  } else if (row.advancedPaused) {
+    throw new ServiceError(
+      `Advanced features on this code are paused because your plan covers fewer codes. Choose a plan to change its ${what}, or remove them.`,
+      'invalid',
+    )
+  }
+}
 
 /**
  * Codes using advanced features, and how many the user's plan allows. A code counts once however
@@ -464,7 +514,13 @@ export async function advancedCodeUsage(ctx: Pick<ServiceContext, 'db' | 'userId
 export async function refreshAdvancedFeatures(db: Database, userId: string, edge?: EdgeSync) {
   const { allowance } = await advancedCodeUsage({ db, userId })
   const list = await db
-    .select({ id: codes.id, paused: codes.advancedPaused, rules: codes.rules })
+    .select({
+      id: codes.id,
+      paused: codes.advancedPaused,
+      rules: codes.rules,
+      split: codes.split,
+      limits: codes.limits,
+    })
     .from(codes)
     .where(and(eq(codes.userId, userId), usesAdvanced, isNull(codes.deletedAt)))
     .orderBy(asc(codes.createdAt), asc(codes.id))
@@ -477,14 +533,14 @@ export async function refreshAdvancedFeatures(db: Database, userId: string, edge
         .update(codes)
         .set({
           advancedPaused: c.shouldPause,
-          // Only codes with rules redirect differently; the others just need the flag.
-          ...(c.rules ? { version: sql`${codes.version} + 1` } : {}),
+          // Only codes with rules, splits or limits redirect differently; the others just need the flag.
+          ...(redirectsDifferently(c) ? { version: sql`${codes.version} + 1` } : {}),
         })
         .where(eq(codes.id, c.id))
         .returning({ version: codes.version })
-      if (c.rules) await enqueue(tx, c.id, u!.version)
+      if (redirectsDifferently(c)) await enqueue(tx, c.id, u!.version)
     })
-    if (edge && c.rules) await syncCode(db, edge, c.id)
+    if (edge && redirectsDifferently(c)) await syncCode(db, edge, c.id)
   }
   if (changed.length)
     await audit(db, 'system', 'code.advanced', 'user', userId, {
@@ -556,9 +612,9 @@ export async function updateDestination(
       await ctx.db.update(codes).set({ content }).where(eq(codes.id, id))
     return getCode(ctx, id)
   }
-  if (next.page && row.rules)
+  if (next.page && redirectsDifferently(row))
     throw new ServiceError(
-      'Remove this code’s redirect rules before turning it into a contact card.',
+      'Remove this code’s redirect rules, split traffic and limits before turning it into a contact card.',
       'invalid',
     )
   await limit(ctx, 'edit-hour', LIMITS.editPerHour)
@@ -650,9 +706,196 @@ export async function setRules(ctx: ServiceContext, id: string, input: unknown) 
   })
   await syncCode(ctx.db, ctx.edge, id)
   // Removing the last advanced feature frees a place: a paused code may get its features back.
-  if (!rules && row.rules && !row.customSlug && !row.passwordHash)
-    await refreshAdvancedFeatures(ctx.db, ctx.userId, ctx.edge)
+  await refreshIfFreed(ctx, row, { ...row, rules })
   return getCode(ctx, id)
+}
+
+/** Screens destinations that weren't on the code before. True when one couldn't be checked yet. */
+async function screenNewDestinations(ctx: ServiceContext, row: CodeRow, dests: string[]) {
+  const known = new Set([
+    row.destination,
+    ...(row.rules ?? []).map((r) => r.dest),
+    ...(row.split?.variants ?? []).map((v) => v.dest),
+    row.limits?.dest,
+  ])
+  let recheckSoon = false
+  for (const dest of new Set(dests)) {
+    if (known.has(dest)) continue
+    const risk = await screenForCode(ctx.db, ctx.reputation, dest)
+    if (risk.riskStatus === 'unchecked') recheckSoon = true
+  }
+  return recheckSoon
+}
+
+/** A code that redirects (not a contact card) and can be edited. */
+function assertRedirectingCode(row: CodeRow, feature: string) {
+  if (row.kind !== 'dynamic' || !row.destination)
+    throw new ServiceError(
+      `${feature} work on dynamic codes that open a link. A contact card always shows its page.`,
+      'invalid',
+    )
+  if (row.status === 'disabled')
+    throw new ServiceError(
+      'This code was turned off for breaking our rules and can’t be edited.',
+      'forbidden',
+    )
+}
+
+const checkDestFor = (ctx: ServiceContext) => (url: string) => {
+  const r = validateDestination(url, [ctx.shortDomain])
+  return r.ok ? ({ ok: true, url: r.url } as const) : ({ ok: false, message: r.message } as const)
+}
+
+/**
+ * Shares scans between the main destination and other versions (an advanced feature, for A/B
+ * tests). An empty list removes the split. Applies to scans no redirect rule catches.
+ */
+export async function setSplit(ctx: ServiceContext, id: string, input: unknown) {
+  const row = await ownedCode(ctx, id)
+  assertRedirectingCode(row, 'Split traffic and limits')
+  const parsed = validateSplit(input, checkDestFor(ctx))
+  if (!parsed.ok) throw new ServiceError(parsed.error, 'invalid')
+  const split: Split | null = parsed.split
+  if (split) await assertCanUseAdvanced(ctx, row, 'split traffic')
+  await limit(ctx, 'edit-hour', LIMITS.editPerHour)
+  const recheckSoon = await screenNewDestinations(
+    ctx,
+    row,
+    (split?.variants ?? []).map((v) => v.dest),
+  )
+  await ctx.db.transaction(async (tx) => {
+    const [u] = await tx
+      .update(codes)
+      .set({
+        split,
+        version: sql`${codes.version} + 1`,
+        ...(recheckSoon ? { nextRiskCheckAt: new Date(Date.now() + 3_600_000) } : {}),
+      })
+      .where(eq(codes.id, id))
+      .returning({ version: codes.version })
+    await enqueue(tx, id, u!.version)
+  })
+  await syncCode(ctx.db, ctx.edge, id)
+  await refreshIfFreed(ctx, row, { ...row, split })
+  return getCode(ctx, id)
+}
+
+/**
+ * Sets or removes a code's date and scan limits (an advanced feature): after a date, or once the
+ * code has been scanned enough times, scans go to another page. `null` removes them. The code
+ * itself keeps working either way.
+ */
+export async function setLimits(
+  ctx: ServiceContext,
+  id: string,
+  input: Parameters<typeof validateLimits>[0] | null,
+) {
+  const row = await ownedCode(ctx, id)
+  assertRedirectingCode(row, 'Split traffic and limits')
+  let limits: CodeLimits | null = null
+  if (input) {
+    const parsed = validateLimits(input, checkDestFor(ctx), {
+      now: new Date(),
+      previous: row.limits,
+    })
+    if (!parsed.ok) throw new ServiceError(parsed.error, 'invalid')
+    limits = parsed.limits
+    await assertCanUseAdvanced(ctx, row, 'limits')
+  } else if (row.limits === null) {
+    return getCode(ctx, id)
+  }
+  await limit(ctx, 'edit-hour', LIMITS.editPerHour)
+  const recheckSoon = limits ? await screenNewDestinations(ctx, row, [limits.dest]) : false
+  await ctx.db.transaction(async (tx) => {
+    const [u] = await tx
+      .update(codes)
+      .set({
+        limits,
+        version: sql`${codes.version} + 1`,
+        ...(recheckSoon ? { nextRiskCheckAt: new Date(Date.now() + 3_600_000) } : {}),
+      })
+      .where(eq(codes.id, id))
+      .returning({ version: codes.version })
+    await enqueue(tx, id, u!.version)
+  })
+  await syncCode(ctx.db, ctx.edge, id)
+  await refreshIfFreed(ctx, row, { ...row, limits })
+  return getCode(ctx, id)
+}
+
+/** Analytics Engine keeps 90 days; older scans come from the daily roll-ups. */
+const LIVE_WINDOW_DAYS = 88
+
+/** Scans of a code since a moment: roll-ups for the days before the live window, then live data. */
+async function scansSince(
+  db: Database,
+  analytics: ScanAnalytics,
+  codeId: string,
+  since: Date,
+  now: Date,
+) {
+  const cutoff = new Date(now.getTime() - LIVE_WINDOW_DAYS * 86_400_000)
+  cutoff.setUTCHours(0, 0, 0, 0)
+  if (since >= cutoff) return analytics.scanCount(codeId, since)
+  const [old] = await db
+    .select({ scans: sql<number>`coalesce(sum(${scanDaily.scans}), 0)::int` })
+    .from(scanDaily)
+    .where(
+      and(
+        eq(scanDaily.codeId, codeId),
+        sql`${scanDaily.day} >= ${since.toISOString().slice(0, 10)}`,
+        sql`${scanDaily.day} < ${cutoff.toISOString().slice(0, 10)}`,
+      ),
+    )
+  return (old?.scans ?? 0) + (await analytics.scanCount(codeId, cutoff))
+}
+
+/**
+ * Finds codes whose scan limit has been reached and switches them (run by a cron every few
+ * minutes). Paused, disabled and deleted codes are skipped. Returns how many switched.
+ */
+export async function checkScanLimits(
+  db: Database,
+  analytics: ScanAnalytics,
+  edge: EdgeSync,
+  now = new Date(),
+) {
+  const due = await db
+    .select({ id: codes.id, limits: codes.limits })
+    .from(codes)
+    .where(
+      and(
+        isNull(codes.deletedAt),
+        eq(codes.advancedPaused, false),
+        eq(codes.status, 'active'),
+        sql`${codes.limits}->>'scans' is not null and ${codes.limits}->>'reachedAt' is null`,
+      ),
+    )
+    .limit(500)
+  let switched = 0
+  for (const c of due) {
+    const l = c.limits!
+    if (!l.scans || (l.at && Date.parse(l.at) <= now.getTime())) continue
+    const count = await scansSince(db, analytics, c.id, new Date(l.since), now)
+    if (count < l.scans) continue
+    const reached = await db.transaction(async (tx) => {
+      // Only if the owner didn't change the limit meanwhile.
+      const [u] = await tx
+        .update(codes)
+        .set({
+          limits: { ...l, reachedAt: now.toISOString() },
+          version: sql`${codes.version} + 1`,
+        })
+        .where(and(eq(codes.id, c.id), sql`${codes.limits}->>'since' = ${l.since}`))
+        .returning({ version: codes.version })
+      if (u) await enqueue(tx, c.id, u.version)
+      return Boolean(u)
+    })
+    if (!reached) continue
+    await syncCode(db, edge, c.id)
+    switched++
+  }
+  return { checked: due.length, switched }
 }
 
 /**
@@ -701,9 +944,7 @@ export async function setPassword(ctx: ServiceContext, id: string, password: str
   })
   await syncCode(ctx.db, ctx.edge, id)
   await audit(ctx.db, ctx.userId, hash ? 'code.password_set' : 'code.password_removed', 'code', id)
-  // Removing the last advanced feature frees a place: a paused code may get its features back.
-  if (!hash && !row.rules && !row.customSlug)
-    await refreshAdvancedFeatures(ctx.db, ctx.userId, ctx.edge)
+  await refreshIfFreed(ctx, row, { ...row, passwordHash: hash })
   return getCode(ctx, id)
 }
 

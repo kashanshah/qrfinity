@@ -435,7 +435,7 @@ export function AnalyticsView({
         <BarList title="Referrers" rows={report.referrers} />
         {/* Scans sent by a redirect rule; the rest went to the main destination. */}
         {report.rules.some((r) => r.key) ? (
-          <BarList title="Redirect rules" rows={report.rules.filter((r) => r.key)} />
+          <BarList title="Where scans went" rows={report.rules.filter((r) => r.key)} />
         ) : null}
       </div>
     </div>

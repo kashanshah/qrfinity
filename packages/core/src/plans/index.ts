@@ -49,6 +49,8 @@ export const FEATURES = {
   customSlugs: 'Custom short links, like qrfinity.link/joes-menu',
   redirectRules: 'Redirect rules by device, country or time',
   passwordProtection: 'Password-protected codes',
+  splitTraffic: 'Split traffic between versions (A/B tests)',
+  limits: 'Switch destination after a date or a number of scans',
   // Planned or later, scope not decided (custom domains: only if customers ask)
   customDomain: 'Your own short domain, like go.joescafe.com',
   bulkCreate: 'Bulk creation from a spreadsheet',
@@ -74,6 +76,8 @@ export const ADVANCED_FEATURES = [
   'customSlugs',
   'redirectRules',
   'passwordProtection',
+  'splitTraffic',
+  'limits',
 ] as const satisfies readonly Feature[]
 export type AdvancedFeature = (typeof ADVANCED_FEATURES)[number]
 
@@ -83,6 +87,8 @@ export const RELEASED_FEATURES: readonly Feature[] = [
   'customSlugs',
   'redirectRules',
   'passwordProtection',
+  'splitTraffic',
+  'limits',
 ]
 
 export function isPlan(v: unknown): v is Plan {
