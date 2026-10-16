@@ -35,7 +35,6 @@ const KINDS: {
       { ok: true, text: 'Change where it goes any time' },
       { ok: true, text: 'See how many people scan' },
       { ok: true, text: 'Never deactivated' },
-      { ok: false, text: 'Needs a free account to save' },
     ],
   },
 ]
