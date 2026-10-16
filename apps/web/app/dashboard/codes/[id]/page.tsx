@@ -1,4 +1,4 @@
-import type { ContentType } from '@qrfinity/core'
+import { CONTACT_TEMPLATES_BY_PLAN, type ContentType } from '@qrfinity/core'
 import { notFound } from 'next/navigation'
 import { AnalyticsView } from '@/components/analytics/AnalyticsView'
 import { advancedAccess } from '@/components/dashboard/Advanced'
@@ -118,6 +118,7 @@ export default async function CodePage({
           slug={code.slug!}
           fields={page.fields}
           style={page.style ?? { template: 'classic', accent: null }}
+          templatesAllowed={CONTACT_TEMPLATES_BY_PLAN[usage.plan]}
           codeColor={
             code.design.foreground.type === 'solid'
               ? code.design.foreground.color

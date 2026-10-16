@@ -38,18 +38,18 @@ const FAQ: FaqItem[] = [
   },
   {
     q: 'Is there a watermark or a scan limit?',
-    a: 'No watermark, no forced branding and no scan limit. Every download format (PNG, JPG, SVG, PDF and EPS) is free.',
+    a: 'No watermark, no forced branding and no scan limit. PNG and JPG downloads are free; print-ready SVG, PDF and EPS come with a paid plan.',
   },
   {
     q: 'How is this free?',
-    a: 'Static codes are made in your browser and cost us nothing. Redirects for dynamic codes cost a few dollars per ten million scans. Paid plans will let you use advanced features, like custom short links, on more codes; nothing free will move behind them.',
+    a: 'Static codes are made in your browser and cost us nothing. Redirects for dynamic codes cost a few dollars per ten million scans. Paid plans add print formats and more contact card templates, and let you use advanced features, like custom short links, on more codes.',
   },
 ]
 
 const PROMISES = [
   'Static codes: free, unlimited, no sign-up, never expire.',
-  'No watermark, no forced branding, every export format free.',
-  'We never move a free feature behind a paywall.',
+  'Dynamic codes: free with an account, never paused for not paying.',
+  'No watermark and no forced branding on your codes.',
 ]
 
 export default function HomePage() {

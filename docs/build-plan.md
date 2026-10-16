@@ -13,8 +13,8 @@ The market problem we are solving: many "free" generators create **dynamic** cod
 **Our promise (the whole product depends on it):**
 - Static codes: free, unlimited, no sign-up, never expire.
 - Dynamic codes: free, unlimited, with scan analytics, and **they never stop working**. A free account is required only so the owner can edit the destination.
-- No watermark, no forced branding, all export formats free.
-- We will never move an existing free feature behind a paywall. Paid plans only add new capabilities.
+- No watermark, no forced branding. (2026-10-16: SVG, PDF and EPS moved to paid plans before launch; see docs/decisions.md.)
+- (Replaced 2026-10-16: no blanket "never behind a paywall" promise; the terms say plans can change with notice.)
 
 Put this promise in plain words on the homepage, pricing page and terms.
 

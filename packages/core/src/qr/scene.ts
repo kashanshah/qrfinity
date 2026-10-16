@@ -35,6 +35,16 @@ export type SceneInfo = {
 
 export type SceneResult = { scene: Scene; info: SceneInfo }
 
+/**
+ * Frame text already drawn as shapes (by the browser, with fonts for every script), so every
+ * format shows exactly the same letters. Em units: baseline at y = 0, y pointing down, x from 0
+ * to `advance`; the path uses only absolute M, L, C and Z. Used only while `text` matches the
+ * design's frame text.
+ */
+export type TextOutline = { text: string; d: string; advance: number }
+
+export type SceneOptions = { frameText?: TextOutline | null }
+
 export class PayloadTooLongError extends Error {
   constructor() {
     super('That is more than a QR code can hold. Shorten the content.')
@@ -97,7 +107,11 @@ function toPaint(fill: Fill, x: number, y: number, size: number): Paint {
   }
 }
 
-export function buildScene(payload: string, design: Design): SceneResult {
+export function buildScene(
+  payload: string,
+  design: Design,
+  options: SceneOptions = {},
+): SceneResult {
   const ecc = effectiveEcc(design)
   let qr: ReturnType<typeof encode>
   try {
@@ -155,6 +169,7 @@ export function buildScene(payload: string, design: Design): SceneResult {
       bandTop + bandHeight / 2,
       bandHeight * 0.5,
       width - 2 * b - bandHeight * 0.6,
+      options.frameText,
     )
   } else if (frame.style === 'pill-bottom') {
     const gap = S * 0.05
@@ -184,6 +199,7 @@ export function buildScene(payload: string, design: Design): SceneResult {
       S + gap + pillH / 2,
       pillH * 0.55,
       pillW - pillH,
+      options.frameText,
     )
   } else if (!design.transparentBackground) {
     items.push({ kind: 'path', d: new PathBuilder().rect(0, 0, S, S).toString(), fill: bg })
@@ -339,7 +355,7 @@ export function buildScene(payload: string, design: Design): SceneResult {
   }
 }
 
-/** Adds centred label text, shrinking it to fit `maxWidth`. */
+/** Adds centred label text, shrinking it to fit `maxWidth`: as outlines when given, else as text. */
 function pushLabel(
   items: SceneItem[],
   text: string,
@@ -348,9 +364,25 @@ function pushLabel(
   cy: number,
   fontSize: number,
   maxWidth: number,
+  outline?: TextOutline | null,
 ) {
   const value = text.trim()
   if (!value) return
+  if (outline && outline.text === value) {
+    if (!outline.d || outline.advance <= 0) return
+    const size = Math.min(fontSize, maxWidth / outline.advance)
+    items.push({
+      kind: 'path',
+      d: transformPath(
+        outline.d,
+        size,
+        cx - (outline.advance * size) / 2,
+        cy + (size * CAP_HEIGHT) / 2,
+      ),
+      fill: { type: 'solid', color },
+    })
+    return
+  }
   const w = textWidth(value, fontSize)
   const size = w > maxWidth ? (fontSize * maxWidth) / w : fontSize
   items.push({

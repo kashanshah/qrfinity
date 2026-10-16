@@ -1,13 +1,14 @@
 /**
  * Plans and features (pricing model decided 2026-10-16, see docs/decisions.md).
  *
- * Every feature is free to use. Plain dynamic codes are unlimited. Advanced features (custom short
- * links, redirect rules and password protection) can be used on a limited
- * number of codes: 1 free, more on paid plans. Stopping paying never breaks a code; it only stops
- * adding advanced features to more codes. No billing exists yet: an admin sets a user's plan.
+ * Plain static and dynamic codes are unlimited and free. Advanced features (custom short links,
+ * redirect rules and password protection) can be used on a limited number of codes: 1 free, more
+ * on paid plans. Plan features (print formats, more contact card templates) come with any paid
+ * plan (2026-10-16, before launch). Stopping paying never breaks a code; it only stops adding
+ * paid extras to more codes.
  *
- * The rule this file enforces: free features never move behind a paywall. FREE_FEATURES is a public
- * promise; test/plans.test.ts fails if anything is removed from it.
+ * FREE_FEATURES is what the free plan includes; test/plans.test.ts fails if anything is removed
+ * from it without updating the test, so a change is always deliberate.
  */
 
 export const PLANS = ['free', 'plus', 'pro', 'unlimited'] as const
@@ -41,7 +42,9 @@ export const FEATURES = {
   dynamicCodes: 'Unlimited dynamic codes that never expire',
   editDestination: 'Edit where a dynamic code points',
   fullDesign: 'Every design option: colours, shapes, logo, frames',
-  allFormats: 'Every format: PNG, JPG, SVG, PDF and EPS',
+  rasterFormats: 'PNG and JPG downloads',
+  vectorFormats: 'SVG, PDF and EPS downloads for print',
+  contactTemplates: 'Contact card page templates',
   analytics90: 'Scan analytics with CSV download',
   analyticsHistory: 'Full analytics history (1 and 2 years)',
   dataExport: 'Export every code and its history',
@@ -65,7 +68,7 @@ export const FREE_FEATURES = [
   'dynamicCodes',
   'editDestination',
   'fullDesign',
-  'allFormats',
+  'rasterFormats',
   'analytics90',
   'analyticsHistory',
   'dataExport',
@@ -81,11 +84,29 @@ export const ADVANCED_FEATURES = [
 ] as const satisfies readonly Feature[]
 export type AdvancedFeature = (typeof ADVANCED_FEATURES)[number]
 
+/** Come with any paid plan (not counted per code). */
+export const PLAN_FEATURES = ['vectorFormats'] as const satisfies readonly Feature[]
+export type PlanFeature = (typeof PLAN_FEATURES)[number]
+
+/** Contact card page templates each plan can choose from (the first ones in the list). */
+export const CONTACT_TEMPLATES_BY_PLAN: Record<Plan, number> = {
+  free: 2,
+  plus: 4,
+  pro: 6,
+  unlimited: 8,
+}
+
+/** The cheapest plan whose templates include the one at `index` in PAGE_TEMPLATES. */
+export function planForTemplateIndex(index: number): Plan {
+  return PLANS.find((p) => CONTACT_TEMPLATES_BY_PLAN[p] > index) ?? 'unlimited'
+}
+
 /** Built and available to everyone (within the allowance where it applies). Others need a feature flag. */
 export const RELEASED_FEATURES: readonly Feature[] = [
   ...FREE_FEATURES,
   'customSlugs',
   'redirectRules',
+  'contactTemplates',
   'passwordProtection',
   'splitTraffic',
   'limits',
@@ -103,15 +124,17 @@ export function isFeature(v: unknown): v is Feature {
 export type FeatureFlag = { key: Feature; enabled: boolean; userIds: readonly string[] }
 
 /**
- * What one user can use: every released feature, plus unreleased ones whose flag is on for them.
- * The plan doesn't gate features; it sets how many codes may use advanced ones.
+ * What one user can use: every released feature, plan features on a paid plan, plus features whose
+ * flag is on for them (an admin can grant a plan feature this way too). The plan also sets how many
+ * codes may use advanced features.
  */
 export function entitlements(
-  _plan: Plan,
+  plan: Plan,
   flags: readonly FeatureFlag[],
   userId: string,
 ): Set<Feature> {
   const set = new Set<Feature>(RELEASED_FEATURES)
+  if (plan !== 'free') for (const f of PLAN_FEATURES) set.add(f)
   for (const f of flags) if (f.enabled || f.userIds.includes(userId)) set.add(f.key)
   return set
 }

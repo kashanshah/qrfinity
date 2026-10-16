@@ -1,6 +1,7 @@
 /**
- * Frame text is set in Helvetica Bold (Arial in browsers, which shares its metrics) so
- * PNG, SVG, PDF and EPS all lay it out the same way, and print shops never need our fonts.
+ * Fallback for frame text: the web app normally draws it as outlines (TextOutline in scene.ts,
+ * any script). Without them, text is set in Helvetica Bold (Arial in browsers, which shares its
+ * metrics), measured here so it fits the band.
  */
 
 export const FRAME_FONT_FAMILY = "Helvetica, Arial, 'Liberation Sans', sans-serif"

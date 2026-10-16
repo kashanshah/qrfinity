@@ -1,5 +1,6 @@
+import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
-import { scan, signIn } from './helpers'
+import { scan, setPlan, signIn } from './helpers'
 
 test('create a dynamic code, scan it, edit the destination, scan again', async ({
   page,
@@ -83,7 +84,7 @@ test('a dynamic code designed on the homepage survives sign-in', async ({ page, 
   await expect(
     page.getByRole('complementary', { name: 'Your QR code' }).getByText('Scans', { exact: true }),
   ).toBeVisible({ timeout: 15_000 })
-  await page.getByText('Dynamic: editable, with scan stats, free account').click()
+  await page.getByRole('radio', { name: /^Dynamic/ }).check({ force: true })
   await page.getByLabel('Website address').fill('example.com/from-home')
   await page.getByText('Dots', { exact: true }).click()
   await page.getByRole('button', { name: 'Continue with a free account' }).click()
@@ -271,12 +272,18 @@ test('a dynamic contact card opens a contact page you can update', async ({ page
 
   // Pick a template: the live page uses it.
   await expect(page.getByTitle('Contact page preview')).toBeVisible()
-  await page.getByRole('radio', { name: 'Banner' }).check({ force: true })
+  await page.getByRole('radio', { name: 'Centered' }).check({ force: true })
   await page.getByRole('button', { name: 'Save look' }).click()
   await expect(page.getByText('Saved. Scans show the new look')).toBeVisible()
   await expect
-    .poll(async () => (await (await request.get(link)).text()).includes('class="t-banner"'))
+    .poll(async () => (await (await request.get(link)).text()).includes('class="t-centered"'))
     .toBe(true)
+
+  // Paid templates can be previewed, but saving one points to the plan it needs.
+  await page.getByRole('radio', { name: 'Spotlight (Unlimited)' }).check({ force: true })
+  await expect(page.getByText(/comes with Unlimited and\s+above/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Save look' })).toBeDisabled()
+  await page.getByRole('radio', { name: 'Centered' }).check({ force: true })
 
   // Update the card: same printed code, new details.
   await page.getByLabel('Last name').fill('Smith')
@@ -285,4 +292,31 @@ test('a dynamic contact card opens a contact page you can update', async ({ page
   await expect
     .poll(async () => (await (await request.get(link)).text()).includes('<h1>Jane Smith</h1>'))
     .toBe(true)
+})
+
+test('a paid plan downloads SVG, PDF and EPS', async ({ page, request }) => {
+  const email = `e2e-plus-${Date.now()}@example.com`
+  await signIn(page, request, email)
+  await setPlan(email, 'plus')
+  await page.goto('/')
+  await expect(
+    page.getByRole('complementary', { name: 'Your QR code' }).getByText(/^(Scans|Won’t scan)$/),
+  ).toHaveText('Scans', { timeout: 15_000 })
+  for (const [format, magic] of [
+    ['SVG', '<svg'],
+    ['PDF', '%PDF'],
+    ['EPS', '%!PS-Adobe'],
+  ] as const) {
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button', { name: format, exact: true }).click(),
+    ])
+    const bytes = await readFile((await download.path())!)
+    expect(bytes.subarray(0, 16).toString('latin1').startsWith(magic), format).toBe(true)
+  }
+  const [zip] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'All formats and sizes (.zip)' }).click(),
+  ])
+  expect((await readFile((await zip.path())!)).includes(Buffer.from('qr-code-url.eps'))).toBe(true)
 })

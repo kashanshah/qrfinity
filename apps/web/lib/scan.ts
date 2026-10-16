@@ -3,7 +3,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { svgToCanvas } from './raster'
 
-type Pending = (text: string | null) => void
+/** What the decoder found, for the QR code tester. */
+export type DecodeInfo = {
+  ecLevel: string
+  version: string
+  inverted: boolean
+  position: Record<'topLeft' | 'topRight' | 'bottomRight' | 'bottomLeft', { x: number; y: number }>
+}
+type Reply = { id: number; text: string | null; info?: DecodeInfo }
+type Pending = (reply: Reply) => void
 let worker: Worker | null = null
 let nextId = 1
 const pending = new Map<number, Pending>()
@@ -11,23 +19,39 @@ const pending = new Map<number, Pending>()
 function getWorker(): Worker {
   if (!worker) {
     worker = new Worker(new URL('./scan.worker.ts', import.meta.url), { type: 'module' })
-    worker.onmessage = (e: MessageEvent<{ id: number; text: string | null }>) => {
-      pending.get(e.data.id)?.(e.data.text)
+    worker.onmessage = (e: MessageEvent<Reply>) => {
+      pending.get(e.data.id)?.(e.data)
       pending.delete(e.data.id)
     }
   }
   return worker
 }
 
-async function decode(image: ImageData, photo = false): Promise<string | null> {
+function post(image: ImageData, photo: boolean, detail: boolean): Promise<Reply> {
   const id = nextId++
   return new Promise((resolve) => {
     pending.set(id, resolve)
-    getWorker().postMessage({ id, image, photo }, [image.data.buffer])
+    getWorker().postMessage({ id, image, photo, detail }, [image.data.buffer])
   })
 }
 
-function pixels(source: CanvasImageSource, width: number, height: number, maxSide: number) {
+async function decode(image: ImageData, photo = false): Promise<string | null> {
+  return (await post(image, photo, false)).text
+}
+
+/** Decodes and says where the code is and how it was made (the image is transferred: pass a copy). */
+export async function decodeDetailed(
+  image: ImageData,
+  photo = true,
+): Promise<{ text: string; info: DecodeInfo } | null> {
+  const r = await post(image, photo, true)
+  return r.text !== null && r.info ? { text: r.text, info: r.info } : null
+}
+
+/** Decodes without details (the image is transferred: pass a copy). */
+export const decodeImageData = (image: ImageData, photo = false) => decode(image, photo)
+
+export function pixels(source: CanvasImageSource, width: number, height: number, maxSide: number) {
   const scale = Math.min(1, maxSide / Math.max(width, height))
   const w = Math.max(1, Math.round(width * scale))
   const h = Math.max(1, Math.round(height * scale))

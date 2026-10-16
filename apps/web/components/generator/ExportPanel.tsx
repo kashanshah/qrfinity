@@ -1,7 +1,8 @@
 'use client'
 
 import { formatPrintSize } from '@qrfinity/core'
-import { Download, Sticker } from 'lucide-react'
+import { Download, Lock, Sticker } from 'lucide-react'
+import Link from 'next/link'
 import { useId, useState } from 'react'
 import {
   MAX_RASTER_PX,
@@ -18,6 +19,7 @@ import {
 import { track } from '@/lib/analytics'
 import { useGenerator } from '@/lib/generator-context'
 import { PRINT_PARTNER_URL } from '@/lib/partners'
+import { useViewerPlan } from '@/lib/plan-client'
 import { Button } from '../ui/Button'
 import { SelectField } from '../ui/Field'
 
@@ -35,6 +37,10 @@ export function ExportPanel({ job, scanFailed }: { job: ExportJob | null; scanFa
   const widthId = useId()
   const printPx = printPixels(printWidthMm)
   const disabled = !job || busy !== null
+  const viewer = useViewerPlan()
+  // SVG, PDF and EPS come with a paid plan. Until the plan is known, they look available.
+  const vector = viewer === null || viewer.features.includes('vectorFormats')
+  const [upsell, setUpsell] = useState(false)
 
   async function run(
     label: string,
@@ -108,7 +114,7 @@ export function ExportPanel({ job, scanFailed }: { job: ExportJob | null; scanFa
         ]}
         hint={
           pngSize === 'print' && printPx >= MAX_RASTER_PX
-            ? `Capped at ${MAX_RASTER_PX.toLocaleString('en')} px. For larger prints, use SVG, PDF or EPS: they scale to any size.`
+            ? `Capped at ${MAX_RASTER_PX.toLocaleString('en')} px. For larger prints, SVG, PDF and EPS scale to any size.`
             : undefined
         }
       />
@@ -122,33 +128,75 @@ export function ExportPanel({ job, scanFailed }: { job: ExportJob | null; scanFa
         {busy === 'PNG' ? 'Preparing PNG…' : 'Download PNG'}
       </Button>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Button disabled={disabled} onClick={() => run('SVG', `${base}.svg`, (j) => exportSvg(j))}>
-          SVG
-        </Button>
-        <Button disabled={disabled} onClick={() => run('PDF', `${base}.pdf`, exportPdf)}>
-          {busy === 'PDF' ? 'PDF…' : 'PDF'}
-        </Button>
-        <Button disabled={disabled} onClick={() => run('EPS', `${base}.eps`, exportEps)}>
-          EPS
-        </Button>
         <Button
           disabled={disabled}
           onClick={() => run('JPG', `${base}-${pngWidth}px.jpg`, (j) => exportJpg(j, pngWidth))}
         >
           JPG
         </Button>
+        {(
+          [
+            ['SVG', `${base}.svg`, (j: ExportJob) => exportSvg(j)],
+            ['PDF', `${base}.pdf`, exportPdf],
+            ['EPS', `${base}.eps`, exportEps],
+          ] as const
+        ).map(([label, file, make]) =>
+          vector ? (
+            <Button key={label} disabled={disabled} onClick={() => run(label, file, make)}>
+              {busy === label ? `${label}…` : label}
+            </Button>
+          ) : (
+            <Button
+              key={label}
+              disabled={!job}
+              aria-describedby={upsell ? `${widthId}-upsell` : undefined}
+              icon={<Lock aria-hidden="true" size={16} strokeWidth={1.75} />}
+              onClick={() => {
+                setUpsell(true)
+                track('upgrade_prompt_shown', { feature: 'vectorFormats' })
+              }}
+            >
+              {label}
+            </Button>
+          ),
+        )}
       </div>
+      {upsell && !vector ? (
+        <div
+          id={`${widthId}-upsell`}
+          role="status"
+          className="flex flex-col gap-2 rounded-md border border-hairline bg-mint px-3 py-3"
+        >
+          <p className="body-small text-ink">
+            <strong>SVG, PDF and EPS come with any paid plan</strong>, from $5 a month. They stay
+            sharp at any print size. Your first month is free.
+          </p>
+          <Link href="/pricing" className="body-small font-bold text-evergreen underline">
+            {viewer?.signedIn ? 'Choose a plan' : 'See plans'}
+          </Link>
+        </div>
+      ) : null}
       <Button
         disabled={disabled}
-        onClick={() => run('zip file', `${base}-all-formats.zip`, exportZip)}
+        onClick={() =>
+          run('zip file', vector ? `${base}-all-formats.zip` : `${base}-png-jpg.zip`, (j) =>
+            exportZip(j, { vector }),
+          )
+        }
       >
-        {busy === 'zip file' ? 'Preparing zip…' : 'All formats and sizes (.zip)'}
+        {busy === 'zip file'
+          ? 'Preparing zip…'
+          : vector
+            ? 'All formats and sizes (.zip)'
+            : 'PNG and JPG in every size (.zip)'}
       </Button>
       <p className="body-small text-ink-muted" aria-live="polite">
         {status ??
           (scanFailed
             ? 'Fix the scan warning before you print.'
-            : 'Every format is free. No watermark, no sign-up.')}
+            : vector
+              ? 'No watermark, in every format.'
+              : 'PNG and JPG are free, with no watermark and no sign-up.')}
       </p>
       {downloaded && PRINT_PARTNER_URL ? (
         <a

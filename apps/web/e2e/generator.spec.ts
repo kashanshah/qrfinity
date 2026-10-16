@@ -47,7 +47,7 @@ test('Wi-Fi content encodes and scans', async ({ page }) => {
   await expectScans(page)
 })
 
-for (const format of ['PNG', 'SVG', 'PDF', 'EPS', 'JPG'] as const) {
+for (const format of ['PNG', 'JPG'] as const) {
   test(`downloads ${format}`, async ({ page, isMobile }) => {
     test.skip(isMobile, 'covered on desktop')
     await page.goto('/')
@@ -60,35 +60,37 @@ for (const format of ['PNG', 'SVG', 'PDF', 'EPS', 'JPG'] as const) {
     const bytes = await readFile((await download.path())!)
     expect(bytes.length).toBeGreaterThan(200)
     const head = bytes.subarray(0, 16).toString('latin1')
-    const magic = {
-      PNG: '\x89PNG',
-      SVG: '<svg',
-      PDF: '%PDF',
-      EPS: '%!PS-Adobe',
-      JPG: '\xff\xd8\xff',
-    }[format]
+    const magic = { PNG: '\x89PNG', JPG: '\xff\xd8\xff' }[format]
     expect(head.startsWith(magic)).toBe(true)
   })
 }
 
-test('downloads the zip with every format', async ({ page, isMobile }) => {
+test('SVG, PDF and EPS point to paid plans on the free plan', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'covered on desktop')
+  await page.goto('/')
+  await expectScans(page)
+  let downloaded = false
+  page.on('download', () => (downloaded = true))
+  await page.getByRole('button', { name: 'EPS', exact: true }).click()
+  await expect(page.getByText('SVG, PDF and EPS come with any paid plan')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'See plans' })).toHaveAttribute('href', '/pricing')
+  expect(downloaded).toBe(false)
+})
+
+test('the free zip holds PNG and JPG in every size', async ({ page, isMobile }) => {
   test.skip(isMobile, 'covered on desktop')
   await page.goto('/')
   await expectScans(page)
   const [download] = await Promise.all([
     page.waitForEvent('download'),
-    page.getByRole('button', { name: 'All formats and sizes (.zip)' }).click(),
+    page.getByRole('button', { name: 'PNG and JPG in every size (.zip)' }).click(),
   ])
   const bytes = await readFile((await download.path())!)
   expect(bytes.subarray(0, 2).toString('latin1')).toBe('PK')
-  for (const f of [
-    'qr-code-url-512px.png',
-    'qr-code-url.pdf',
-    'qr-code-url.eps',
-    'qr-code-url.svg',
-  ]) {
+  for (const f of ['qr-code-url-512px.png', 'qr-code-url-1024px.jpg'])
     expect(bytes.includes(Buffer.from(f))).toBe(true)
-  }
+  for (const f of ['qr-code-url.pdf', 'qr-code-url.eps', 'qr-code-url.svg'])
+    expect(bytes.includes(Buffer.from(f))).toBe(false)
 })
 
 test('no horizontal scroll on phones', async ({ page, isMobile }) => {
@@ -150,6 +152,29 @@ test('saves a design in this browser and applies it later', async ({ page, isMob
   await page.getByText('Saved designs', { exact: true }).click()
   await page.getByRole('button', { name: 'Use' }).click()
   await expect(page.getByRole('radio', { name: 'Dots' })).toBeChecked()
+})
+
+test('frame text in any language is drawn as outlines and still scans', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, 'covered on desktop')
+  await page.goto('/')
+  await page.locator('summary', { hasText: /^Frame/ }).click()
+  await page.getByRole('radio', { name: /Label below/ }).check({ force: true })
+  const field = page.getByRole('textbox', { name: 'Frame text' })
+  const preview = page.getByRole('complementary', { name: 'Your QR code' }).getByRole('img', {
+    name: 'QR code preview',
+  })
+  for (const text of ['扫码加我微信', 'امسح الرمز']) {
+    await field.fill(text)
+    // Outlines replace the text element once the fonts have loaded.
+    await expect(preview.locator('text')).toHaveCount(0)
+    await expect(field).not.toHaveAttribute('aria-invalid', 'true')
+    await expectScans(page)
+  }
+  await field.fill('Hi 😀')
+  await expect(page.getByText('We can’t draw 😀 yet, so it’s left out.')).toBeVisible()
 })
 
 test('the website address field shows a typing hint until you click in', async ({ page }) => {

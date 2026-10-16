@@ -346,7 +346,7 @@ export const LANDINGS: ContentPage[] = [
     kind: 'landing',
     label: 'QR codes with no expiration',
     h1: 'QR codes with no expiration date',
-    title: 'QR code generator with no expiration, free forever',
+    title: 'Free QR code generator with no expiration date',
     description:
       'Many free QR codes stop working after a trial. Ours don’t: static and dynamic codes are free and never expire. Here’s how that works.',
     intro: 'Print it once. It works forever, and that promise is in our terms.',
@@ -540,7 +540,7 @@ export const HOME: ContentPage = {
   h1: 'Free QR codes that never expire.',
   title: 'Free QR code generator: codes that never expire | QRfinity',
   description:
-    'Make free QR codes that never expire. Static and dynamic codes, scan analytics, no watermark, no trial. Download PNG, SVG, PDF or EPS.',
+    'Make free QR codes that never expire. Static and dynamic codes, scan analytics, no watermark, no trial. Download PNG or JPG free.',
   intro: 'Print it once. It works forever. No sign-up, no trial, no watermark.',
   updated: U,
 }
@@ -573,17 +573,31 @@ export const TOOLS: ContentPage[] = [
     related: ['/qr-code-stopped-working', '/dynamic-qr-code-generator', '/qr-code-scanner'],
     guides: ['/guides/do-qr-codes-expire', '/guides/static-vs-dynamic-qr-codes'],
   },
+  {
+    path: '/qr-code-tester',
+    kind: 'tool',
+    label: 'QR code tester',
+    h1: 'QR code tester: will your code scan?',
+    title: 'QR code tester: check if your QR code will scan',
+    description:
+      'Upload a QR code design and test it before you print: contrast, margin, size, blur and error correction, with a plain verdict. Free, in your browser.',
+    intro: 'Test a design before you print it, from any QR code generator.',
+    updated: U,
+    related: ['/qr-code-scanner', '/qr-code-checker', '/qr-code-generator/with-logo'],
+    guides: ['/guides/qr-code-design-best-practices', '/guides/qr-code-size-for-print'],
+  },
 ]
 
 export const PRICING: ContentPage = {
   path: '/pricing',
   kind: 'pricing',
   label: 'Pricing',
-  h1: 'Everything free. Pay only for more.',
-  title: 'Pricing: every feature free, plans from $5/month',
+  h1: 'Free to start. Pay only for more.',
+  title: 'Pricing: free QR codes, plans from $5/month',
   description:
-    'Unlimited static and dynamic codes, analytics and every format, free forever. Use advanced features on one code free, or more from $5/month.',
-  intro: 'Every feature is free. Paid plans let you use advanced features on more codes.',
+    'Unlimited static and dynamic codes, analytics and PNG and JPG downloads, free. Plans from $5/month add print formats and more advanced codes.',
+  intro:
+    'The core is free. Paid plans add print formats, more templates and advanced features on more codes.',
   updated: U,
 }
 
@@ -607,8 +621,8 @@ export const LEGAL: ContentPage[] = [
     h1: 'Terms of service',
     title: 'Terms of service | QRfinity',
     description:
-      'The terms for using QRfinity, including our binding promises: codes never expire, free features stay free, and no watermark on any format.',
-    intro: 'The agreement between you and us, promises included.',
+      'The terms for using QRfinity: codes never expire, no watermark on your codes, how paid plans and trials work, and what happens when a plan ends.',
+    intro: 'The agreement between you and us.',
     updated: U,
   },
   {
@@ -662,4 +676,4 @@ export function findPage(path: string): ContentPage | undefined {
 
 /** The one-paragraph fact block, reused word for word (brand/BRAND.md). */
 export const FACT_BLOCK =
-  'QRfinity is a free QR code generator. Static and dynamic codes are unlimited, include scan analytics, and never expire. No watermark, no trial, every format free (PNG, SVG, PDF).'
+  'QRfinity is a free QR code generator. Static and dynamic codes are unlimited, include scan analytics, and never expire. No watermark and no trial; PNG and JPG downloads are free.'

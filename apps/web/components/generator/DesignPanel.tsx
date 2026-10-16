@@ -55,7 +55,7 @@ function primaryColor(fill: Fill): string {
   return fill.type === 'solid' ? fill.color : fill.from
 }
 
-export function DesignPanel() {
+export function DesignPanel({ frameMissing = [] }: { frameMissing?: string[] }) {
   const design = useGenerator((s) => s.design)
   const setDesign = useGenerator((s) => s.setDesign)
   const setFrame = useGenerator((s) => s.setFrame)
@@ -118,6 +118,12 @@ export function DesignPanel() {
               value={design.frame.text}
               maxLength={32}
               onChange={(e) => setFrame({ text: e.target.value })}
+              error={
+                frameMissing.length
+                  ? `We can’t draw ${[...new Set(frameMissing)].join(' ')} yet, so ${frameMissing.length === 1 ? 'it’s' : 'they’re'} left out.`
+                  : undefined
+              }
+              hint="Any language: Chinese, Japanese, Korean, Arabic, Hindi and more."
             />
             <div className="flex flex-wrap gap-2" role="group" aria-label="Suggested frame text">
               {FRAME_TEXT_PRESETS.map((t) => (

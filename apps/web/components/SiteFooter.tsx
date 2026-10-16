@@ -13,13 +13,14 @@ const COLUMNS = [
     links: [...TYPES.map((p) => [p.path, p.label]), ['/qr-code-generator', 'All types']],
   },
   {
-    heading: 'Free forever',
+    heading: 'Free QR codes',
     links: [
       ['/dynamic-qr-code-generator', 'Dynamic QR codes'],
       ['/qr-code-no-expiration', 'No expiration'],
       ['/qr-code-stopped-working', 'Code stopped working?'],
       ['/qr-code-checker', 'QR code checker'],
       ['/qr-code-scanner', 'QR code scanner'],
+      ['/qr-code-tester', 'QR code tester'],
       [PRICING.path, PRICING.label],
     ],
   },

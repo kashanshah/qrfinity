@@ -138,3 +138,39 @@ describe('vector logos', () => {
     expect(bad(Array(17).fill({ d: 'M0 0Z', fill: '#000000' }))).toBeNull()
   })
 })
+
+describe('frame text outlines', () => {
+  const design = {
+    ...DEFAULT_DESIGN,
+    frame: { ...DEFAULT_DESIGN.frame, style: 'box-bottom' as const, text: ' 扫码 ' },
+  }
+  const outline = { text: '扫码', d: 'M0 0L1 0L1 -0.7L0 -0.7ZM1 0L2 0L2 -0.7Z', advance: 2 }
+
+  it('draws the frame text as paths when an outline matches', () => {
+    const { scene } = buildScene('https://example.com', design, { frameText: outline })
+    expect(scene.items.some((i) => i.kind === 'text')).toBe(false)
+    const svg = sceneToSvg(scene)
+    expect(svg).not.toContain('<text')
+    const eps = sceneToEps(scene, { widthPt: 144 })
+    expect(eps).not.toMatch(/\bshow\b/)
+  })
+
+  it('fits the outline inside the band', () => {
+    const wide = { ...outline, advance: 40 }
+    const { scene } = buildScene('https://example.com', design, { frameText: wide })
+    const label = scene.items.at(-1) as { d: string }
+    const xs = label.d
+      .match(/-?[\d.]+/g)!
+      .map(Number)
+      .filter((_, i) => i % 2 === 0)
+    expect(Math.min(...xs)).toBeGreaterThan(0)
+    expect(Math.max(...xs)).toBeLessThan(scene.width)
+  })
+
+  it('falls back to text when the outline is for other text', () => {
+    const { scene } = buildScene('https://example.com', design, {
+      frameText: { ...outline, text: 'old' },
+    })
+    expect(scene.items.some((i) => i.kind === 'text')).toBe(true)
+  })
+})
