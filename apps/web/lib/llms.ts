@@ -6,6 +6,8 @@ import {
   FACT_BLOCK,
   GUIDES,
   LANDINGS,
+  FEATURE_PAGES,
+  INDUSTRY_PAGES,
   TOOLS,
   LEGAL,
   PRICING,
@@ -18,6 +20,8 @@ import { absoluteUrl } from './seo'
 
 const SECTIONS: { heading: string; pages: ContentPage[]; dir?: ContentDir }[] = [
   { heading: 'Free QR codes', pages: LANDINGS, dir: 'landings' },
+  { heading: 'Advanced features', pages: FEATURE_PAGES, dir: 'landings' },
+  { heading: 'QR codes by industry', pages: INDUSTRY_PAGES, dir: 'landings' },
   { heading: 'Free tools', pages: TOOLS, dir: 'tools' },
   { heading: 'QR code generators by use', pages: USE_CASES, dir: 'use-cases' },
   { heading: 'Guides', pages: GUIDES, dir: 'guides' },

@@ -370,6 +370,110 @@ export const LANDINGS: ContentPage[] = [
   },
 ]
 
+/** Landing pages for advanced features: what each does, set up on a dynamic code. */
+export const FEATURE_PAGES: ContentPage[] = [
+  {
+    path: '/password-protected-qr-code',
+    kind: 'landing',
+    label: 'Password-protected QR codes',
+    h1: 'Password-protected QR codes',
+    title: 'Password-protected QR code generator | QRfinity',
+    description:
+      'Make a QR code that asks for a password before it opens your link or contact card. Free on one code, with no cookies and no app to install.',
+    intro: 'Only people who know the password get through, on every scan.',
+    updated: U,
+    generator: { type: 'url', kind: 'dynamic' },
+    related: ['/qr-code-generator/pdf', '/qr-code-generator/vcard', '/qr-code-generator/url'],
+    guides: ['/guides/static-vs-dynamic-qr-codes', '/guides/how-to-track-qr-code-scans'],
+  },
+  {
+    path: '/qr-code-redirect',
+    kind: 'landing',
+    label: 'QR code redirect rules',
+    h1: 'One QR code that sends each scan to the right place',
+    title: 'QR code redirect by phone, country or time | QRfinity',
+    description:
+      'Send iPhones to the App Store and Android phones to Google Play, or redirect by country, day or time. One printed code, free on one code.',
+    intro: 'Different phones, countries and hours, one printed code.',
+    updated: U,
+    generator: { type: 'url', kind: 'dynamic' },
+    related: ['/qr-code-generator/app-store', '/qr-code-generator/menu', '/qr-code-generator/url'],
+    guides: ['/guides/ab-test-qr-codes', '/guides/static-vs-dynamic-qr-codes'],
+  },
+  {
+    path: '/custom-short-link-qr-code',
+    kind: 'landing',
+    label: 'Custom short link QR codes',
+    h1: 'QR codes with your own short link',
+    title: 'Custom short link QR code generator | QRfinity',
+    description:
+      'Print a readable link like qrfinity.link/joes-menu under your QR code, so people can type it too. Free on one dynamic code, never expires.',
+    intro: 'A link people can read, remember and type, under a code that never expires.',
+    updated: U,
+    generator: { type: 'url', kind: 'dynamic' },
+    related: [
+      '/qr-code-generator/menu',
+      '/qr-code-generator/business-card',
+      '/qr-code-generator/with-logo',
+    ],
+    guides: ['/guides/qr-code-design-best-practices', '/guides/qr-code-size-for-print'],
+  },
+]
+
+/** Pages for one kind of business, linking the use cases it needs. */
+export const INDUSTRY_PAGES: ContentPage[] = [
+  {
+    path: '/qr-codes-for-restaurants',
+    kind: 'landing',
+    label: 'For restaurants',
+    h1: 'QR codes for restaurants and cafés',
+    title: 'QR codes for restaurants: menus, Wi-Fi and reviews',
+    description:
+      'Menus, Wi-Fi, reviews and ordering: the QR codes a restaurant needs, where to put them and how to keep them working. Free and never expire.',
+    intro: 'The four codes most restaurants need, and where each one goes.',
+    updated: U,
+    generator: { type: 'url', kind: 'dynamic' },
+    related: [
+      '/qr-code-generator/menu',
+      '/qr-code-generator/wifi',
+      '/qr-code-generator/google-review',
+    ],
+    guides: ['/guides/qr-code-size-for-print', '/guides/static-vs-dynamic-qr-codes'],
+  },
+  {
+    path: '/qr-codes-for-real-estate',
+    kind: 'landing',
+    label: 'For real estate',
+    h1: 'QR codes for real estate agents',
+    title: 'QR codes for real estate: signs, flyers and cards',
+    description:
+      'Put a QR code on yard signs, flyers and business cards that opens the listing or your contact card, then point it at the next home when it sells.',
+    intro: 'One sign, many listings: point the code at whatever you’re selling now.',
+    updated: U,
+    generator: { type: 'url', kind: 'dynamic' },
+    related: [
+      '/qr-code-generator/vcard',
+      '/qr-code-generator/business-card',
+      '/qr-code-generator/location',
+    ],
+    guides: ['/guides/qr-code-size-for-print', '/guides/how-to-track-qr-code-scans'],
+  },
+  {
+    path: '/qr-codes-for-events',
+    kind: 'landing',
+    label: 'For events',
+    h1: 'QR codes for events',
+    title: 'QR codes for events: schedules, maps and feedback',
+    description:
+      'Add the event to calendars, share the schedule and map, collect feedback, then switch the code to next year’s page when it’s over. Free.',
+    intro: 'Before, during and after: one code can follow the whole event.',
+    updated: U,
+    generator: { type: 'url', kind: 'dynamic' },
+    related: ['/qr-code-generator/event', '/qr-code-generator/location', '/qr-code-generator/wifi'],
+    guides: ['/guides/change-qr-code-after-date-or-scans', '/guides/qr-code-size-for-print'],
+  },
+]
+
 const guide = (
   slug: string,
   label: string,
@@ -435,6 +539,24 @@ export const GUIDES: ContentPage[] = [
     'Colours, contrast, logos, margins and frames: how to design a branded QR code that every phone camera can still read.',
     'Make it yours without making it unreadable.',
     ['with-logo', 'instagram', 'business-card'],
+  ),
+  guide(
+    'ab-test-qr-codes',
+    'A/B testing QR codes',
+    'How to A/B test a QR code',
+    'How to A/B test a QR code with split traffic',
+    'Split the scans of one printed QR code between two or more pages and compare them. How to set it up, how many scans you need and what to watch for.',
+    'Two pages, one printed code, and a fair way to see which works.',
+    ['url', 'menu', 'app-store'],
+  ),
+  guide(
+    'change-qr-code-after-date-or-scans',
+    'QR codes that switch after a date',
+    'How to make a QR code change after a date or a number of scans',
+    'QR code that changes after a date or number of scans',
+    'Send scans to an “offer ended” page after a deadline or the first 100 scans, without reprinting. How date and scan limits work, and what to expect.',
+    'Run a deadline or a first-100 offer without reprinting anything.',
+    ['url', 'event', 'payment-link'],
   ),
   guide(
     'how-to-print-qr-codes-on-packaging',
@@ -516,7 +638,7 @@ export const HUBS: ContentPage[] = [
     h1: 'QR code guides',
     title: 'QR code guides: sizes, design, tracking | QRfinity',
     description:
-      'Plain answers about QR codes: static or dynamic, whether they expire, print sizes, design that scans, tracking scans and printing on packaging.',
+      'Plain answers about QR codes: static or dynamic, expiry, print sizes, design that scans, tracking, A/B tests and switching after a date.',
     intro: 'Plain answers, no jargon, written by the people who make QRfinity.',
     updated: U,
   },
@@ -654,6 +776,8 @@ export const ALL_PAGES: ContentPage[] = [
   ...HUBS,
   ...USE_CASES,
   ...LANDINGS,
+  ...FEATURE_PAGES,
+  ...INDUSTRY_PAGES,
   ...TOOLS,
   ...GUIDES,
   ...ALTERNATIVES,
