@@ -28,7 +28,14 @@ export default async function AdminCodes({
           Search
         </button>
       </form>
-      {q && rows.length === 0 ? <p className="text-ink-muted">No codes match.</p> : null}
+      {rows.length === 0 ? (
+        <p className="text-ink-muted">{q.trim() ? 'No codes match.' : 'No codes yet.'}</p>
+      ) : (
+        <p className="body-small text-ink-muted">
+          {q.trim() ? 'Matching codes, newest first' : 'Newest codes'}
+          {rows.length === 100 ? ' (first 100)' : ''}
+        </p>
+      )}
       <div className="divide-y divide-hairline rounded-lg border border-hairline bg-surface px-4 empty:hidden">
         {rows.map(({ code, ownerEmail }) => (
           <CodeRow key={code.id} code={code} ownerEmail={ownerEmail} />

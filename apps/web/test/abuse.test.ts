@@ -18,6 +18,7 @@ import {
   isAdmin,
   restoreCode,
   runRiskChecks,
+  searchCodes,
   suspendUser,
   type AdminContext,
 } from '@/lib/server/admin'
@@ -137,6 +138,31 @@ describe('admin actions', () => {
     await restoreCode(admin, c.id)
     expect(admin.edge.last()).toMatchObject({ record: { status: 'active' } })
     expect((await getCode(ctx, c.id)).status).toBe('active')
+  })
+
+  it('code search lists the newest codes when empty and filters when not', async () => {
+    await makeUser(db, 'bob')
+    const menu = await createDynamicCode(ctxFor(db, 'alice'), {
+      name: 'Menu',
+      destination: 'example.com/menu',
+      design,
+    })
+    const flyer = await createDynamicCode(ctxFor(db, 'bob'), {
+      name: 'Flyer',
+      destination: 'example.org/flyer',
+      design,
+    })
+    await db
+      .update(codes)
+      .set({ createdAt: sql`now() + interval '1 minute'` })
+      .where(eq(codes.id, flyer.id))
+    expect((await searchCodes(db, '')).map((r) => r.code.id)).toEqual([flyer.id, menu.id])
+    expect((await searchCodes(db, '  ')).length).toBe(2)
+    expect((await searchCodes(db, 'menu')).map((r) => r.code.id)).toEqual([menu.id])
+    expect((await searchCodes(db, 'bob@')).map((r) => r.code.id)).toEqual([flyer.id])
+    expect((await searchCodes(db, `https://qrfinity.link/${menu.slug}`))[0]?.code.id).toBe(menu.id)
+    await db.update(codes).set({ deletedAt: new Date() }).where(eq(codes.id, menu.id))
+    expect((await searchCodes(db, '')).map((r) => r.code.id)).toEqual([flyer.id])
   })
 
   it('suspending a user signs them out everywhere', async () => {
