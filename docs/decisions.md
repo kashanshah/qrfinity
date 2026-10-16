@@ -50,6 +50,16 @@ Full detail in `docs/architecture.md`.
 - **Analytics**: Analytics Engine in production; the same report built from a Postgres `scan_events` table locally (the Worker posts signed events to the app). Bots and link previewers are excluded. Unique scans = distinct visitors per code per day. Still to confirm on real Analytics Engine: `COUNT(DISTINCT …)` support.
 - **Dynamic content types**: link, WhatsApp, location, app store and social (they resolve to web addresses). Text, Wi-Fi, contact, email, SMS, phone and event stay static.
 
+## Abuse protection (Phase 4, October 2026)
+
+- **On create and edit**: refuse other URL shorteners (fixed list), the configurable blocklist (domains, top-level domains, "address contains"; seeded with `.zip` and `.mov`), raw IPs, private hosts, then Google Web Risk. If Web Risk can't be reached, the change goes through and the code is re-checked within the hour.
+- **Re-check**: daily Vercel Cron. Each code is checked a day after creation, a week later, then monthly; each distinct destination is looked up once per run, within `RECHECK_DAILY_BUDGET` (default 3,000 ≈ 90,000 a month, inside Web Risk's free 100,000). This uses the Lookup API, not the Update API planned in Phase 1: simpler, and enough until active destinations pass about 100,000. Then switch to the Update API (local hash-prefix list) as planned.
+- **Automatic action**: only for Web Risk's high-confidence threats (malware, phishing): the code is turned off at once, the owner is emailed, and it lands in the admin queue for review. Lower-confidence Web Risk results and blocklist matches on existing codes are flagged for a person to review; the code stays live. *To confirm with Kashan.*
+- **Reports**: public `/report` page (linked from every short-domain page and the footer), Turnstile, 10 reports an hour per visitor; reporter email optional and never shown to the owner.
+- **Admin** (`/admin`, by role or `ADMIN_EMAILS`, 404 for everyone else): abuse queue (open reports, flagged codes), one-click disable/restore, code and user search, suspend/unsuspend (signs out everywhere, blocks sign-in; codes keep working), blocklist, audit log of every action.
+- **Account deletion**: removes email and sign-in, deletes the codes (printed dynamic codes show "not active"), keeps the code rows as tombstones so slugs are never reissued.
+- **Legal**: terms, acceptable use and privacy drafts at `/terms`, `/acceptable-use`, `/privacy`, marked as drafts and `noindex`. Open items are in MDX comments marked "TO CONFIRM".
+
 ## Monetization (later)
 
 - Competitors gate by number of dynamic codes (Uniqode $5/mo for 3 codes up to $99; QR TIGER from $7/mo; QR Code Generator PRO Professional: 250 codes). We give codes away and charge for professional features.

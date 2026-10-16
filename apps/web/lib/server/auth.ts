@@ -1,4 +1,4 @@
-import { account, session, user, verification } from '@qrfinity/db'
+import { account, eq, session, user, verification } from '@qrfinity/db'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { APIError, createAuthMiddleware } from 'better-auth/api'
@@ -28,6 +28,24 @@ function createAuth() {
     rateLimit: { enabled: false },
     telemetry: { enabled: false },
     session: { expiresIn: 60 * 60 * 24 * 30, updateAge: 60 * 60 * 24 },
+    user: { additionalFields: { role: { type: 'string', defaultValue: 'user', input: false } } },
+    databaseHooks: {
+      session: {
+        create: {
+          // Suspended accounts can't sign in. Their codes keep working unless disabled one by one.
+          before: async (s) => {
+            const [u] = await db
+              .select({ suspendedAt: user.suspendedAt })
+              .from(user)
+              .where(eq(user.id, s.userId))
+            if (u?.suspendedAt)
+              throw new APIError('FORBIDDEN', {
+                message: 'This account is suspended. Contact us if you think this is a mistake.',
+              })
+          },
+        },
+      },
+    },
     account: { accountLinking: { enabled: true, trustedProviders: ['google'] } },
     socialProviders: google
       ? {

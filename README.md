@@ -49,9 +49,9 @@ Nothing is deployed yet. The order, once accounts exist:
 1. **Neon** (via Vercel Marketplace): create the database, run `pnpm db:migrate` with its direct URL, then create the read-only role with `packages/db/sql/redirect-reader.sql` and re-run migrations (the grant is applied automatically when the role exists).
 2. **Cloudflare (the qrfinity.link account)**: Workers Paid plan; create a KV namespace and a Hyperdrive config pointing at Neon with the `redirect_reader` role; put both ids in `apps/redirect/wrangler.jsonc` and `apps/edge-api/wrangler.jsonc`; `wrangler secret put EDGE_API_SECRET` for edge-api; `pnpm --filter @qrfinity/redirect deploy` and `pnpm --filter @qrfinity/edge-api deploy`. Create an API token with *Account Analytics: Read* for the dashboard.
 3. **Resend**: verify `mail.qrfinity.com` (SPF, DKIM, DMARC at Hostinger).
-4. **Turnstile** and **Google OAuth** (redirect URI `https://qrfinity.com/api/auth/callback/google`).
-5. **Vercel**: import the repo, Root Directory `apps/web`, set the variables from `apps/web/.env.example` (production values: no `DEV_MAILBOX`, no `TURNSTILE_DISABLED`, `ANALYTICS_BACKEND=analytics-engine`, empty `SHORT_LINK_ORIGIN`). The edge-sync cron is in `apps/web/vercel.json`. Pages stay `noindex` until `NEXT_PUBLIC_INDEXABLE=true`.
+4. **Turnstile**, **Google OAuth** (redirect URI `https://qrfinity.com/api/auth/callback/google`) and a **Google Web Risk** API key (Google Cloud project with billing; first 100,000 lookups a month free).
+5. **Vercel**: import the repo, Root Directory `apps/web`, set the variables from `apps/web/.env.example` (production values: no `DEV_MAILBOX`, no `TURNSTILE_DISABLED`, `ANALYTICS_BACKEND=analytics-engine`, empty `SHORT_LINK_ORIGIN`). The edge-sync (every minute) and destination re-check (daily) crons are in `apps/web/vercel.json`. Set `ADMIN_EMAILS` to your email to open `/admin`. Pages stay `noindex` until `NEXT_PUBLIC_INDEXABLE=true`.
 
 ## Status
 
-Phases 1–2 approved. Phase 3 (accounts, dynamic codes, redirect Worker, analytics) is built and awaiting review. Abuse protection (Phase 4) must ship before public launch.
+Phases 1–3 done. Phase 4 (abuse protection: screening, re-checks, reports, admin panel, draft legal pages) is built and awaiting review. The legal drafts need legal review before public launch.

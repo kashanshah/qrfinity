@@ -20,6 +20,7 @@ const appEnv = {
   ANALYTICS_BACKEND: 'postgres',
   SCAN_SINK_SECRET: 'dev-sink-secret',
   CRON_SECRET: 'dev-cron-secret',
+  ADMIN_EMAILS: 'e2e-admin@example.com',
 }
 
 const wrangler = (pkg: string, port: number, inspector: number, vars: string) =>

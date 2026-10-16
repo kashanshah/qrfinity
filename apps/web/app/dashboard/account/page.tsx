@@ -1,5 +1,6 @@
 import { Download } from 'lucide-react'
 import { requireUser } from '@/lib/server/context'
+import { DeleteAccount } from './DeleteAccount'
 
 export default async function AccountPage() {
   const user = await requireUser('/dashboard/account')
@@ -37,6 +38,7 @@ export default async function AccountPage() {
           features stay free. Paid plans, when they come, only add new things.
         </p>
       </section>
+      <DeleteAccount email={user.email} />
     </div>
   )
 }

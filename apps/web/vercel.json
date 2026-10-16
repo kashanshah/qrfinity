@@ -1,4 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "crons": [{ "path": "/api/cron/edge-sync", "schedule": "* * * * *" }]
+  "crons": [
+    { "path": "/api/cron/edge-sync", "schedule": "* * * * *" },
+    { "path": "/api/cron/recheck", "schedule": "17 6 * * *" }
+  ]
 }

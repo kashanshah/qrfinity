@@ -15,6 +15,20 @@
       "when": 1792109267976,
       "tag": "0001_grant_redirect_reader",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792111060568,
+      "tag": "0002_abuse",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792111068136,
+      "tag": "0003_seed_blocklist",
+      "breakpoints": true
     }
   ]
 }
