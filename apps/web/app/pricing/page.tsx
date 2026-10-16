@@ -54,7 +54,7 @@ const ADVANCED: { name: string; detail: string; ready: boolean }[] = [
 const FAQ: FaqItem[] = [
   {
     q: 'Is QRfinity really free?',
-    a: 'Yes. Every feature is free: unlimited static and dynamic codes, analytics, every design option and every download format. Paid plans only let you use advanced features, like custom short links, redirect rules, passwords, split traffic and date or scan limits, on more than one code.',
+    a: 'Yes. Everything you need is free: unlimited static and dynamic codes, analytics, every design option and every download format. Paid plans only let you use advanced features, like custom short links, redirect rules, passwords, split traffic and date or scan limits, on more than one code.',
   },
   {
     q: 'What counts as a code with advanced features?',
@@ -78,7 +78,7 @@ const FAQ: FaqItem[] = [
   },
   {
     q: 'Could a free feature move to a paid plan later?',
-    a: 'No. We will never move a free feature behind a paywall. That promise is part of our terms of service.',
+    a: 'No. We will never move a feature that’s free today behind a paywall; that promise is part of our terms of service. We may add new features that are only on paid plans.',
   },
 ]
 
@@ -208,7 +208,7 @@ export default function PricingPage() {
           Plans
         </h2>
         <p className="mt-1 max-w-[65ch] text-ink-muted">
-          Every plan includes every feature. Plans differ only in how many codes can use advanced
+          Every plan has the same features. Plans differ only in how many codes can use advanced
           features.{' '}
           <a href="#compare" className="text-evergreen underline">
             Compare plans

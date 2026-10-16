@@ -96,7 +96,7 @@ export function ComparePlans() {
         Compare plans
       </h2>
       <p className="mt-1 max-w-[65ch] text-ink-muted">
-        Every feature is in every plan. A plan only sets how many of your codes can use advanced
+        Every plan has the same features. A plan only sets how many of your codes can use advanced
         features. When a plan ends, every code and short link keeps working.
       </p>
       {/* No scroll box: the page scrolls and the plan names stick to the top of the screen. The

@@ -31,7 +31,7 @@ const FACTS = [
   'Downloads: PNG, JPG, SVG, PDF and EPS, all free, no watermark.',
   'Short links for dynamic codes use qrfinity.link. No IP addresses are stored; no cookies on short links.',
   'Promises in the terms of service: codes never expire; free features never move behind a paywall.',
-  'Every feature is free. Advanced features (custom short links, redirect rules by phone, country or time, password protection, split traffic for A/B tests, and date or scan limits that switch a code to another page) work on 1 code free; paid plans cover 10 codes for $5/month, 100 for $20, or every code for $50, with the first month free. When a plan ends every code keeps working, including custom short links; redirect rules, splits and limits beyond the free code pause and scans go to the main destination; passwords stay on.',
+  'Everything you need is free. Advanced features (custom short links, redirect rules by phone, country or time, password protection, split traffic for A/B tests, and date or scan limits that switch a code to another page) work on 1 code free; paid plans cover 10 codes for $5/month, 100 for $20, or every code for $50, with the first month free. When a plan ends every code keeps working, including custom short links; redirect rules, splits and limits beyond the free code pause and scans go to the main destination; passwords stay on.',
   'Made by Teknoffice Technologies Inc., Ontario, Canada. Contact: hello@qrfinity.com.',
 ]
 

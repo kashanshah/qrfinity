@@ -1,9 +1,9 @@
 /**
  * Plans and features (pricing model decided 2026-10-16, see docs/decisions.md).
  *
- * Every feature is free to use. Plain dynamic codes are unlimited. Advanced features (custom short
- * links, redirect rules and password protection) can be used on a limited
- * number of codes: 1 free, more on paid plans. Stopping paying never breaks a code; it only stops
+ * Everything released so far is free to use. Plain dynamic codes are unlimited. Advanced features
+ * (custom short links, redirect rules, password protection, split traffic, limits) can be used on
+ * a limited number of codes: 1 free, more on paid plans. Stopping paying never breaks a code; it only stops
  * adding advanced features to more codes. No billing exists yet: an admin sets a user's plan.
  *
  * The rule this file enforces: free features never move behind a paywall. FREE_FEATURES is a public
