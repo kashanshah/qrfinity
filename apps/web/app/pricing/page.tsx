@@ -14,6 +14,7 @@ const FREE = [
   'Unlimited static QR codes, no sign-up',
   'Unlimited dynamic QR codes with a free account',
   'Edit where a dynamic code points, any time',
+  'A custom short link, like qrfinity.link/joes-menu',
   'Scan analytics: totals, unique scans, devices, countries, 90 days of history',
   'Every design option: colours, shapes, logo, frames',
   'Every format: PNG, JPG, SVG, PDF and EPS',
@@ -22,6 +23,7 @@ const FREE = [
 
 const PRO = [
   'Full analytics history and CSV export',
+  'More custom short links',
   'Your own branded short domain',
   'Bulk creation from a spreadsheet',
   'Redirect rules by country, device or time',

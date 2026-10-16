@@ -1,19 +1,11 @@
-export const metadata = {
-  title: 'Terms of service',
-  description: 'The terms for using QRfinity, including our promise that codes never expire.',
-}
+import { getPage } from '@/content/registry'
+import { pageMetadata } from '@/lib/seo'
 
-{/*
-  DRAFT for Kashan's legal review. Items marked "TO CONFIRM" need a decision or a lawyer:
-  - Governing law and courts (province).
-  - The shutdown commitment in section 3 (notice period and redirect continuity).
-  - Liability cap wording for Canadian and EU consumers.
-  - That the contact mailboxes exist.
-*/}
+export const metadata = pageMetadata(getPage('/terms'))
 
 # Terms of service
 
-Last updated: October 16, 2026
+Effective October 16, 2026
 
 These terms are an agreement between you and Teknoffice Technologies Inc. ("we", "us"), the company that runs QRfinity at qrfinity.com and qrfinity.link. By using QRfinity you agree to them.
 
@@ -39,7 +31,7 @@ These are part of the agreement, not marketing:
   1. you pause or delete it, or delete your account;
   2. we turn it off because it breaks our [acceptable use policy](/acceptable-use); or
   3. a court or the law requires it.
-- If we ever stop operating QRfinity, we will give at least 12 months' notice, keep dynamic codes redirecting during that time, and let you export every destination. {/* TO CONFIRM: notice period and whether to commit to transferring the redirect service. */}
+- If we ever stop operating QRfinity, we will give at least 12 months' notice, keep dynamic codes redirecting during that time, and let you export every destination.
 
 We can't amend this section to take these promises away from codes that already exist.
 
@@ -73,7 +65,7 @@ We work hard to keep QRfinity running, but we provide it "as is". We don't promi
 
 ## 10. Limits on liability
 
-To the extent the law allows, we're not liable for indirect or consequential losses, such as lost profits or reprinting costs, and our total liability to you is limited to CAD $100. Nothing in these terms limits rights you have under consumer protection law that can't be limited. {/* TO CONFIRM with counsel. */}
+To the extent the law allows, we're not liable for indirect or consequential losses, such as lost profits or reprinting costs, and our total liability to you is limited to CAD $100. Nothing in these terms limits rights you have under consumer protection law that can't be limited.
 
 ## 11. Changes to these terms
 
@@ -81,8 +73,14 @@ If we change these terms, we'll update the date above and, for important changes
 
 ## 12. Law and disputes
 
-These terms are governed by the laws of the Province of [Ontario] and the federal laws of Canada that apply there. {/* TO CONFIRM: province. */}
+These terms are governed by the laws of the Province of Ontario and the federal laws of Canada that apply there. The courts of Ontario have jurisdiction over any dispute, unless the consumer protection law where you live gives you the right to bring a claim in your local courts.
+
+If you have a problem, please email us first at legal@qrfinity.com. Most issues can be solved quickly that way.
 
 ## 13. Contact
 
-Questions about these terms: legal@qrfinity.com. Abuse reports: [report a QR code](/report) or abuse@qrfinity.com.
+- Questions about these terms: legal@qrfinity.com
+- Abuse reports: [report a QR code](/report) or abuse@qrfinity.com
+- Everything else: hello@qrfinity.com
+
+Teknoffice Technologies Inc., Ontario, Canada.

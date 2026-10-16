@@ -13,9 +13,11 @@ A free QR code generator whose codes never expire, built as an organic traffic m
 - Brand and final logo are done. Phase 1 architecture approved (2026-10-15), recorded in `docs/architecture.md`.
 - Phase 2 (static generator) approved.
 - Phase 3 (accounts, dynamic codes, redirect + edge-api Workers, analytics) done; PR kashanshah/qrfinity#1.
-- Phase 4 (abuse protection, reports, admin, draft legal pages) approved and merged. Legal drafts need Kashan's/a lawyer's review before launch.
+- Phase 4 (abuse protection, reports, admin) approved and merged. Legal pages finalized 2026-10-16 (Ontario law, 12-month shutdown notice, 2-year retention of reports and audit log); contact mailboxes: hello@, info@, abuse@, legal@ qrfinity.com.
 - Phase 5 (SEO pages) approved and merged; pages stay `noindex` until `NEXT_PUBLIC_INDEXABLE=true`. Competitor facts on `/alternatives/*` must be re-checked on the live sites before launch.
-- Phase 6 (plans, feature flags, analytics roll-ups, partner links; no billing) is built and **awaits review**. It is the last phase in the plan.
+- Phase 6 (plans, feature flags, analytics roll-ups, partner links; no billing) approved and merged. All phases in the plan are done.
+- Custom short links (free allowance per account, admin setting, more with Pro). Pricing model: every paid capability gets a free allowance; see docs/decisions.md.
+- Launch readiness: IndexNow, llms.txt/llms-full.txt, AI crawler rules, security.txt, search console verification tags, About page.
 - Domains qrfinity.com, qrfinity.link and qrfinity.ca are registered. Exact-name trademark searches (USPTO, CIPO) came back clear.
 
 ## Non-negotiables

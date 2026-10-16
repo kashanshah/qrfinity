@@ -1,18 +1,11 @@
-export const metadata = {
-  title: 'Privacy policy',
-  description: 'What QRfinity collects, why, and what we never store, including IP addresses.',
-}
+import { getPage } from '@/content/registry'
+import { pageMetadata } from '@/lib/seo'
 
-{/*
-  DRAFT for legal review. TO CONFIRM:
-  - Data locations (Neon and Vercel regions) and cross-border transfer wording.
-  - Retention period for audit logs and reports.
-  - Privacy contact and whether a privacy officer is named (PIPEDA).
-*/}
+export const metadata = pageMetadata(getPage('/privacy'))
 
 # Privacy policy
 
-Last updated: October 16, 2026
+Effective October 16, 2026
 
 Teknoffice Technologies Inc. runs QRfinity. This policy explains what we collect, why, and what we never collect. The short version: we collect as little as we can, we never store IP addresses, and we don't sell or rent data to anyone.
 
@@ -45,13 +38,21 @@ When someone scans a dynamic code, we record:
 - the website that referred the visit, if any (the site's name only, not the full address);
 - a **visitor hash**, used only to count unique scans. It's made from the visitor's IP address, user-agent and the code, mixed with a random value that changes every day and is deleted after 36 hours. Once that value is gone, the hash can't be traced back to anyone or linked across days.
 
-**We never store IP addresses**, in scan data, sign-in records or logs. Scan data is kept for 90 days.
+**We never store IP addresses**, in scan data, sign-in records or logs. Individual scan records are kept for 90 days. After that, all that remains is daily totals per code (for example "12 scans from Canada on mobile on 3 March"), which describe a code, not a person.
 
 We set no cookies on the short domain (qrfinity.link), and people who scan your codes see no tracking or ads from us.
 
 ## Reports
 
 If you report a QR code, we store what you send. Your email is optional; if you give it, we use it only to follow up, and we never share it with the code's owner.
+
+## Pro waitlist
+
+If you join the Pro waitlist on the pricing page, we store your email address and when you joined. We use it once, to tell you when Pro launches.
+
+## Links to other sites
+
+Some pages link to other websites, such as a print shop for stickers. Those links carry a tag saying the visit came from QRfinity, but we don't share anything about you with them. Their own privacy policies apply once you're there.
 
 ## Cookies
 
@@ -67,19 +68,23 @@ We use these companies to run QRfinity. They process data only on our instructio
 - **Resend**: sends sign-in and notification emails.
 - **Google**: if you choose Google sign-in; and Google Web Risk, which checks code destinations for phishing and malware (it receives the destination address, nothing about you).
 
-Some of these providers process data outside Canada, including in the United States. {/* TO CONFIRM regions. */}
+Our database and web servers are in the United States, and Cloudflare runs its network in data centres around the world, so your data may be processed outside Canada. Each provider is bound by a data processing agreement and protects data to standards comparable to Canadian law. Laws in those countries may allow their authorities to access data in some circumstances.
 
 ## How long we keep data
 
 - Account data: until you delete your account.
-- Scan data: 90 days.
-- Abuse reports and our audit log of moderation actions: as long as needed to prevent abuse. {/* TO CONFIRM a fixed period. */}
+- Individual scan records: 90 days.
+- Daily scan totals per code: until the code is deleted.
+- Abuse reports and our audit log of moderation actions: 2 years.
+- Pro waitlist: until Pro launches and we've sent the one email we promised, or until you ask us to remove you.
 
 When you delete your account we remove your email and sign-in records and delete your codes. We keep a record that each short link existed, without your details, so it's never given to someone else.
 
 ## Your rights
 
-You can see and download all your codes and their history at any time (Account → Export your data), correct them in your dashboard, and delete your account. You can also ask us for a copy of what we hold about you, or to correct or delete it, by writing to privacy@qrfinity.com. We follow Canada's privacy law (PIPEDA) and, for people in the EU and UK, the GDPR.
+You can see and download all your codes and their history at any time (Account → Export your data), correct them in your dashboard, and delete your account. You can also ask us for a copy of what we hold about you, or to correct or delete it, by writing to legal@qrfinity.com. We reply within 30 days. We follow Canada's privacy law (PIPEDA) and, for people in the EU and UK, the GDPR. If you're not satisfied with our answer, you can complain to the Office of the Privacy Commissioner of Canada or, in the EU and UK, to your local data protection authority.
+
+Our privacy officer is responsible for this policy and can be reached at legal@qrfinity.com.
 
 ## Children
 
@@ -91,4 +96,4 @@ If we change this policy we'll update the date above, and email account holders 
 
 ## Contact
 
-privacy@qrfinity.com · Teknoffice Technologies Inc., Canada
+legal@qrfinity.com · Teknoffice Technologies Inc., Ontario, Canada

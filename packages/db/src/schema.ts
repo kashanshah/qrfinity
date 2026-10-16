@@ -151,6 +151,8 @@ export const codes = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    /** True when the owner chose the slug (counts against their custom short link allowance). */
+    customSlug: boolean('custom_slug').notNull().default(false),
   },
   (t) => [
     uniqueIndex('codes_domain_slug_idx').on(t.domain, t.slug),
@@ -363,3 +365,11 @@ export const scanDaily = pgTable(
   },
   (t) => [primaryKey({ columns: [t.codeId, t.day] }), index('scan_daily_day_idx').on(t.day)],
 )
+
+/** Admin-editable settings (Phase 6+), e.g. the free custom short link allowance. */
+export const appSettings = pgTable('app_settings', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').notNull(),
+  updatedBy: text('updated_by'),
+  updatedAt: updatedAt(),
+})

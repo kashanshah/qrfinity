@@ -1,5 +1,4 @@
 // Redirect Worker for qrfinity.link. Deployed to the separate Cloudflare account that owns qrfinity.link.
-// Replace the placeholder ids with the real KV namespace and Hyperdrive config before the first deploy.
 {
   "name": "qrfinity-redirect",
   "main": "src/index.ts",
@@ -7,12 +6,12 @@
   "compatibility_flags": ["nodejs_compat"],
   "routes": [{ "pattern": "qrfinity.link", "custom_domain": true }],
   "workers_dev": false,
-  "kv_namespaces": [{ "binding": "LINKS", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }],
+  "kv_namespaces": [{ "binding": "LINKS", "id": "e206b8f5caac473c97928dd73896d69d" }],
   "analytics_engine_datasets": [{ "binding": "SCANS", "dataset": "qrfinity_scans" }],
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      "id": "REPLACE_WITH_HYPERDRIVE_ID",
+      "id": "5da718fea1fa4eb2a4555e55acfcf771",
       // Local development: the read-only role against the local database.
       "localConnectionString": "postgres://redirect_reader:redirect_reader@localhost:5432/qrfinity",
     },

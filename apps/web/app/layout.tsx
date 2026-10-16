@@ -16,6 +16,16 @@ export const metadata: Metadata = {
   description:
     'Make free QR codes that never expire. No sign-up, no watermark, every format free: PNG, SVG, PDF and EPS.',
   robots: indexable ? { index: true, follow: true } : { index: false, follow: false },
+  // Search console ownership checks (set the values from Google Search Console and Bing Webmaster Tools).
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+    other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+      ? { 'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+      : undefined,
+  },
+  alternates: {
+    types: { 'text/plain': [{ url: '/llms.txt', title: 'QRfinity for AI assistants' }] },
+  },
 }
 
 export const viewport: Viewport = {
