@@ -132,6 +132,26 @@ describe('messaging and phone', () => {
 })
 
 describe('location', () => {
+  it('pins the exact place when a suggestion supplied a place ID', () => {
+    expect(
+      encodeContent(
+        'location',
+        fields('location', {
+          address: 'CN Tower, Toronto',
+          placeId: 'ChIJmzrzi9Y0K4gRgXUc3sTY7RU',
+        }),
+      ),
+    ).toEqual({
+      ok: true,
+      payload:
+        'https://www.google.com/maps/search/?api=1&query=CN%20Tower%2C%20Toronto&query_place_id=ChIJmzrzi9Y0K4gRgXUc3sTY7RU',
+    })
+    // A blank ID (typed by hand) leaves the plain search link.
+    expect(
+      encodeContent('location', fields('location', { address: 'Toronto', placeId: ' ' })),
+    ).toEqual({ ok: true, payload: 'https://www.google.com/maps/search/?api=1&query=Toronto' })
+  })
+
   it('links to a map search by address or coordinates', () => {
     expect(
       encodeContent('location', fields('location', { address: '1 Main St, Toronto' })),

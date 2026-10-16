@@ -25,6 +25,7 @@ import { useState, type ReactNode } from 'react'
 import { useGenerator } from '@/lib/generator-context'
 import { Checkbox, SelectField, TextArea, TextField } from '../ui/Field'
 import { OptionGroup } from '../ui/OptionGroup'
+import { PlaceAutocomplete } from './PlaceAutocomplete'
 
 const icon = (I: typeof Link2) => <I aria-hidden="true" size={20} strokeWidth={1.75} />
 
@@ -252,10 +253,13 @@ export function ContentForm({ result }: { result: EncodeResult }) {
             ]}
           />
           {f.mode === 'address' ? (
-            <TextField
+            <PlaceAutocomplete
               label="Address or place name"
-              autoComplete="street-address"
-              {...bind('location', 'address')}
+              value={f.address}
+              placeId={f.placeId ?? ''}
+              onChange={(address, placeId) => setFields('location', { address, placeId })}
+              onBlur={blur('address')}
+              error={err('address')}
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">

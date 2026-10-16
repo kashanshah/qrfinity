@@ -2,10 +2,10 @@
 
 import { useId, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react'
 
-const control =
+export const control =
   'w-full rounded-md border-[1.5px] border-control-border bg-surface px-3 py-2.5 text-ink placeholder:text-ink-muted/70 aria-[invalid=true]:border-scan-fail'
 
-function FieldShell({
+export function FieldShell({
   id,
   label,
   hint,

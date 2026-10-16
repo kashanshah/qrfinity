@@ -8,6 +8,11 @@ const gaScript = ga ? ' https://www.googletagmanager.com' : ''
 const gaConnect = ga
   ? ' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com'
   : ''
+// Address suggestions (Google Places) load only when NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is set.
+const maps = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim())
+const mapsScript = maps ? ' https://maps.googleapis.com' : ''
+const mapsConnect = maps ? ' https://maps.googleapis.com https://places.googleapis.com' : ''
+const mapsImg = maps ? ' https://maps.gstatic.com https://maps.googleapis.com' : ''
 const posthogHost = (
   process.env.NEXT_PUBLIC_POSTHOG_HOST?.trim() || 'https://us.i.posthog.com'
 ).replace(/\/$/, '')
@@ -16,13 +21,13 @@ const posthogAssets = posthogHost.replace('.i.posthog.com', '-assets.i.posthog.c
 // Static generation runs entirely in the browser; the scan check needs WebAssembly and a worker.
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com${gaScript}`,
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com${gaScript}${mapsScript}`,
   // Turnstile renders its check in an iframe.
   'frame-src https://challenges.cloudflare.com',
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob:${ga ? ' https://*.google-analytics.com https://*.googletagmanager.com' : ''}`,
+  `img-src 'self' data: blob:${ga ? ' https://*.google-analytics.com https://*.googletagmanager.com' : ''}${mapsImg}`,
   "font-src 'self'",
-  `connect-src 'self'${gaConnect}`,
+  `connect-src 'self'${gaConnect}${mapsConnect}`,
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
