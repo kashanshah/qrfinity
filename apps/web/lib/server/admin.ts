@@ -151,6 +151,7 @@ export async function searchUsers(db: Database, q: string) {
       createdAt: user.createdAt,
       suspendedAt: user.suspendedAt,
       role: user.role,
+      plan: user.plan,
       codes: sql<number>`(select count(*)::int from codes where codes.user_id = ${user.id} and codes.deleted_at is null)`,
     })
     .from(user)

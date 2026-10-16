@@ -1,11 +1,13 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
-type Variant = 'primary' | 'download' | 'secondary'
+type Variant = 'primary' | 'download' | 'secondary' | 'danger'
 
 const styles: Record<Variant, string> = {
   primary: 'bg-evergreen text-on-evergreen hover:bg-evergreen-deep',
   download: 'bg-signal text-on-signal hover:brightness-95',
   secondary: 'bg-surface text-ink border-[1.5px] border-control-border hover:bg-surface-sunk',
+  /** Irreversible actions. Orange fill, always with words that say what happens. */
+  danger: 'bg-scan-fail text-on-scan-fail hover:brightness-95',
 }
 
 export function Button({

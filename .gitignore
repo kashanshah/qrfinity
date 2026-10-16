@@ -16,3 +16,5 @@ apps/web/app/icon.svg
 apps/web/app/apple-icon.png
 apps/web/next-env.d.ts
 .wrangler/
+# Written by `next dev` for coding agents
+apps/web/AGENTS.md

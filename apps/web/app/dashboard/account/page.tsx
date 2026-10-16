@@ -1,44 +1,135 @@
-import { Download } from 'lucide-react'
+import { account, and, codes, eq, isNull, sql } from '@qrfinity/db'
+import { Download, FileJson, FileSpreadsheet, Infinity as InfinityIcon } from 'lucide-react'
+import type { Metadata } from 'next'
+import { getDb } from '@/lib/server/db'
 import { requireUser } from '@/lib/server/context'
+import { Avatar } from '../DashboardNav'
 import { DeleteAccount } from './DeleteAccount'
+
+export const metadata: Metadata = { title: 'Account' }
+
+const date = (d: Date) =>
+  d.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })
 
 export default async function AccountPage() {
   const user = await requireUser('/dashboard/account')
-  const link =
-    'button inline-flex min-h-11 items-center gap-2 rounded-md border-[1.5px] border-control-border bg-surface px-6 py-3 text-ink hover:bg-surface-sunk'
+  const db = getDb()
+  const [providers, [counts]] = await Promise.all([
+    db.select({ providerId: account.providerId }).from(account).where(eq(account.userId, user.id)),
+    db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(codes)
+      .where(and(eq(codes.userId, user.id), isNull(codes.deletedAt))),
+  ])
+  const google = providers.some((p) => p.providerId === 'google')
+  const total = counts?.total ?? 0
+
   return (
-    <div className="flex max-w-[720px] flex-col gap-8">
-      <div>
-        <h1 className="heading text-ink">Account</h1>
-        <p className="mt-1 text-ink-muted">
-          Signed in as <strong className="font-bold text-ink">{user.email}</strong>.
-        </p>
-      </div>
-      <section className="flex flex-col gap-3 rounded-lg border border-hairline bg-surface p-4 md:p-6">
-        <h2 className="subheading text-ink">Export your data</h2>
-        <p className="text-ink-muted">
-          Download every code: name, short link, destination, status, folder, tags and the full
-          destination history. JSON also includes designs.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <a href="/api/export?format=csv" className={link}>
-            <Download aria-hidden="true" size={18} strokeWidth={1.75} />
-            Download CSV
-          </a>
-          <a href="/api/export?format=json" className={link}>
-            <Download aria-hidden="true" size={18} strokeWidth={1.75} />
-            Download JSON
-          </a>
+    <div className="flex max-w-[760px] flex-col gap-6">
+      <h1 className="heading text-ink">Account</h1>
+
+      <section
+        aria-label="Profile"
+        className="flex flex-wrap items-center gap-4 rounded-lg border border-hairline bg-surface p-4 md:p-6"
+      >
+        <Avatar email={user.email} size="lg" />
+        <div className="min-w-0 flex-1">
+          <p className="font-bold text-ink [overflow-wrap:anywhere] sm:text-[20px] sm:leading-7">
+            {user.email}
+          </p>
+          <p className="body-small text-ink-muted">
+            {google ? 'Signs in with Google' : 'Signs in with an email link'}
+            <span aria-hidden="true"> · </span>
+            <br className="sm:hidden" />
+            Member since {date(new Date(user.createdAt))}
+          </p>
         </div>
+        <dl className="flex w-full gap-6 border-t border-hairline pt-4 sm:w-auto sm:border-0 sm:pt-0">
+          <div>
+            <dt className="label text-ink-muted">Dynamic codes</dt>
+            <dd className="heading text-ink">{total.toLocaleString('en')}</dd>
+          </div>
+        </dl>
       </section>
-      <section className="rounded-lg bg-mint p-4 text-ink md:p-6">
-        <h2 className="subheading">Our promise</h2>
-        <p className="mt-2">
-          Your codes never expire and are never deactivated, whether or not you sign in again. Free
-          features stay free. Paid plans, when they come, only add new things.
-        </p>
+
+      <p className="flex items-start gap-3 rounded-lg bg-mint px-4 py-3 text-ink">
+        <InfinityIcon
+          aria-hidden="true"
+          size={20}
+          strokeWidth={1.75}
+          className="mt-[3px] shrink-0 text-evergreen"
+        />
+        <span>
+          Your codes never expire and are never paused, whether or not you sign in again. Free
+          features stay free.
+        </span>
+      </p>
+
+      <section
+        aria-labelledby="export"
+        className="rounded-lg border border-hairline bg-surface p-4 md:p-6"
+      >
+        <div className="flex items-start gap-3">
+          <Download
+            aria-hidden="true"
+            size={20}
+            strokeWidth={1.75}
+            className="mt-1 shrink-0 text-evergreen"
+          />
+          <div>
+            <h2 id="export" className="subheading text-ink">
+              Export your data
+            </h2>
+            <p className="mt-1 text-ink-muted">
+              Every code with its short link, destination, status, folder, tags and full destination
+              history.
+            </p>
+          </div>
+        </div>
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+          <ExportLink
+            href="/api/export?format=csv"
+            icon={FileSpreadsheet}
+            title="Download CSV"
+            hint="For spreadsheets"
+          />
+          <ExportLink
+            href="/api/export?format=json"
+            icon={FileJson}
+            title="Download JSON"
+            hint="Includes designs, for backups"
+          />
+        </ul>
       </section>
+
       <DeleteAccount email={user.email} />
     </div>
+  )
+}
+
+function ExportLink({
+  href,
+  icon: Icon,
+  title,
+  hint,
+}: {
+  href: string
+  icon: typeof FileJson
+  title: string
+  hint: string
+}) {
+  return (
+    <li>
+      <a
+        href={href}
+        className="flex min-h-14 items-center gap-3 rounded-md border-[1.5px] border-control-border bg-surface px-4 py-3 hover:border-evergreen hover:bg-surface-sunk"
+      >
+        <Icon aria-hidden="true" size={22} strokeWidth={1.75} className="shrink-0 text-ink-muted" />
+        <span className="flex flex-col">
+          <span className="button text-ink">{title}</span>
+          <span className="body-small text-ink-muted">{hint}</span>
+        </span>
+      </a>
+    </li>
   )
 }

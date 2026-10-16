@@ -7,8 +7,12 @@ import {
   BREAKDOWNS,
   aeCodeTotalsQuery,
   aeQueries,
+  aeRollupQueries,
   assembleReport,
+  assembleRollups,
   reportFromAe,
+  rollupsFromAe,
+  type DailyRollup,
   type AeResponse,
   type Breakdown,
   type ReportScope,
@@ -55,6 +59,14 @@ export class AnalyticsEngineBackend implements ScanAnalytics {
   async codeTotals(ownerId: string, days?: number) {
     const res = await this.query(aeCodeTotalsQuery(ownerId, clampDays(days)))
     return new Map(res.data.map((r) => [String(r.code), Math.round(Number(r.scans) || 0)]))
+  }
+
+  async dailyRollup(day: string): Promise<DailyRollup[]> {
+    const q = aeRollupQueries(day)
+    const entries = await Promise.all(
+      Object.entries(q).map(async ([k, s]) => [k, await this.query(s)] as const),
+    )
+    return rollupsFromAe(day, Object.fromEntries(entries) as Parameters<typeof rollupsFromAe>[1])
   }
 }
 
@@ -121,6 +133,50 @@ export class PostgresAnalyticsBackend implements ScanAnalytics {
       .groupBy(scanEvents.codeId)
     return new Map(rows.map((r) => [r.code, r.scans]))
   }
+
+  async dailyRollup(day: string): Promise<DailyRollup[]> {
+    const where = and(
+      sql`${scanEvents.at} >= ${day}::date at time zone 'UTC'`,
+      sql`${scanEvents.at} < (${day}::date + 1) at time zone 'UTC'`,
+      ne(scanEvents.device, 'bot'),
+    )
+    const hourExpr = sql<number>`extract(hour from ${scanEvents.at} at time zone 'UTC')::int`
+    const [totals, hours, ...breakdowns] = await Promise.all([
+      this.db
+        .select({
+          code: scanEvents.codeId,
+          scans: sql<number>`count(*)::int`,
+          uniques: sql<number>`count(distinct ${scanEvents.visitor})::int`,
+        })
+        .from(scanEvents)
+        .where(where)
+        .groupBy(scanEvents.codeId),
+      this.db
+        .select({ code: scanEvents.codeId, hour: hourExpr, scans: sql<number>`count(*)::int` })
+        .from(scanEvents)
+        .where(where)
+        .groupBy(scanEvents.codeId, hourExpr),
+      ...Object.values(BREAKDOWNS).map((col) =>
+        this.db
+          .select({
+            code: scanEvents.codeId,
+            key: scanEvents[col],
+            scans: sql<number>`count(*)::int`,
+          })
+          .from(scanEvents)
+          .where(and(where, ne(scanEvents[col], '')))
+          .groupBy(scanEvents.codeId, scanEvents[col]),
+      ),
+    ])
+    return assembleRollups(
+      day,
+      totals,
+      hours,
+      Object.fromEntries(Object.keys(BREAKDOWNS).map((k, i) => [k, breakdowns[i]!])) as Parameters<
+        typeof assembleRollups
+      >[3],
+    )
+  }
 }
 
 /** No backend configured: empty reports, clearly flagged as not live. */
@@ -135,6 +191,9 @@ export class UnconfiguredAnalytics implements ScanAnalytics {
   }
   async codeTotals() {
     return new Map<string, number>()
+  }
+  async dailyRollup(): Promise<DailyRollup[]> {
+    return []
   }
 }
 

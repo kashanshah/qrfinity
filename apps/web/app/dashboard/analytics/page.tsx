@@ -1,17 +1,18 @@
 import { AnalyticsView } from '@/components/analytics/AnalyticsView'
-import { getAnalytics } from '@/lib/server/analytics'
-import { parseDays } from '@/lib/days'
 import { serviceContext } from '@/lib/server/context'
+import { scanReportFor } from '@/lib/server/scan-report'
 
 export default async function AnalyticsPage({
   searchParams,
 }: {
   searchParams: Promise<{ days?: string }>
 }) {
-  const days = parseDays((await searchParams).days)
   const ctx = await serviceContext('/dashboard/analytics')
-  const analytics = getAnalytics()
-  const report = await analytics.report({ kind: 'owner', ownerId: ctx.userId }, days)
+  const r = await scanReportFor(
+    ctx,
+    { kind: 'owner', ownerId: ctx.userId },
+    (await searchParams).days,
+  )
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -20,12 +21,7 @@ export default async function AnalyticsPage({
           Scans across all your dynamic codes. Free for the last 90 days.
         </p>
       </div>
-      <AnalyticsView
-        report={report}
-        days={days}
-        live={analytics.live}
-        basePath="/dashboard/analytics"
-      />
+      <AnalyticsView {...r} basePath="/dashboard/analytics" />
     </div>
   )
 }

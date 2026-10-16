@@ -4,8 +4,7 @@ import { AnalyticsView } from '@/components/analytics/AnalyticsView'
 import { CopyButton } from '@/components/dashboard/CopyButton'
 import { StatusPill } from '@/components/dashboard/StatusPill'
 import { CodeTypeBadge, NeverExpiresBadge } from '@/components/generator/Badges'
-import { parseDays } from '@/lib/days'
-import { getAnalytics } from '@/lib/server/analytics'
+import { scanReportFor } from '@/lib/server/scan-report'
 import { ServiceError, destinationHistoryFor, getCode, listFolders } from '@/lib/server/codes'
 import { serviceContext } from '@/lib/server/context'
 import { shortLinkBase, shortLinkFor } from '@/lib/short-link'
@@ -24,7 +23,6 @@ export default async function CodePage({
 }) {
   const { id } = await params
   const { days: d, created } = await searchParams
-  const days = parseDays(d)
   const ctx = await serviceContext(`/dashboard/codes/${id}`)
   let code
   try {
@@ -33,11 +31,10 @@ export default async function CodePage({
     if (e instanceof ServiceError) notFound()
     throw e
   }
-  const analytics = getAnalytics()
-  const [history, folders, report] = await Promise.all([
+  const [history, folders, scans] = await Promise.all([
     destinationHistoryFor(ctx, id),
     listFolders(ctx),
-    analytics.report({ kind: 'code', codeId: id }, days),
+    scanReportFor(ctx, { kind: 'code', codeId: id }, d),
   ])
   const link = shortLinkFor(code.slug!)
   const content = code.content ?? {
@@ -95,12 +92,7 @@ export default async function CodePage({
         <h2 id="analytics" className="heading text-ink">
           Scans
         </h2>
-        <AnalyticsView
-          report={report}
-          days={days}
-          live={analytics.live}
-          basePath={`/dashboard/codes/${code.id}`}
-        />
+        <AnalyticsView {...scans} basePath={`/dashboard/codes/${code.id}`} />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">

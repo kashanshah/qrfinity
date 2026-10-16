@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ALTERNATIVES, GUIDES, getPage, PRICING } from '@/content/registry'
+import { AGENCY_URL } from '@/lib/partners'
 
 const TYPES = ['url', 'wifi', 'vcard', 'menu', 'google-review', 'with-logo', 'whatsapp', 'pdf'].map(
   (s) => getPage(`/qr-code-generator/${s}`),
@@ -61,9 +62,20 @@ export function SiteFooter() {
               </Link>
             ))}
           </nav>
-          <p>
-            © {new Date().getFullYear()} Teknoffice Technologies Inc. QR codes that never expire.
-          </p>
+          <div className="flex flex-col gap-1 md:items-end">
+            {AGENCY_URL ? (
+              <a
+                href={AGENCY_URL}
+                rel="noopener"
+                className="rounded-sm hover:text-ink hover:underline"
+              >
+                Need a QR campaign or landing page built?
+              </a>
+            ) : null}
+            <p>
+              © {new Date().getFullYear()} Teknoffice Technologies Inc. QR codes that never expire.
+            </p>
+          </div>
         </div>
       </div>
     </footer>

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { searchUsers } from '@/lib/server/admin'
 import { adminContext } from '@/lib/server/context'
 import { ActionButton } from '../ActionButton'
+import { PlanSelect } from './PlanSelect'
 import { suspendUserAction, unsuspendUserAction } from '../actions'
 
 const fmt = new Intl.DateTimeFormat('en-CA', { dateStyle: 'medium' })
@@ -34,7 +35,8 @@ export default async function AdminUsers({
       </form>
       <p className="body-small text-ink-muted">
         Suspending signs the person out and blocks sign-in. Their codes keep working; disable
-        abusive codes one by one.
+        abusive codes one by one. Plans are set by hand until billing exists; free features never
+        depend on the plan.
       </p>
       <ul className="divide-y divide-hairline rounded-lg border border-hairline bg-surface px-4">
         {users.map((u) => (
@@ -55,20 +57,23 @@ export default async function AdminUsers({
                 {u.suspendedAt ? ` · suspended ${fmt.format(u.suspendedAt)}` : ''}
               </p>
             </div>
-            {u.id === actor ? null : u.suspendedAt ? (
-              <ActionButton
-                label="Unsuspend"
-                action={unsuspendUserAction.bind(null, u.id)}
-                confirmText={`Let ${u.email} sign in again?`}
-              />
-            ) : (
-              <ActionButton
-                label="Suspend"
-                tone="danger"
-                ask={`Why suspend ${u.email}? (kept in the audit log)`}
-                action={suspendUserAction.bind(null, u.id)}
-              />
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              <PlanSelect userId={u.id} email={u.email} plan={u.plan} />
+              {u.id === actor ? null : u.suspendedAt ? (
+                <ActionButton
+                  label="Unsuspend"
+                  action={unsuspendUserAction.bind(null, u.id)}
+                  confirmText={`Let ${u.email} sign in again?`}
+                />
+              ) : (
+                <ActionButton
+                  label="Suspend"
+                  tone="danger"
+                  ask={`Why suspend ${u.email}? (kept in the audit log)`}
+                  action={suspendUserAction.bind(null, u.id)}
+                />
+              )}
+            </div>
           </li>
         ))}
       </ul>
