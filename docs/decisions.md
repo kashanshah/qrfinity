@@ -105,7 +105,8 @@ Kashan's model: every paid capability comes with a free allowance (usually 1), a
 ### Site analytics (2026-10-16)
 
 - Google Analytics 4 and PostHog on qrfinity.com, each off unless its key is set. Never on qrfinity.link (scanners are never tracked) or /admin.
-- No cookies until a visitor allows them (banner once, "Cookie settings" in the footer): GA runs in Consent Mode v2 with ads storage always denied and Google signals off; PostHog runs in cookieless mode and is proxied through `/ingest`.
+- Consent by region (decided 2026-10-16): the banner shows only in the EU, EEA, UK and Switzerland, or when the country is unknown (`/api/consent-region` reads the Vercel or Cloudflare country header and returns only yes/no). Elsewhere analytics cookies are on by default; "Cookie settings" in the footer and Global Privacy Control turn them off. Quebec's Law 25 may need the banner too; revisit if Quebec traffic matters.
+- Until a visitor allows cookies (where we ask): GA runs in Consent Mode v2 with ads storage always denied and Google signals off; PostHog runs in cookieless mode and is proxied through `/ingest`.
 - Nothing typed into the generator is captured: session recording off, autocapture limited to clicks on links and buttons with text and attributes masked. Events: `qr_downloaded`, `dynamic_code_created`, `sign_in_requested`, `pro_waitlist_joined`, with type and format only.
 - PostHog project must have "Discard client IP data" on (our no-raw-IP rule) and "Cookieless server hash mode" on (otherwise pre-consent events are dropped). The privacy policy describes all of this.
 

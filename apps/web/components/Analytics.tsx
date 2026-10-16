@@ -10,6 +10,8 @@ import {
   OPEN_SETTINGS_EVENT,
   POSTHOG_KEY,
   analyticsAllowedOn,
+  hasPrivacySignal,
+  isGranted,
   readConsent,
   saveConsent,
   type Consent,
@@ -23,7 +25,7 @@ async function startPosthog(consent: Consent | null) {
     ui_host: process.env.NEXT_PUBLIC_POSTHOG_UI_HOST || 'https://us.posthog.com',
     // Cookieless until the visitor allows cookies; no capture opt-in needed for the anonymous counts.
     cookieless_mode: 'on_reject',
-    opt_out_capturing_by_default: consent !== 'granted',
+    opt_out_capturing_by_default: !isGranted(consent),
     person_profiles: 'identified_only',
     capture_pageview: 'history_change',
     capture_pageleave: true,
@@ -36,7 +38,7 @@ async function startPosthog(consent: Consent | null) {
     disable_surveys: true,
     advanced_disable_flags: true,
   })
-  if (consent === 'granted') posthog.opt_in_capturing()
+  if (isGranted(consent)) posthog.opt_in_capturing()
   window.__qrfinityPosthog = posthog
   return posthog
 }
@@ -58,19 +60,40 @@ export function Analytics() {
   const consent: Consent | null | undefined =
     stored === 'server' ? undefined : stored === 'unset' ? null : stored
   const [reopened, setReopened] = useState(false)
-  const bannerOpen = consent === null || reopened
+  // Only ask where the law requires it; null until we know (no banner flash elsewhere).
+  const [mustAsk, setMustAsk] = useState<boolean | null>(null)
+  const bannerOpen = (consent === null && mustAsk === true) || reopened
+
+  useEffect(() => {
+    if (!ANALYTICS_ENABLED || consent !== null || mustAsk !== null) return
+    let cancelled = false
+    fetch('/api/consent-region')
+      .then((r) => (r.ok ? (r.json() as Promise<{ required: boolean }>) : { required: true }))
+      .catch(() => ({ required: true }))
+      .then(({ required }) => {
+        if (cancelled) return
+        if (required) setMustAsk(true)
+        // Outside the EU/UK: on by default, unless the browser sends Global Privacy Control.
+        else saveConsent(hasPrivacySignal() ? 'denied' : 'implied')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [consent, mustAsk])
 
   useEffect(() => {
     if (!ANALYTICS_ENABLED) return
     const onChange = (e: Event) => {
       const value = (e as CustomEvent<Consent>).detail
       setReopened(false)
-      window.gtag?.('consent', 'update', { analytics_storage: value })
+      window.gtag?.('consent', 'update', {
+        analytics_storage: isGranted(value) ? 'granted' : 'denied',
+      })
       const ph = window.__qrfinityPosthog as unknown as {
         opt_in_capturing?: () => void
         opt_out_capturing?: () => void
       }
-      if (value === 'granted') ph?.opt_in_capturing?.()
+      if (isGranted(value)) ph?.opt_in_capturing?.()
       else ph?.opt_out_capturing?.()
     }
     const onOpen = () => setReopened(true)
@@ -94,7 +117,7 @@ export function Analytics() {
         <>
           <Script id="ga-consent" strategy="afterInteractive">
             {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}window.gtag=gtag;
-gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'${consent === 'granted' ? 'granted' : 'denied'}'});
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'${isGranted(consent) ? 'granted' : 'denied'}'});
 gtag('js',new Date());gtag('config','${GA_ID}',{allow_google_signals:false,allow_ad_personalization_signals:false});`}
           </Script>
           <Script
@@ -104,13 +127,14 @@ gtag('js',new Date());gtag('config','${GA_ID}',{allow_google_signals:false,allow
         </>
       ) : null}
       {bannerOpen && allowed ? (
-        <ConsentBanner onClose={() => setReopened(false)} hasChoice={consent !== null} />
+        <ConsentBanner onClose={() => setReopened(false)} current={consent ?? null} />
       ) : null}
     </>
   )
 }
 
-function ConsentBanner({ onClose, hasChoice }: { onClose: () => void; hasChoice: boolean }) {
+function ConsentBanner({ onClose, current }: { onClose: () => void; current: Consent | null }) {
+  const hasChoice = current !== null
   return (
     <div
       role="region"
@@ -124,6 +148,11 @@ function ConsentBanner({ onClose, hasChoice }: { onClose: () => void; hasChoice:
           Privacy policy
         </a>
       </p>
+      {hasChoice ? (
+        <p className="body-small mt-1 text-ink-muted">
+          Analytics cookies are {isGranted(current) ? 'on' : 'off'} right now.
+        </p>
+      ) : null}
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
