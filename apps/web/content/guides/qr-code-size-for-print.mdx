@@ -1,0 +1,91 @@
+export const faq = [
+  {
+    q: 'What is the minimum QR code size in pixels?',
+    a: 'Pixels only matter on screens. For print, think in centimetres and resolution: a PNG for a 2 cm code at 300 dpi needs about 240 px. Vector formats (SVG, PDF, EPS) avoid the question entirely, because they scale to any size without blurring.',
+  },
+  {
+    q: 'Does adding a logo mean the code has to be bigger?',
+    a: 'Slightly, in practice. A logo covers some modules and raises the error correction level, which adds more, smaller squares. Add about 0.5 cm to the minimum for small prints, and keep the logo to no more than about a third of the code’s width.',
+  },
+  {
+    q: 'How big should a QR code be on a screen or slide?',
+    a: 'Use the same distance rule: about one tenth of the distance to the furthest viewer. For a slide in a room 10 metres deep, the code should appear at least 1 metre wide on the projected screen, and leave it up long enough for people to scan.',
+  },
+  {
+    q: 'Can a QR code be too big?',
+    a: 'Rarely. Very large codes only fail when someone stands too close for the whole code to fit in the camera frame. If people will scan from both near and far, a second, smaller code at arm’s height solves it.',
+  },
+]
+
+A printed QR code should be at least 2 cm (0.8 in) wide to scan reliably at close range, and bigger the further away people stand: a simple rule is to make it about one tenth of the scanning distance. So a code read from 1 metre should be about 10 cm wide, and one read from 5 metres about 50 cm. Keep a clear margin around it, and use more space if the code holds a lot of data.
+
+## How small can a QR code be?
+
+About 2 cm by 2 cm. Below that, many phones struggle to focus, and any printing imperfection becomes large compared with each square.
+
+The real limit is the size of each square, called a module. Phone cameras need each module to be at least about 0.4 mm across on paper. A short link fits in a pattern of about 25 to 29 modules per side, so at 0.4 mm per module the pattern is barely more than 1 cm wide in theory, but in practice you need headroom for paper texture, ink spread and shaky hands. That’s where 2 cm comes from.
+
+Our generator checks this for you. Once a code passes the live scan check, it tells you the smallest width to print that exact code at, based on 0.4 mm per module and never less than 2 cm. If you set a print width when you download, it warns you when that width is too small.
+
+## How big should a QR code be for common uses?
+
+| Where it’s printed | Typical scanning distance | Recommended width |
+| --- | --- | --- |
+| Business card | 20 to 30 cm | 2 to 2.5 cm |
+| Product label or packaging | 20 to 40 cm | 2 to 3 cm |
+| Flyer or leaflet | 30 to 50 cm | 3 to 4 cm |
+| Table tent or counter card | 30 to 60 cm | 3 to 4 cm |
+| Brochure or magazine page | 30 to 50 cm | 3 to 4 cm |
+| Shop window | 1 m | 10 cm |
+| Poster on a wall | 2 m | 20 cm |
+| Trade show banner | 3 to 5 m | 30 to 50 cm |
+| Billboard | Distance in metres | Distance divided by 10 |
+
+These assume a short or medium amount of data, good contrast and a quiet zone. If any of those slip, go bigger.
+
+## What is the distance rule for QR code size?
+
+Divide the scanning distance by 10. That gives you the minimum width of the code.
+
+- Read from 50 cm: at least 5 cm is comfortable, though 3 to 4 cm works for small print where people hold it close.
+- Read from 2 m: at least 20 cm.
+- Read from 20 m, such as a billboard by a road: at least 2 m.
+
+The rule works because phone cameras need each module to cover a certain number of pixels on the sensor, and the image shrinks in proportion to distance. It’s a starting point, not a law: newer phones do better, and low light, motion or a tilted viewing angle do worse. When in doubt, round up.
+
+## Does the amount of data change the size you need?
+
+Yes. More data means more modules, and at the same printed size, more modules means each one is smaller. A long web address full of tracking parameters can produce a pattern of 50 by 50 modules or more, which needs about twice the space of a short one to scan as well.
+
+There are three ways to keep a code small and readable:
+
+1. **Shorten what you encode.** Remove tracking parameters you don’t need.
+2. **Use a dynamic code.** It always holds a short link on qrfinity.link, so the pattern stays simple however long your real destination is. You can also change the destination later. See [static vs dynamic QR codes](/guides/static-vs-dynamic-qr-codes).
+3. **Choose a lower error correction level** if there’s no logo. Level L or M adds fewer modules than Q or H.
+
+The scan check flags dense codes so you know before you print.
+
+## How big should the margin around a QR code be?
+
+The blank border, called the quiet zone, should be at least 4 modules wide on every side. On a 2.5 cm business card code that’s about 3 to 4 mm. Text, lines or the edge of a box inside that space can stop phones finding the code. Our downloads include the quiet zone by default, and the scan check warns you if you shrink it too far.
+
+## Does a logo or frame change the print size?
+
+A frame doesn’t; it sits outside the code and its quiet zone, so size the code itself by the table above. A logo can. Adding one covers some modules, so we raise error correction to make up for it and can clear the modules behind the logo. That adds density. Keep the logo modest, no more than about a third of the code’s width, and add a little to the minimum size for small prints. Our [QR codes with logo](/qr-code-generator/with-logo) page and the [design guide](/guides/qr-code-design-best-practices) go into more detail.
+
+## Which file format should you use for print?
+
+Use a vector format: SVG, PDF or EPS. Vectors stay sharp at any size, so the same file works for a business card and a banner. If your printer asks for PNG or JPG, export at the final printed size at 300 dpi or more. All five formats are free on QRfinity, with no watermark.
+
+## How do you test the size before a print run?
+
+1. Print one copy at actual size on the same kind of paper or material, if you can.
+2. Scan it with two or three different phones, including an older one.
+3. Stand at the real distance and in the real light: a shop window at noon, a dim restaurant table.
+4. Scan at an angle, the way someone walking past would.
+
+If all of those work, you’re ready. For boxes, bottles and labels, the [packaging guide](/guides/how-to-print-qr-codes-on-packaging) has a full pre-print checklist.
+
+## What should you do next?
+
+Open the [free QR code generator](/qr-code-generator/url) and watch the scan check. It tells you the smallest size to print your code at, and warns you if it’s too dense. Then download an SVG or PDF for the printer.

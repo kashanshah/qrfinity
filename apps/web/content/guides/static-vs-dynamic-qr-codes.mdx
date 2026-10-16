@@ -1,0 +1,94 @@
+export const faq = [
+  {
+    q: 'Can I turn a static QR code into a dynamic one later?',
+    a: 'No. A static code holds your content in its pattern, so the only way to change it is to make a new code and reprint. If you think the link might change, start with a dynamic code before you print.',
+  },
+  {
+    q: 'Do dynamic QR codes scan slower than static ones?',
+    a: 'Barely. The phone opens the short link first, then gets sent on to your destination. That extra step usually takes a fraction of a second, and most people won’t notice it.',
+  },
+  {
+    q: 'Do I need an account for a static QR code?',
+    a: 'Not on QRfinity. Static codes are made entirely in your browser, with no sign-up, and you can download them as PNG, JPG, SVG, PDF or EPS for free. You only need a free account to save and edit dynamic codes.',
+  },
+  {
+    q: 'Does a dynamic QR code work without internet?',
+    a: 'No. The phone has to reach the short link before it can be sent on, so scanning needs a data connection. Static codes for Wi-Fi, contact cards, text and calendar events work offline because everything is in the code itself.',
+  },
+  {
+    q: 'Which is better for a restaurant menu?',
+    a: 'Dynamic. Menus and the links behind them change, and a dynamic code lets you point the same printed table tent at a new menu without reprinting. On QRfinity that costs nothing.',
+  },
+]
+
+A static QR code stores your content, such as a web address or Wi-Fi details, directly in its pattern, so it can never be changed or tracked, and it works without any service behind it. A dynamic QR code stores a short link that forwards to your destination, so you can change where it goes after printing and count scans. Choose static when the content will never change; choose dynamic when it might, or when you want to know how many people scan.
+
+## What is a static QR code?
+
+A static code is the content itself, written as a pattern of black and white squares. Scan a static web address code and your phone reads the full address straight out of the pattern, then opens it. No server is involved.
+
+That has two consequences. First, a static code can’t expire: there’s nothing to switch off. It will keep working for as long as the print is readable and the destination exists. Second, it can’t be edited. If the address changes, you need a new code.
+
+Static codes are also the only option for some content types. Wi-Fi logins, contact cards (vCards), plain text and calendar events have to be read by the phone directly, so they’re always static.
+
+## What is a dynamic QR code?
+
+A dynamic code stores a short link instead of your destination. On QRfinity it looks like `qrfinity.link/` followed by a few characters. When someone scans it, their phone opens the short link, our redirect service looks up where the code should go, and sends them on.
+
+Because the destination lives in our database rather than in the pattern, you can change it whenever you like from your dashboard. The printed code stays exactly the same. And because every scan passes through the short link, we can count it.
+
+## How do static and dynamic codes compare?
+
+| | Static | Dynamic |
+| --- | --- | --- |
+| What’s stored in the code | Your content (URL, Wi-Fi details, contact) | A short link on qrfinity.link |
+| Change the destination after printing | No, reprint needed | Yes, from your dashboard |
+| Scan counts and analytics | No | Yes: total and unique scans, devices, countries |
+| Works offline | Yes, for Wi-Fi, vCard, text, events | No, needs a connection |
+| Depends on a service | No | Yes, the redirect service must keep running |
+| Account needed on QRfinity | No | Yes, a free one |
+| Cost on QRfinity | Free, unlimited | Free, unlimited |
+| Expires on QRfinity | Never | Never |
+| Pattern density | Grows with the length of your content | Stays small, because the link is short |
+
+The last row matters more than it looks. A long web address with tracking parameters makes a static code dense, with many small squares that are harder to scan at small sizes. A dynamic code always holds the same short link, so it stays simple and scans well even on a business card.
+
+## When should you use a static QR code?
+
+Use static when the content is fixed and you don’t need numbers:
+
+- **Wi-Fi and contact cards.** These have to be static anyway.
+- **Permanent links.** Your home page, a product’s official manual, a page you control and won’t move.
+- **Anything that must work with zero dependencies.** A static code doesn’t rely on us, or on any company, staying in business.
+- **Offline places.** Basements, ships, rural venues: Wi-Fi, text and contact codes still work there.
+
+<Recommendation pick="static">
+If the content will never change and you don’t need scan counts, static is the simplest and most durable choice. Nothing can switch it off.
+</Recommendation>
+
+## When should you use a dynamic QR code?
+
+Use dynamic when the destination might move, or when you want to measure results:
+
+- **Printed material that lasts.** Packaging, signage, menus, books and business cards outlive most web addresses.
+- **Campaigns.** Posters and flyers where you want to see whether anyone scanned, and from which country.
+- **Things you’ll update.** A menu that changes each season, a weekly event page, a PDF that gets a new version.
+- **Mistakes.** If the link on a print run turns out to be wrong, you fix it in your dashboard instead of reprinting.
+
+<Recommendation pick="dynamic">
+If the code goes on something expensive to reprint, or you want to know how many people scanned it, use a dynamic code. On QRfinity they’re free and never expire.
+</Recommendation>
+
+## Why do some dynamic QR codes stop working?
+
+Because the short link belongs to the company that made it. If that company switches the link off, every printed copy stops working at once. Many generators that offer a free trial deactivate dynamic codes when the trial ends, and send scanners to a page asking the owner to upgrade. Others cap the number of scans or switch codes off when a subscription lapses. {/* source: https://support.qr-code-generator.com/hc/en-us/articles/7665046137613-What-happens-to-my-account-and-QR-Codes-when-the-trial-expires, seen 2026-10-16; https://www.qrcode-tiger.com/software-subscription, seen 2026-10-16; https://www.qrcode-tiger.com/faq, seen 2026-10-16 */} Our guide [do QR codes expire?](/guides/do-qr-codes-expire) explains the patterns in detail.
+
+We built QRfinity so this can’t happen to you. We never deactivate, pause or meter a free code, and that promise is written into our [terms](/terms). The only reasons a QRfinity code stops redirecting are if you pause it yourself, or if it breaks our [acceptable use policy](/acceptable-use), for example by pointing at a phishing page. See [QR codes with no expiration](/qr-code-no-expiration) for what that means in practice.
+
+## Is there a catch with free dynamic codes on QRfinity?
+
+No trial, no scan cap and no watermark. Free accounts get unlimited dynamic codes, edits at any time (usually live within a minute), and analytics for the last 90 days. A paid Pro plan is coming for teams that need things like longer analytics history, CSV export, bulk creation and a branded short domain. Those are new capabilities. Nothing that’s free today will move behind a paywall. The [pricing page](/pricing) lists both plans.
+
+## What should you do next?
+
+If you know your content won’t change, make a static code with the [free QR code generator](/qr-code-generator/url): no sign-up, ready in seconds. If you want to edit it later or count scans, open the [dynamic QR code generator](/dynamic-qr-code-generator), choose Dynamic and save it with a free account. Either way, the code you print will keep working.

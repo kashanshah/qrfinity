@@ -1,0 +1,106 @@
+export const faq = [
+  {
+    q: 'Can a QR code be any colour?',
+    a: 'Almost. The code needs a dark colour on a light background with enough contrast between them. Navy, forest green, burgundy or dark purple on white or cream all work. Yellow, light grey or pastel codes usually don’t, however good they look on screen.',
+  },
+  {
+    q: 'Can I use a gradient in a QR code?',
+    a: 'Yes, as long as every part of the gradient stays dark enough against the background. Our scan check measures the lightest colour in the gradient, not the average, so it will warn you if one end fades too much.',
+  },
+  {
+    q: 'Do rounded dots and custom corner shapes affect scanning?',
+    a: 'Mildly. Rounded or dot-shaped modules scan well on modern phones as long as the three corner markers stay solid and bold. Very thin or widely spaced dots reduce how much ink each module has, so test them at your real print size.',
+  },
+  {
+    q: 'Should the QR code have a white border?',
+    a: 'Yes. The blank margin, called the quiet zone, tells the camera where the code starts. Keep at least 4 modules of plain background on every side, or a frame around the code that gives it the same space.',
+  },
+  {
+    q: 'Does a designed QR code need a higher error correction level?',
+    a: 'Only if something covers part of it, such as a logo. Colour and shape changes don’t remove modules. For plain branded codes, level M is a good default; with a logo, use Q or H, which we set for you automatically.',
+  },
+]
+
+A well-designed QR code keeps a dark pattern on a light background with strong contrast, a clear margin of at least 4 modules on every side, and a logo no bigger than about a third of its width. Within those limits you can change colours, shapes and frames freely. Test every design by scanning it at its real printed size before you print in bulk.
+
+## What makes a QR code scannable?
+
+A phone camera has to do three things: find the code, work out its grid, and read each square as dark or light. Good design helps with all three.
+
+- **Finding it** depends on the three large corner squares, called finder patterns, and the empty margin around the code.
+- **Reading the grid** depends on the squares, called modules, being big enough and evenly spaced.
+- **Telling dark from light** depends on contrast.
+
+QR codes also carry spare data, called error correction, so a phone can still read a code that’s partly hidden or damaged. That’s what makes logos possible.
+
+## How much contrast does a QR code need?
+
+More than you think. Our scan check fails any code with a contrast ratio under 3:1 between the code and its background, and warns below 4.5:1, because codes in that range can be slow to scan in dim light. Black on white is 21:1. Most dark brand colours on white land between 7:1 and 15:1.
+
+| Do | Don’t |
+| --- | --- |
+| Dark code on a light background | Light code on a dark background (some older phones can’t read it) |
+| Navy, dark green, burgundy, charcoal on white or cream | Yellow, light grey, pastels or neon on white |
+| Gradients where both ends are dark | Gradients that fade to a light colour |
+| A solid background behind the code | A photo, pattern or texture behind the code |
+| Matte paper or a matte laminate | High-gloss finishes under bright lights |
+| Corner markers in the same or a darker colour | Corner markers in a pale accent colour |
+| Contrast of 4.5:1 or more | Contrast under 3:1 |
+
+Inverted codes, with light modules on a dark background, are worth a special mention. Newer iPhones and Android phones read them, but some older phones and scanner apps don’t. Our scan check flags them so you can decide whether that risk is acceptable for your audience.
+
+## How big can a logo be in a QR code?
+
+Keep the logo to no more than about a third of the code’s width, which covers around 10% of its area. Our scan check warns you when a logo hides more than 15% of the code.
+
+When you add a logo on QRfinity, we raise the error correction level so there’s enough spare data to rebuild the hidden modules, and we can clear the modules behind the logo so it sits on a clean background instead of on top of half-visible squares. That keeps the pattern readable around it.
+
+Error correction levels, for reference:
+
+| Level | Recovers about | Use it for |
+| --- | --- | --- |
+| L | 7% | Plain codes on clean, flat surfaces |
+| M | 15% | Most codes without a logo |
+| Q | 25% | Codes with a small logo, or rough surfaces |
+| H | 30% | Codes with a larger logo, or prints that may get scuffed |
+
+Higher levels add modules, so a code with a logo is slightly denser than the same code without one. Our [QR code generator with logo](/qr-code-generator/with-logo) handles these settings for you and checks the result.
+
+## Why does the margin around a QR code matter?
+
+The quiet zone is the plain border that separates the code from everything around it. Without it, the camera can confuse nearby text, lines or a busy background with the edge of the code. The standard asks for 4 modules on every side. Our downloads include 4 by default, and the scan check warns you if you shrink it below 2 without a frame.
+
+Designers often crop this margin to make a layout tidier. It’s the single most common reason a printed code that scanned on screen fails on paper.
+
+## Should you add a frame and a call to action?
+
+Yes. A frame with a short line of text tells people what they’ll get, which makes them more likely to scan. Good examples are specific and short:
+
+- “Scan for the menu”
+- “Scan to join our Wi-Fi”
+- “Scan to leave a review”
+- “Scan for setup video”
+
+“Scan me” is a fine start, but a specific line gives people a reason to bother. Our frame text uses Helvetica or Arial so it looks the same in every file format.
+
+## Can you change the shape of the squares?
+
+You can use rounded modules, dots, or custom corner shapes, and modern phones read them well. Two cautions:
+
+- **Keep the corner markers solid.** They’re how the camera finds the code. Decorative corners are fine as long as they stay bold and distinct.
+- **Avoid tiny dots.** A dot shape uses less ink than a square, so at small print sizes it can fade into the background. Test at actual size.
+
+## What file format should you use for a designed QR code?
+
+Vector formats, SVG, PDF or EPS, keep edges sharp at any size and are what printers prefer. PNG works for screens, and for print if you export at 300 dpi at the final size. On QRfinity all five formats, including JPG, are free with no watermark, and your colours, logo and frame come through the same way in each.
+
+## How do you test a QR code design?
+
+1. **Watch the live scan check.** We decode your design as you edit it, like a phone camera would, and warn about low contrast, inverted colours, large logos, small margins, dense data and print sizes under 2 cm.
+2. **Scan it with real phones.** Try at least one iPhone and one Android, and an older phone if you have one.
+3. **Print a proof at real size** on the real material, and scan it in the real light.
+4. **Scan from the real distance and angle.** The [print size guide](/guides/qr-code-size-for-print) has sizes for common uses.
+
+## What should you do next?
+
+Open the [free QR code generator](/qr-code-generator/url), add your colours, logo and a frame, and keep an eye on the scan check as you go. If you want to change the destination after printing without redesigning anything, use a [dynamic code](/dynamic-qr-code-generator) instead.

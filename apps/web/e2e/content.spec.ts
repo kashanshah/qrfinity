@@ -61,7 +61,9 @@ test.describe('content pages', () => {
     await expect(page.getByLabel('Network name (SSID)')).toBeVisible()
     await page.getByLabel('Network name (SSID)').fill('Cafe Guest')
     await page.getByLabel('Password', { exact: true }).fill('coffee-and-cake')
-    await expect(page.getByText('Scans', { exact: true }).first()).toBeVisible({ timeout: 15_000 })
+    await expect(
+      page.getByRole('complementary', { name: 'Your QR code' }).getByText(/^(Scans|Won’t scan)$/),
+    ).toHaveText('Scans', { timeout: 15_000 })
   })
 
   test('the pricing waitlist accepts an email', async ({ page }) => {

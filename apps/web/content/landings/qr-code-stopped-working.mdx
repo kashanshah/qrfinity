@@ -1,0 +1,87 @@
+export const faq = [
+  {
+    q: 'Why did my QR code work yesterday and not today?',
+    a: 'If nothing physical changed, the cause is almost always the service behind a dynamic code: a trial ended, a subscription lapsed or a scan limit was reached. Scan it and look at the page you land on. A message about upgrading or an inactive code points to the provider that made it.',
+  },
+  {
+    q: 'Can I get my old QR code working with a different company?',
+    a: 'Not a dynamic one. The short link inside the code belongs to the company that issued it, and only they can decide where it goes. Another provider can’t take it over. Your options are to reactivate it with the original provider, or replace the print with a new code.',
+  },
+  {
+    q: 'Is there a way to check whether a code is static or dynamic?',
+    a: 'Scan it and read the address your phone shows before opening it. If it’s your own website or the full content, it’s static. If it’s a short link on a QR company’s domain, it’s dynamic and depends on that company.',
+  },
+  {
+    q: 'My QR code scans on some phones but not others. Why?',
+    a: 'Usually the code is borderline: a bit small, low contrast, inverted colours or a thin margin. Newer phones cope; older ones don’t. Reprint it larger, as a dark code on a light background, with at least 4 modules of blank space around it.',
+  },
+  {
+    q: 'Will QRfinity codes ever show an upgrade page?',
+    a: 'No. We have no trial and no paid plan that free codes depend on, so there’s no upgrade page to send scanners to. A QRfinity code only stops redirecting if its owner pauses it or it breaks our acceptable use policy.',
+  },
+]
+
+## What does your QR code do when you scan it?
+
+Start by scanning it with your phone’s camera and noting exactly what happens. The symptom usually tells you the cause.
+
+| What you see | Likely cause | What to do |
+| --- | --- | --- |
+| A page saying the code is inactive, deactivated, or asking the owner to upgrade | A dynamic code from a free trial or subscription that has ended | Reactivate it with the provider that made it, or replace the print with a new code |
+| A “page not found” or 404 error on a website | The destination page was moved or deleted | Restore the page, or redirect its old address on your site; with a dynamic code, change the destination |
+| The phone doesn’t react at all | Too small, low contrast, glare, damage, or no blank margin around it | Reprint larger, darker, on matte material, with a clear margin |
+| It scans on newer phones but not older ones | Inverted colours (light on dark), thin margin, or a borderline size | Reprint as a dark code on a light background, at least 2 cm wide |
+| It opens, but the wrong page | The destination of a dynamic code was changed, or the wrong link was used when it was made | Update the destination in the dashboard of the service that made it |
+| “This QR code is paused” | A QRfinity code its owner has paused | The owner can resume it from their dashboard |
+| “This QR code has been turned off” | A QRfinity code we disabled for breaking our rules, such as phishing | Nothing to fix as a scanner; don’t enter details on the destination |
+| A browser warning about a dangerous site | The destination was flagged as unsafe | Don’t continue; tell whoever printed the code |
+| It worked for a while, then stopped after many scans | A scan limit on a free or low plan | Upgrade with that provider, or replace the code |
+
+If you’re the person who printed the code, the first row is by far the most common. Several providers deactivate dynamic codes made during a free trial when the trial ends, and send scanners to a service page instead of the destination. {/* source: https://support.qr-code-generator.com/hc/en-us/articles/7665046137613-What-happens-to-my-account-and-QR-Codes-when-the-trial-expires, seen 2026-10-16; https://support.qrfy.com/en/articles/6998440-what-happens-to-my-account-and-qr-codes-when-the-trial-expires, seen 2026-10-16; https://www.uniqode.com/pricing, seen 2026-10-16 */} Static codes made with the same generators usually keep working, because there’s nothing to switch off.
+
+## Why do dynamic QR codes stop working?
+
+A dynamic code doesn’t hold your web address. It holds a short link on the provider’s own domain, and every scan goes through their server before reaching your page. That’s what lets you edit and track it. It also means the provider decides whether to keep forwarding scans.
+
+Free trials often last 7 or 14 days. {/* source: https://qrfy.com/en, seen 2026-10-16; https://www.qr-code-generator.com/pricing/, seen 2026-10-16 */} Codes made during that time look exactly like permanent ones, so it’s easy to print hundreds before the trial ends. Paid plans can stop too: some providers keep codes running for a grace period after a subscription is cancelled, then switch them off. {/* source: https://support.qr-code-generator.com/hc/en-us/articles/7665399659277-How-do-I-cancel-my-QRCG-by-Bitly-subscription, seen 2026-10-16 */} None of this is hidden; it’s usually in the provider’s help pages. It’s just rarely where people look before printing.
+
+## How do I recover a deactivated code?
+
+You have two realistic options.
+
+**1. Reactivate it with the original provider.** Upgrading the same account you made the code with usually restores the same code, so everything already printed works again, often within an hour. Some providers say this works no matter how long ago the code lapsed. {/* source: https://support.qr-code-generator.com/hc/en-us/articles/7665046137613-What-happens-to-my-account-and-QR-Codes-when-the-trial-expires, seen 2026-10-16 */} Others keep account data only for a limited time, after which the code may not be restorable. {/* source: https://www.qrcode-tiger.com/faq, seen 2026-10-16 */} Creating a new account, or a new code with the same destination, won’t bring the old code back. {/* source: https://support.qrfy.com/en/articles/6998446-how-can-i-reactivate-my-qr-codes, seen 2026-10-16 */} If the code is on something expensive to reprint, such as packaging or permanent signage, this is often the cheapest fix in the short term.
+
+**2. Replace the printed code.** Make a new code and put it over or in place of the old one. Stickers work well for menus, table tents and posters. It costs a reprint, but it ends the dependency.
+
+What you can’t do is move the old code to another company. The short link’s domain belongs to the original provider, so only they can decide where it points.
+
+<Callout tone="warning">
+Before you reprint, check the new code’s terms. If it’s another trial, you’ll be back here in a week or two.
+</Callout>
+
+## How do I fix a code that won’t scan at all?
+
+If the phone doesn’t react, the problem is the print, not a service. Check these in order:
+
+1. **Size.** Under 2 cm wide is too small for many phones. For distance, make it about one tenth of the scanning distance. See the [print size guide](/guides/qr-code-size-for-print).
+2. **Contrast.** Dark code on a light background. Pale colours, light-on-dark designs and busy backgrounds cause most failures.
+3. **Margin.** The code needs blank space around it, ideally 4 modules on every side. Text or edges inside that space confuse cameras.
+4. **Glare and finish.** Glossy laminate under bright lights can blind the camera. Matte works better.
+5. **Damage.** Scratches, fading, folds and curved surfaces all remove information. A higher error correction level makes future prints more forgiving.
+
+Our generator runs a live scan check that warns about each of these before you download. The [design guide](/guides/qr-code-design-best-practices) explains the details.
+
+## How do I stop it happening again?
+
+Choose codes that don’t depend on anyone’s billing system:
+
+- **Use static where you can.** If the content won’t change, a static code holds it directly and can’t be switched off by anyone. Wi-Fi, contact cards and permanent pages are good fits.
+- **Use a provider that never deactivates dynamic codes.** On QRfinity, dynamic codes are free, unlimited and never expire. We never deactivate, pause or meter a free code, and that promise is in our [terms](/terms).
+- **Keep a record.** On QRfinity you can export all your codes and destinations as CSV or JSON from your account at any time.
+- **Test before every print run.** Print one, scan it with a few phones, then print the rest.
+
+More on what “no expiration” should mean is on [QR codes with no expiration](/qr-code-no-expiration), and the [do QR codes expire?](/guides/do-qr-codes-expire) guide covers the background.
+
+## Where do I make a replacement code?
+
+If your code needs to change later, or you want to see scans, use the [dynamic QR code generator](/dynamic-qr-code-generator) and save it with a free account. If the content is fixed, the [free QR code generator](/qr-code-generator/url) makes a static code in your browser with no sign-up. Either way, it won’t stop working because a trial ran out.

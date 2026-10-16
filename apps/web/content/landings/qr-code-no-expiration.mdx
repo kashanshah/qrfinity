@@ -1,0 +1,92 @@
+export const faq = [
+  {
+    q: 'Is there a scan limit on QRfinity codes?',
+    a: 'No. Static codes don’t touch our servers, so there’s nothing to limit. Dynamic codes have no scan cap on the free plan, and a code scanned a million times keeps working exactly like one scanned once.',
+  },
+  {
+    q: 'Do I have to pay later to keep my codes working?',
+    a: 'No. There is no trial that ends and no subscription your codes depend on. A Pro plan is coming for extra capabilities like longer analytics history and a branded short domain, but your free codes never depend on it.',
+  },
+  {
+    q: 'Can QRfinity ever switch off my code?',
+    a: 'Only if it breaks our acceptable use policy, for example by sending people to a phishing or malware page. We screen destinations with URL-reputation checks and disable codes that are used to harm the people who scan them. Otherwise, only you can pause your own code.',
+  },
+  {
+    q: 'Do I need an account for a code that doesn’t expire?',
+    a: 'Not for a static code: it’s made in your browser with no sign-up. For a dynamic code, which you can edit and track, you need a free account so the code has an owner who can change it.',
+  },
+  {
+    q: 'Does the promise cover codes I made before signing in?',
+    a: 'Static codes never needed an account, so they work regardless. Dynamic codes are saved to your account when you create them, and the same promise applies whether you log in every day or never again.',
+  },
+]
+
+## Why can’t a static QR code expire?
+
+A static QR code stores your content in its pattern. A web address, a Wi-Fi password or a contact card is written directly into the black and white squares, and a phone reads it straight from there. No server sits in between, so there’s nothing for anyone to switch off.
+
+That’s true of static codes from any generator, not just ours. On QRfinity they’re made entirely in your browser, with no sign-up, in unlimited numbers, and they never touch our servers. They’ll keep working as long as the print is readable and the thing they point to exists.
+
+## Why do some dynamic QR codes expire?
+
+A dynamic code stores a short link that belongs to the company that made it. Every scan goes through that company’s server, which forwards the visitor to your destination. That’s what lets you edit the destination and count scans. It also means the company decides whether your code keeps working.
+
+Many generators that offer a free trial deactivate dynamic codes when the trial ends, and send scanners to a page asking the owner to upgrade. {/* source: https://support.qr-code-generator.com/hc/en-us/articles/7665046137613-What-happens-to-my-account-and-QR-Codes-when-the-trial-expires, seen 2026-10-16; https://support.qrfy.com/en/articles/6998440-what-happens-to-my-account-and-qr-codes-when-the-trial-expires, seen 2026-10-16 */} Some cap the number of scans on free plans, and some stop codes when a paid subscription lapses. {/* source: https://www.qrcode-tiger.com/software-subscription, seen 2026-10-16; https://www.qrcode-tiger.com/faq, seen 2026-10-16 */} The printed code looks the same either way. You only find out when people start telling you it doesn’t work.
+
+Our dynamic codes never expire. We built QRfinity around that.
+
+## What should “no expiration” actually mean?
+
+Plenty of pages say “free QR codes” or even “no expiration” and mean only static codes, or only until a trial ends. Here’s what we think the words have to mean, and what we commit to:
+
+- **No trial.** Nothing changes after 7, 14 or 30 days.
+- **No scan cap.** A code doesn’t stop after 100, 500 or 10,000 scans.
+- **No deactivation.** We never switch off a free code because of its age, its plan or how long since you last logged in.
+- **Not paused for not paying.** Your codes don’t depend on a subscription, now or later.
+
+That covers both static and dynamic codes, and it’s in our [terms](/terms), not just on this page.
+
+## What can make a QR code stop working?
+
+| Cause | Typical generator | QRfinity |
+| --- | --- | --- |
+| Free trial ends | Dynamic codes often deactivated | No trial. Codes keep working |
+| Subscription lapses or a payment fails | Dynamic codes often stop, sometimes after a grace period | Codes don’t depend on a subscription |
+| Scan limit reached | Some free plans cap scans per code | No scan limit |
+| Plan lapsed for a long time | Account data may be deleted, so codes can’t be restored | Codes keep working whether or not you log in |
+| Service shuts down | Dynamic codes stop; static codes keep working | Static codes keep working; you can export every dynamic code and its destination at any time |
+| Destination page removed | Scanners reach an error page | Same, but with a dynamic code you can point it somewhere new |
+| Damaged, faded or too-small print | Phones can’t read it | Same. Our scan check warns about size, contrast and margins before you print |
+| Breaks the acceptable use policy | Varies | Disabled, to protect scanners from phishing and malware |
+| Owner pauses it | Depends on the service | Only you can pause it, and you can resume it |
+
+{/* source: trial https://support.qrfy.com/en/articles/6998440-what-happens-to-my-account-and-qr-codes-when-the-trial-expires, seen 2026-10-16; subscription https://support.qr-code-generator.com/hc/en-us/articles/7665399659277-How-do-I-cancel-my-QRCG-by-Bitly-subscription, seen 2026-10-16; scan limit https://www.qrcode-tiger.com/software-subscription, seen 2026-10-16; data deletion https://www.qrcode-tiger.com/faq, seen 2026-10-16 */}
+
+The last four rows apply to every QR code, whoever made it. The first five are decisions a company makes, and that’s the part we’ve taken off the table.
+
+## What happens if QRfinity ever shuts down?
+
+It’s a fair question to ask of any service. Here are the facts.
+
+**Static codes keep working no matter what.** They don’t use our servers, so nothing we do, including closing, affects them. If you want a code with zero dependency on any company, make it static.
+
+**Dynamic codes rely on our redirect service** on qrfinity.link, the same way any dynamic code relies on the company that issued it. You can export all your codes and destinations at any time from your account page, as CSV or JSON, including each code’s short link and full destination history. That means you always hold your own record of what every printed code points to.
+
+We’d rather be plain about this than promise something we can’t show you. If dependence on any company is a deal-breaker, static is the right choice, and our [static vs dynamic guide](/guides/static-vs-dynamic-qr-codes) helps you decide.
+
+## Which kind should you choose?
+
+<Recommendation pick="either">
+Use static when the content won’t change: Wi-Fi, contact cards, a permanent home page. Use dynamic when it might, or when you want scan counts: menus, packaging, posters. On QRfinity, neither expires and both are free.
+</Recommendation>
+
+For the bigger picture on why codes stop working, read [do QR codes expire?](/guides/do-qr-codes-expire). If a code you already printed has stopped working, our [troubleshooting page](/qr-code-stopped-working) walks through each cause and what you can do today.
+
+## How do you make a QR code with no expiration?
+
+1. Enter your link or content in the generator above.
+2. Leave it on Static for a code that needs no account, or choose Dynamic if you want to edit and track it.
+3. Design it and check the scan result.
+4. Download it as PNG, JPG, SVG, PDF or EPS. All free, no watermark. For a dynamic code, choose “Save your dynamic code” first and sign in with an email link or Google.
+
+Print it once. It keeps working.

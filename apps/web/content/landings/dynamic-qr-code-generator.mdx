@@ -1,0 +1,93 @@
+export const faq = [
+  {
+    q: 'Are QRfinity dynamic QR codes really free?',
+    a: 'Yes. Unlimited dynamic codes, edits at any time, and scan analytics for the last 90 days, with no trial, no scan cap and no watermark. A Pro plan is coming for things like longer history, bulk creation and a branded short domain, but nothing that’s free today will move behind a paywall.',
+  },
+  {
+    q: 'What happens to my dynamic codes if I never log in again?',
+    a: 'They keep working. We don’t switch off codes for inactive accounts and we don’t ask you to pay or sign in to keep them running. The only things that stop a QRfinity code are you pausing it, or it breaking our acceptable use policy.',
+  },
+  {
+    q: 'How fast does a change of destination take effect?',
+    a: 'Usually within a minute. When you save a new destination, we push it to our redirect service straight away, and phones that scan after that go to the new place.',
+  },
+  {
+    q: 'Can I turn a dynamic code off for a while?',
+    a: 'Yes. Pause it from the code’s settings and scanners see a page saying the code is paused by its owner. Resume it whenever you like and the same printed code works again. Only you can do this; we never pause free codes.',
+  },
+  {
+    q: 'Can I export my codes and their destinations?',
+    a: 'Yes. From your account page you can download every code as CSV or JSON, including the short link, destination, status, folder, tags and the full history of destinations. JSON also includes the designs.',
+  },
+]
+
+## What is a dynamic QR code?
+
+A dynamic QR code holds a short link instead of your destination. Ours look like `qrfinity.link/` plus a few characters. When someone scans the code, their phone opens the short link, our redirect service looks up where the code should go, and forwards them there, usually in a fraction of a second.
+
+Because the destination lives in your account instead of in the printed pattern, you can change it whenever you like. A menu link, a PDF, a campaign page, a booking form: point the same printed code at something new without reprinting anything. And because every scan passes through the short link, we can count it.
+
+If you’re not sure you need one, the [static vs dynamic guide](/guides/static-vs-dynamic-qr-codes) explains when each makes sense.
+
+## What do you get for free?
+
+- **Unlimited dynamic codes.** Make one for every flyer, table, product and poster.
+- **Edit the destination at any time.** Changes are usually live within a minute.
+- **Scan analytics.** Total and unique scans, scans over time, devices, operating systems, countries and cities, for the last 90 days.
+- **Every download format.** PNG, JPG, SVG, PDF and EPS, with no watermark.
+- **The full designer.** Colours, gradients, shapes, frames and your logo, with a live scan check that warns you before you print something that won’t scan.
+- **Pause and resume.** Turn a code off yourself for a while, and back on when you’re ready.
+- **Export.** Download all your codes and destinations as CSV or JSON from your account.
+
+No trial, no scan cap and no credit card. A [Pro plan](/pricing) is coming for teams that need longer analytics history, CSV export of scans, a branded short domain, bulk creation and redirect rules. Those are new capabilities. What’s free stays free.
+
+## Why do our dynamic codes never stop working?
+
+Because we decided they wouldn’t, and wrote it down. Many generators that offer a free trial deactivate dynamic codes when the trial ends, and send scanners to a page about upgrading. {/* source: https://support.qrfy.com/en/articles/6998440-what-happens-to-my-account-and-qr-codes-when-the-trial-expires, seen 2026-10-16; https://www.uniqode.com/pricing, seen 2026-10-16 */} We don’t. We never deactivate, pause or meter a free code, and that promise is in our [terms](/terms).
+
+A QRfinity code stops redirecting in only two cases:
+
+- **You pause it.** Scanners see a page saying the code is paused by its owner, until you turn it back on.
+- **It breaks our [acceptable use policy](/acceptable-use).** We screen destinations with URL-reputation checks and disable codes used for phishing, malware or similar harm, to protect the people who scan them.
+
+More on what that promise covers is on [QR codes with no expiration](/qr-code-no-expiration).
+
+## How do you make a dynamic QR code?
+
+1. **Choose Dynamic.** It’s already selected in the generator above.
+2. **Enter your link.** Paste the address you want people to reach. You can change it later.
+3. **Design it.** Pick colours, add a frame with a call to action like “Scan for the menu”, add your logo if you like. Watch the scan check as you go.
+4. **Save your dynamic code.** Choose “Save your dynamic code” and sign in with a link sent to your email, or with Google. The account is free and takes under a minute.
+5. **Download and print.** Use SVG, PDF or EPS for print, PNG for screens.
+
+From then on, your dashboard shows every code, its short link, its scans and its current destination.
+
+## Which types of QR code can be dynamic?
+
+| Type | What the scan opens | Why dynamic helps |
+| --- | --- | --- |
+| Link | Any web page, PDF, form or file | Swap the page without reprinting |
+| WhatsApp | A chat with your number, message ready | Change the number or message later |
+| Location | Your address in the phone’s maps app | Update it if you move |
+| App store | Your app’s App Store or Google Play page | Point it at a new listing if your app changes |
+| Social | Your profile on Instagram, YouTube and others | Change the handle or platform later |
+
+Wi-Fi logins, contact cards, plain text, email, SMS and calendar events are always static. Phones read those straight from the code, which also means they work offline and never depend on us.
+
+## What do we do with scan data?
+
+We count scans without collecting personal data:
+
+- **No raw IP addresses are stored.** Unique scans use a short fingerprint made with a salt that changes every day and is then deleted.
+- **No cookies on the redirect**, and no ads.
+- **Bots and link previewers are excluded**, so pasting your short link into a chat doesn’t inflate your numbers.
+
+The [scan tracking guide](/guides/how-to-track-qr-code-scans) explains exactly what is and isn’t measured.
+
+## Is a dynamic code right for you?
+
+<Recommendation pick="dynamic">
+Use a dynamic code for anything that’s expensive to reprint or that you want to measure: menus, packaging, signage, posters, business cards. On QRfinity it costs nothing and never expires.
+</Recommendation>
+
+If the content is fixed and you don’t need scan counts, a static code needs no account at all. Switch the generator above to Static, or use the [free QR code generator](/qr-code-generator/url).
