@@ -21,6 +21,35 @@ Summary of the planning conversation (October 2026) that led to this repo. Read 
 - Dynamic redirects + analytics on Cloudflare: Workers Paid is $5/month with 10M requests included, then $0.30 per million; Analytics Engine includes 10M data points, then $0.25 per million. Estimate: ~$5/month up to 10M scans, ~$30 at 50M, ~$60 at 100M.
 - Budget for URL-reputation screening (abuse protection) from day one.
 
+## Architecture (Phase 1, approved 2026-10-15)
+
+Full detail in `docs/architecture.md`.
+
+- Web app on Vercel (existing Pro plan), built to move: no Vercel-only services, outside services behind interfaces, weekly OpenNext portability build.
+- Redirects on Cloudflare (Worker + KV + Analytics Engine) on `qrfinity.link`, in a separate Cloudflare account. Competitors also isolate redirects on short domains (QR Code Generator PRO: `qrco.de`, `l.ead.me`; QR TIGER: `qr1.be`).
+- Postgres on Neon instead of D1, because D1 is only practical from inside Cloudflare.
+- Better Auth + Resend. Dashboard at `qrfinity.com/dashboard`.
+- KV only on the hot path at launch: edits usually live instantly, up to about a minute where a code was just scanned. Competitors advertise "instant" edits.
+- DNS: `qrfinity.com` and `qrfinity.ca` stay on Hostinger; `qrfinity.link` nameservers move to Cloudflare in Phase 3.
+- Revised cost: Cloudflare ~$5/month up to 10M scans, ~$48 at 50M (the earlier ~$30 left out KV reads).
+
+## Generator (Phase 2, October 2026)
+
+- **Own renderer instead of `qr-code-styling`.** We need frames, vector PDF and EPS, and identical output in every format; `qr-code-styling` has no frames, PDF or EPS and renders through its own canvas/SVG paths. Ours uses `uqr` (a port of Nayuki's reference encoder) for the matrix and draws one format-neutral scene that SVG and EPS writers serialise. PNG/JPG rasterise the SVG; PDF converts the SVG with jsPDF + svg2pdf (vector, Helvetica text, embedded logo).
+- **EPS is feasible and shipped**: Level 3 PostScript with vector paths, gradient shadings and the logo as an RGB image composited onto the background (EPS has no simple alpha). Verified by rendering in Ghostscript and decoding.
+- **Scan check uses zxing-cpp (`zxing-wasm`)**, the decoder family closest to what phones use, in a Web Worker; the wasm is self-hosted. jsQR was rejected: weaker on stylised codes, unmaintained since 2020. On top of the decode, design rules fail low contrast (< 3:1) and warn on inverted colours, transparency, large logos, tiny margins, dense data and print sizes below 0.4 mm per module (2 cm minimum).
+- **Frame text is Helvetica Bold / Arial**, not our brand fonts: it renders the same in PNG, SVG, PDF and EPS, and print shops already have it. Non-Latin-1 characters in frame text become "?" in EPS only.
+- **Location codes link to Google Maps** (`geo:` URIs don't open from the iPhone camera). **App store codes hold one store link**: device-based routing needs a dynamic code.
+
+## Dynamic codes (Phase 3, October 2026)
+
+- **Slugs**: 7 random base62 characters, collision-checked by a unique index; never reused, even after deletion.
+- **Sync**: Postgres first, then KV through the edge-api Worker; an outbox row (with the code version) is queued in the same transaction and a Vercel Cron retries every minute. A delayed write can never replace a newer version.
+- **Redirect Worker**: KV with a 30 s edge cache, then the Postgres view through Hyperdrive with a read-only role; misses are cached for 5 minutes and fallbacks are rate-limited per hashed IP. 302 only. Paused → "paused by its owner" page; disabled → warning page, never the destination. Worker logs are off because they would record visitor IPs.
+- **No raw IPs anywhere**: Better Auth's IP tracking is off (sessions store none), rate-limit keys are keyed hashes, unique visitors use a daily salt that expires after 36 hours.
+- **Analytics**: Analytics Engine in production; the same report built from a Postgres `scan_events` table locally (the Worker posts signed events to the app). Bots and link previewers are excluded. Unique scans = distinct visitors per code per day. Still to confirm on real Analytics Engine: `COUNT(DISTINCT …)` support.
+- **Dynamic content types**: link, WhatsApp, location, app store and social (they resolve to web addresses). Text, Wi-Fi, contact, email, SMS, phone and event stay static.
+
 ## Monetization (later)
 
 - Competitors gate by number of dynamic codes (Uniqode $5/mo for 3 codes up to $99; QR TIGER from $7/mo; QR Code Generator PRO Professional: 250 codes). We give codes away and charge for professional features.

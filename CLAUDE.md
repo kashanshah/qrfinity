@@ -10,8 +10,9 @@ A free QR code generator whose codes never expire, built as an organic traffic m
 
 ## Where things stand
 
-- Repo is new. Brand and final logo are done; no app code yet.
-- Next step: **Phase 1 of the build plan**, the architecture proposal (no code), for approval.
+- Brand and final logo are done. Phase 1 architecture approved (2026-10-15), recorded in `docs/architecture.md`.
+- Phase 2 (static generator) approved.
+- Phase 3 (accounts, dynamic codes, redirect + edge-api Workers, analytics) is built and **awaits review**. Next after approval: Phase 4 (abuse protection, required before launch).
 - Domains qrfinity.com, qrfinity.link and qrfinity.ca are registered. Exact-name trademark searches (USPTO, CIPO) came back clear.
 
 ## Non-negotiables
@@ -25,8 +26,12 @@ A free QR code generator whose codes never expire, built as an organic traffic m
 
 ## Stack and conventions
 
-- Next.js (App Router) + TypeScript + Tailwind + Zustand. Cloudflare preferred for hosting, Workers, KV, D1 and Analytics Engine (confirm in Phase 1).
+- Next.js (App Router) + TypeScript + Tailwind + Zustand. Web app on Vercel, kept portable (no Vercel-only services; outside services behind interfaces in `packages/core`). Postgres on Neon with Drizzle. Redirects on Cloudflare (Workers, KV, Analytics Engine) in a separate account for `qrfinity.link`. Better Auth + Resend. See `docs/architecture.md`.
 - Design tokens: `brand/tokens.json` is the source of truth. Regenerate CSS with `python3 brand/scripts/build-tokens-css.py brand/tokens.json ./fonts/ > brand/tokens.css`. Map Tailwind theme values to the CSS variables (`var(--evergreen)` etc.); never hard-code hex values in components.
 - Fonts are self-hosted from `brand/fonts/` (SIL OFL 1.1). Logos and app icons are in `brand/logo/`.
 - Copy: sentence case, plain words, no emoji in UI, spell the name **QRfinity**.
+- QR rendering: our own renderer in `packages/core` (uqr for the matrix → scene → SVG/EPS); PDF via jsPDF + svg2pdf; scan check decodes with zxing-wasm in a worker, wasm self-hosted from `public/wasm`. Frame text uses Helvetica/Arial so every format matches.
+- Dynamic codes: Postgres is the source of truth; every change that affects redirects bumps `codes.version`, queues `edge_sync_outbox` in the same transaction and pushes via the edge-api Worker (`apps/web/lib/server/codes.ts`). Services take a `ServiceContext` and are scoped to one user.
+- Web app imports drizzle helpers from `@qrfinity/db` (never `drizzle-orm` directly; Better Auth pulls a second copy).
+- Commands: `pnpm dev`, `pnpm dev:workers`, `pnpm db:migrate`, `pnpm test` (needs local Postgres), `pnpm test:e2e` (after `pnpm build`), `pnpm lint`, `pnpm typecheck`, `pnpm format:check`.
 - SEO pages are statically rendered, content in MDX, each with unique copy (see Phase 5 of the plan).

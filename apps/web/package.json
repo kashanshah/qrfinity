@@ -1,0 +1,43 @@
+{
+  "name": "@qrfinity/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/copy-wasm.mjs && node scripts/sync-brand.mjs",
+    "prebuild": "node scripts/copy-wasm.mjs && node scripts/sync-brand.mjs",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run --passWithNoTests",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@qrfinity/core": "workspace:*",
+    "@qrfinity/db": "workspace:*",
+    "better-auth": "^1.7.10",
+    "fflate": "^0.8.3",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^1.57.0",
+    "next": "16.4.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "^0.0.1",
+    "svg2pdf.js": "^2.8.1",
+    "zustand": "^5.0.15",
+    "zxing-wasm": "^3.1.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "16.4.2",
+    "tailwindcss": "^4.3.3",
+    "vitest": "^4.1.4"
+  }
+}

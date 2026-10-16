@@ -1,0 +1,25 @@
+{
+  "name": "qrfinity",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @qrfinity/web dev",
+    "build": "pnpm --filter @qrfinity/web build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "test:e2e": "pnpm --filter @qrfinity/web test:e2e",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:migrate": "pnpm --filter @qrfinity/db exec tsx src/migrate.ts",
+    "db:generate": "pnpm --filter @qrfinity/db generate",
+    "dev:workers": "pnpm --parallel --filter @qrfinity/redirect --filter @qrfinity/edge-api dev"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3"
+  }
+}
