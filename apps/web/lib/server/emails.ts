@@ -275,3 +275,53 @@ export function codeDisabledEmail(opts: {
     }),
   }
 }
+
+/** To admins: today's Cloudflare usage passed a share of a free-plan daily limit. */
+export function usageAlertEmail(opts: {
+  to: string
+  pct: number
+  rows: { label: string; used: number; limit: number }[]
+  siteUrl: string
+}): Email {
+  const { to, pct, rows, siteUrl } = opts
+  const site = siteUrl.replace(/\/$/, '')
+  const pctText = `${Math.floor(pct)}%`
+  const why = 'You got this email because you’re a QRfinity admin.'
+  const upgrade = 'https://dash.cloudflare.com/?to=/:account/workers/plans'
+  const lines = rows.map(
+    (r) =>
+      `${r.label}: ${r.used.toLocaleString('en')} of ${r.limit.toLocaleString('en')} (${Math.floor((r.used / r.limit) * 100)}%)`,
+  )
+  return {
+    to,
+    subject: `QRfinity: Cloudflare usage at ${pctText} of today’s free limit`,
+    text:
+      `Today's Cloudflare usage for qrfinity.link has reached ${pctText} of a free-plan daily limit.\n\n${lines.join('\n')}\n\nIf a limit is reached, scans fail with an error until 00:00 UTC. Upgrading to Workers Paid ($5/month) removes the daily limits: ${upgrade}\n\nUsage page: ${site}/admin/usage` +
+      textFooter(siteUrl, why),
+    html: layout({
+      siteUrl,
+      preheader: `Scans would fail if a limit is reached before 00:00 UTC.`,
+      heading: `Cloudflare usage is at ${pctText} of today’s free limit`,
+      body: [
+        p(
+          'Traffic to qrfinity.link is higher than usual today. If a daily limit is reached, scans fail with an error until it resets at 00:00 UTC.',
+        ),
+        facts(
+          rows.map((r) => ({
+            label: r.label,
+            value: `${r.used.toLocaleString('en')} of ${r.limit.toLocaleString('en')}`,
+          })),
+        ),
+        p(
+          `Upgrading to Workers Paid ($5/month) removes the daily limits. Then set the plan to Paid in admin settings.`,
+        ),
+        button(upgrade, 'Upgrade in Cloudflare'),
+        p(`See the ${link(`${site}/admin/usage`, 'usage page')} for the last 7 days.`, {
+          muted: true,
+          small: true,
+        }),
+      ].join('\n'),
+      reason: why,
+    }),
+  }
+}
