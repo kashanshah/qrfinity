@@ -67,9 +67,11 @@ pnpm --filter @qrfinity/edge-api exec wrangler secret put EDGE_API_SECRET
 ## 5. Deploy both Workers
 
 ```sh
-pnpm --filter @qrfinity/edge-api deploy
-pnpm --filter @qrfinity/redirect deploy
+pnpm --filter @qrfinity/edge-api run deploy
+pnpm --filter @qrfinity/redirect run deploy
 ```
+
+Keep the word `run`: `deploy` is also a built-in pnpm command, and without `run` pnpm tries that instead ("ERR_PNPM_INVALID_DEPLOY_TARGET").
 
 Wrangler creates the custom domains `edge.qrfinity.link` and `qrfinity.link` and their certificates. Check:
 
