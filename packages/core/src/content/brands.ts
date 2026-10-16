@@ -12,6 +12,7 @@ export const BRAND_ICONS = {
   facebook: 'Facebook',
   x: 'X',
   tiktok: 'TikTok',
+  snapchat: 'Snapchat',
   douyin: 'Douyin',
   youtube: 'YouTube',
   threads: 'Threads',
@@ -33,6 +34,9 @@ export const BRAND_ICONS = {
   googleplay: 'Google Play',
   discord: 'Discord',
   reddit: 'Reddit',
+  calendly: 'Calendly',
+  zoom: 'Zoom',
+  linktree: 'Linktree',
   // Code types without a platform.
   link: 'Link',
   wifi: 'Wi-Fi',
@@ -72,6 +76,7 @@ const SOCIAL_BRAND: Record<SocialPlatform, BrandIcon | null> = {
   facebook: 'facebook',
   x: 'x',
   tiktok: 'tiktok',
+  snapchat: 'snapchat',
   linkedin: null,
   youtube: 'youtube',
   threads: 'threads',
@@ -92,6 +97,7 @@ const HOSTS: [BrandIcon, string[]][] = [
   ['facebook', ['facebook.com', 'fb.com', 'fb.me']],
   ['x', ['x.com', 'twitter.com']],
   ['tiktok', ['tiktok.com']],
+  ['snapchat', ['snapchat.com']],
   ['douyin', ['douyin.com', 'iesdouyin.com']],
   ['youtube', ['youtube.com', 'youtu.be']],
   ['threads', ['threads.com', 'threads.net']],
@@ -112,6 +118,9 @@ const HOSTS: [BrandIcon, string[]][] = [
   ['googleplay', ['play.google.com']],
   ['discord', ['discord.gg', 'discord.com']],
   ['reddit', ['reddit.com', 'redd.it']],
+  ['calendly', ['calendly.com']],
+  ['zoom', ['zoom.us', 'zoom.com']],
+  ['linktree', ['linktr.ee']],
 ]
 
 /** The platform a web address belongs to, if it's one we have an icon for. */

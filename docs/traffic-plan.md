@@ -83,11 +83,11 @@ after the Keyword Planner check. The strongest candidates by intent:
 - **Payments:** done (2026-10-16): PayPal, Venmo, Cash App, UPI and Pix pages on a new Payment
   content type (`packages/core/src/content/payment.ts`; UPI and Pix are static only). Left: crypto
   wallet.
-- **Social and apps not yet covered:** X, Snapchat, Pinterest (TikTok, LinkedIn and Facebook done
-  2026-10-16, with Google Forms, résumé, wedding, three guides and a nonprofits page),
-  Reddit, Discord.
-- **Work tools:** Google Forms, Google Docs/Drive, Calendly, Zoom/Teams meeting, Linktree-style
-  "all my links".
+- **Social and apps:** done 2026-10-16: TikTok, LinkedIn, Facebook, X, Snapchat, Pinterest,
+  Discord, Calendly, Zoom, link in bio, Google Forms, résumé, wedding; guides on not scanning,
+  editing, tampering, making a code and high-resolution files; nonprofit and school pages. Left:
+  Reddit, Threads.
+- **Work tools:** left: Google Docs/Drive (Forms, Calendly, Zoom and link in bio done).
 - **Places and business:** restaurant table tent, real-estate sign, hotel room, gym, church giving,
   parking.
 - **Events and personal:** wedding, birthday invitation, résumé/CV, conference badge, museum label,

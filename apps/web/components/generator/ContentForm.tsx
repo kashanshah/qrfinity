@@ -60,6 +60,7 @@ const SOCIAL_LABELS: Record<SocialPlatform, string> = {
   facebook: 'Facebook',
   x: 'X (Twitter)',
   tiktok: 'TikTok',
+  snapchat: 'Snapchat',
   linkedin: 'LinkedIn',
   youtube: 'YouTube',
   threads: 'Threads',
