@@ -38,3 +38,15 @@ export async function scan(request: APIRequestContext, shortLink: string, userAg
     body: res.status() === 200 ? await res.text() : '',
   }
 }
+
+/** Gives an account a plan straight in the e2e database, as an admin grant would. */
+export async function setPlan(email: string, plan: 'free' | 'plus' | 'pro' | 'unlimited') {
+  const { createDb, sql } = await import('@qrfinity/db')
+  const { E2E_DB } = await import('../playwright.config')
+  const db = createDb(E2E_DB, { max: 1 })
+  try {
+    await db.execute(sql`update "user" set plan = ${plan} where email = ${email}`)
+  } finally {
+    await db.$client.end()
+  }
+}

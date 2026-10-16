@@ -1,5 +1,6 @@
+import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
-import { scan, signIn } from './helpers'
+import { scan, setPlan, signIn } from './helpers'
 
 test('create a dynamic code, scan it, edit the destination, scan again', async ({
   page,
@@ -212,4 +213,31 @@ test('a dynamic contact card opens a contact page you can update', async ({ page
   await expect
     .poll(async () => (await (await request.get(link)).text()).includes('<h1>Jane Smith</h1>'))
     .toBe(true)
+})
+
+test('a paid plan downloads SVG, PDF and EPS', async ({ page, request }) => {
+  const email = `e2e-plus-${Date.now()}@example.com`
+  await signIn(page, request, email)
+  await setPlan(email, 'plus')
+  await page.goto('/')
+  await expect(
+    page.getByRole('complementary', { name: 'Your QR code' }).getByText(/^(Scans|Won’t scan)$/),
+  ).toHaveText('Scans', { timeout: 15_000 })
+  for (const [format, magic] of [
+    ['SVG', '<svg'],
+    ['PDF', '%PDF'],
+    ['EPS', '%!PS-Adobe'],
+  ] as const) {
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button', { name: format, exact: true }).click(),
+    ])
+    const bytes = await readFile((await download.path())!)
+    expect(bytes.subarray(0, 16).toString('latin1').startsWith(magic), format).toBe(true)
+  }
+  const [zip] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'All formats and sizes (.zip)' }).click(),
+  ])
+  expect((await readFile((await zip.path())!)).includes(Buffer.from('qr-code-url.eps'))).toBe(true)
 })

@@ -1,4 +1,10 @@
-import { PLANS, PLAN_DETAILS, TRIAL_DAYS, type Plan } from '@qrfinity/core'
+import {
+  CONTACT_TEMPLATES_BY_PLAN,
+  PLANS,
+  PLAN_DETAILS,
+  TRIAL_DAYS,
+  type Plan,
+} from '@qrfinity/core'
 import { Check, Clock, Minus } from 'lucide-react'
 import type { ReactNode } from 'react'
 
@@ -62,13 +68,30 @@ const GROUPS: Group[] = [
       { label: 'Static QR codes', cell: 'Unlimited' },
       { label: 'Dynamic QR codes', cell: 'Unlimited' },
       { label: 'Change where a code points, any time', cell: yes },
-      { label: 'Dynamic contact cards', hint: '4 page templates, your colour', cell: yes },
+      { label: 'Dynamic contact cards', hint: 'Your colour', cell: yes },
       { label: 'Every design option', hint: 'Colours, shapes, logo, frames', cell: yes },
-      { label: 'Every format', hint: 'PNG, JPG, SVG, PDF, EPS', cell: yes },
+      { label: 'PNG and JPG downloads', cell: yes },
       { label: 'Scan analytics', hint: 'Up to 2 years, CSV download', cell: yes },
       { label: 'Export all your codes', cell: yes },
       { label: 'Codes never expire', cell: yes },
       { label: 'No watermark, no ads', cell: yes },
+    ],
+  },
+  {
+    title: 'Plan extras',
+    rows: [
+      {
+        label: 'Print formats',
+        hint: 'SVG, PDF, EPS: sharp at any size',
+        cell: (p) => (p === 'free' ? none : yes),
+      },
+      {
+        label: 'Contact card templates',
+        cell: (p) =>
+          p === 'unlimited'
+            ? `All ${CONTACT_TEMPLATES_BY_PLAN[p]}`
+            : String(CONTACT_TEMPLATES_BY_PLAN[p]),
+      },
     ],
   },
   {
@@ -99,8 +122,8 @@ export function ComparePlans() {
         Compare plans
       </h2>
       <p className="mt-1 max-w-[65ch] text-ink-muted">
-        Every feature is in every plan. A plan only sets how many of your codes can use advanced
-        features. When a plan ends, every code and short link keeps working.
+        Paid plans add print formats and more contact card templates, and let more of your codes use
+        advanced features. When a plan ends, every code and short link keeps working.
       </p>
       {/* No scroll box: the page scrolls and the plan names stick to the top of the screen. The
           table fits a phone by tightening spacing and type instead of scrolling sideways. */}

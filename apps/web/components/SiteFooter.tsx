@@ -13,7 +13,7 @@ const COLUMNS = [
     links: [...TYPES.map((p) => [p.path, p.label]), ['/qr-code-generator', 'All types']],
   },
   {
-    heading: 'Free forever',
+    heading: 'Free QR codes',
     links: [
       ['/dynamic-qr-code-generator', 'Dynamic QR codes'],
       ['/qr-code-no-expiration', 'No expiration'],

@@ -10,11 +10,12 @@ import {
 } from '../src/plans'
 
 describe('plans', () => {
-  it('keeps the free promise: these features are free, forever', () => {
-    // Removing anything from this list breaks the promise on the pricing page and in the terms. Don't.
+  it('keeps the free plan as decided', () => {
+    // The free plan as shown on the pricing page. Removing anything is a pricing decision: record it
+    // in docs/decisions.md. (2026-10-16, before launch: SVG, PDF and EPS moved to paid plans.)
     expect([...FREE_FEATURES].sort()).toEqual(
       [
-        'allFormats',
+        'rasterFormats',
         'analytics90',
         'analyticsHistory',
         'dataExport',
@@ -59,5 +60,14 @@ describe('plans', () => {
     expect(entitlements('free', flags, 'u1').has('passwordProtection')).toBe(true)
     expect(entitlements('unlimited', flags, 'u2').has('passwordProtection')).toBe(false)
     expect(analyticsRanges(free)).toContain(365)
+  })
+
+  it('includes print formats with any paid plan, or by flag', () => {
+    expect(entitlements('free', [], 'u1').has('vectorFormats')).toBe(false)
+    expect(entitlements('free', [], 'u1').has('rasterFormats')).toBe(true)
+    for (const plan of ['plus', 'pro', 'unlimited'] as const)
+      expect(entitlements(plan, [], 'u1').has('vectorFormats')).toBe(true)
+    const flags = [{ key: 'vectorFormats' as const, enabled: false, userIds: ['u1'] }]
+    expect(entitlements('free', flags, 'u1').has('vectorFormats')).toBe(true)
   })
 })

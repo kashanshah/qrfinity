@@ -570,7 +570,7 @@ function Result({
           <p className="mt-1 max-w-[65ch] text-ink-muted">
             {redirects
               ? 'Enter where the code should go. A dynamic code lets you change that address after printing, free, and it never expires.'
-              : 'We’ve filled in the same content. Codes made on QRfinity never expire, and every format is free.'}
+              : 'We’ve filled in the same content. Codes made on QRfinity never expire.'}
           </p>
         </div>
         {replace ? (

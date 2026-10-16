@@ -76,10 +76,7 @@ export default async function AccountPage({
           strokeWidth={1.75}
           className="mt-[3px] shrink-0 text-evergreen"
         />
-        <span>
-          Your codes never expire and are never paused, whether or not you sign in again. Free
-          features stay free.
-        </span>
+        <span>Your codes never expire and are never paused, whether or not you sign in again.</span>
       </p>
 
       <PlanSection

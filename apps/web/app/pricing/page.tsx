@@ -16,11 +16,19 @@ const FREE = [
   'Unlimited static QR codes, no sign-up',
   'Unlimited dynamic QR codes with a free account',
   'Edit where a dynamic code points, any time',
-  'Dynamic contact cards with four page templates, updated any time',
+  'Dynamic contact cards with two page templates, updated any time',
   'Scan analytics: totals, unique scans, devices, countries, up to 2 years of history, CSV download',
   'Every design option: colours, shapes, logo, frames',
-  'Every format: PNG, JPG, SVG, PDF and EPS',
-  'No watermark, no ads, no expiry: free features are never a trial',
+  'PNG and JPG downloads',
+  'No watermark, no ads, and no trial that runs out',
+]
+
+const PLAN_EXTRAS: { name: string; detail: string }[] = [
+  { name: 'Print formats', detail: 'SVG, PDF and EPS files that stay sharp at any size' },
+  {
+    name: 'More contact card templates',
+    detail: '4 on Plus, 6 on Pro, all 8 on Unlimited',
+  },
 ]
 
 const ADVANCED: { name: string; detail: string; ready: boolean }[] = [
@@ -44,7 +52,7 @@ const ADVANCED: { name: string; detail: string; ready: boolean }[] = [
 const FAQ: FaqItem[] = [
   {
     q: 'Is QRfinity really free?',
-    a: 'Yes. Every feature is free: unlimited static and dynamic codes, analytics, every design option and every download format. Paid plans only let you use advanced features, like custom short links and redirect rules, on more than one code.',
+    a: 'Yes. Unlimited static and dynamic codes, scan analytics, every design option and PNG and JPG downloads are free. Paid plans add print-ready SVG, PDF and EPS files and more contact card templates, and let you use advanced features, like custom short links and redirect rules, on more codes.',
   },
   {
     q: 'What counts as a code with advanced features?',
@@ -59,8 +67,8 @@ const FAQ: FaqItem[] = [
     a: 'No. Codes never expire and are never paused for not paying. A dynamic code only stops if you pause it yourself, or if we turn it off because it breaks our acceptable use policy (for example, phishing).',
   },
   {
-    q: 'Could a free feature move to a paid plan later?',
-    a: 'No. We will never move a free feature behind a paywall. That promise is part of our terms of service.',
+    q: 'Can plans change?',
+    a: 'As QRfinity grows we may change what each plan includes or costs. We’ll tell you before a change affects a plan you pay for, and codes you’ve already made keep working either way.',
   },
 ]
 
@@ -136,7 +144,7 @@ export default function PricingPage() {
             </li>
           </ul>
           <p className="mt-6 rounded-lg bg-mint p-4 text-ink">
-            Our promise: your codes never expire, and we never move a free feature behind a paywall.
+            Codes you make keep working, whether you pay or not.
           </p>
         </section>
 
@@ -145,12 +153,27 @@ export default function PricingPage() {
           className="rounded-xl border border-hairline bg-surface p-6 md:p-8"
         >
           <h2 id="advanced" className="heading text-ink">
-            Advanced features
+            Paid plans add
           </h2>
-          <p className="mt-1 text-ink-muted">
-            Free on one code. Use them on more codes with a plan.
-          </p>
           <ul className="mt-5 flex flex-col gap-4">
+            {PLAN_EXTRAS.map((a) => (
+              <li key={a.name} className="flex gap-3 text-ink">
+                <Check
+                  aria-hidden="true"
+                  size={20}
+                  strokeWidth={1.75}
+                  className="mt-[3px] shrink-0 text-evergreen"
+                />
+                <span>
+                  <span className="font-bold">{a.name}</span>
+                  <span className="body-small block text-ink-muted">{a.detail}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <h3 className="subheading mt-6 text-ink">Advanced features on more codes</h3>
+          <p className="mt-1 text-ink-muted">Free on one code. A plan covers more.</p>
+          <ul className="mt-4 flex flex-col gap-4">
             {ADVANCED.map((a) => (
               <li key={a.name} className="flex gap-3 text-ink">
                 {a.ready ? (
@@ -188,8 +211,8 @@ export default function PricingPage() {
           Plans
         </h2>
         <p className="mt-1 max-w-[65ch] text-ink-muted">
-          Every plan includes every feature. Plans differ only in how many codes can use advanced
-          features.{' '}
+          Paid plans add print formats and more contact card templates, and let more codes use
+          advanced features.{' '}
           <a href="#compare" className="text-evergreen underline">
             Compare plans
           </a>
