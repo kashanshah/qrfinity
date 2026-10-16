@@ -180,6 +180,12 @@ export const codes = pgTable(
      * working. Maintained by refreshAdvancedFeatures in apps/web/lib/server/codes.ts.
      */
     advancedPaused: boolean('advanced_paused').notNull().default(false),
+    /**
+     * Password protection (an advanced feature): a salted PBKDF2 hash, never the password. Kept
+     * when the code is beyond its owner's allowance, so nothing protected ever becomes public.
+     * Never sent to a browser (CodeView carries `hasPassword` instead).
+     */
+    passwordHash: text('password_hash'),
   },
   (t) => [
     uniqueIndex('codes_domain_slug_idx').on(t.domain, t.slug),
@@ -352,6 +358,8 @@ export const redirectLookup = pgView('redirect_lookup').as((qb) =>
       rules: sql<
         RedirectRule[] | null
       >`case when ${codes.advancedPaused} then null else ${codes.rules} end`.as('rules'),
+      // Password protection is never paused: protected stays protected.
+      passwordHash: codes.passwordHash,
       // A contact card code has no destination; the Worker renders its page from this.
       page: sql<CodeContent | null>`case when ${codes.destination} is null and ${codes.content}->>'type' = 'vcard' then ${codes.content} end`.as(
         'page',

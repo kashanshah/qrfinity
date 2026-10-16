@@ -11,10 +11,11 @@ import {
   resolveAccent,
   vcardFile,
   vcardFileName,
+  verifyPassword,
   DEFAULT_PAGE_STYLE,
   type LinkRecord,
 } from '@qrfinity/core/edge'
-import { disabledPage, notFoundPage, pausedPage } from './pages'
+import { disabledPage, notFoundPage, passwordPage, pausedPage } from './pages'
 
 export type RedirectDeps = {
   defaultDomain: string
@@ -35,6 +36,17 @@ export type RedirectDeps = {
   waitUntil(promise: Promise<unknown>): void
   /** The clock for time-based rules (tests pass a fixed one). */
   now?: () => Date
+  /** Throttles password attempts per visitor and code. Returns false when over the limit. */
+  allowUnlock?: (request: Request, record: LinkRecord) => Promise<boolean>
+}
+
+/** The password from a posted form, or null. Bodies are small; anything big is refused. */
+async function postedPassword(request: Request): Promise<string | null> {
+  const type = request.headers.get('content-type') ?? ''
+  if (!type.startsWith('application/x-www-form-urlencoded')) return null
+  const body = await request.text()
+  if (body.length > 2048) return null
+  return new URLSearchParams(body).get('password')
 }
 
 const baseHeaders = {
@@ -76,7 +88,8 @@ export async function resolveRecord(
 
 export async function handleRequest(request: Request, deps: RedirectDeps): Promise<Response> {
   const url = new URL(request.url)
-  if (request.method !== 'GET' && request.method !== 'HEAD') {
+  // POST is only for the password form of a protected code (checked below).
+  if (request.method !== 'GET' && request.method !== 'HEAD' && request.method !== 'POST') {
     return new Response('Method not allowed', {
       status: 405,
       headers: { ...baseHeaders, Allow: 'GET, HEAD' },
@@ -107,6 +120,27 @@ export async function handleRequest(request: Request, deps: RedirectDeps): Promi
   if (record.status === 'disabled') return html(disabledPage(deps.siteOrigin, slug), 403)
   if (record.status === 'paused') return html(pausedPage(deps.siteOrigin, slug), 200)
 
+  // Password protection: ask first (the scan counts here), then check the posted password.
+  let unlocked: string | undefined
+  if (record.lock) {
+    if (request.method !== 'POST') {
+      if (request.method === 'GET')
+        deps.waitUntil(deps.recordScan(request, record, '').catch(() => undefined))
+      return html(passwordPage(deps.siteOrigin, slug, { vcf: wantsVcf }), 200)
+    }
+    if (deps.allowUnlock && !(await deps.allowUnlock(request, record)))
+      return html(passwordPage(deps.siteOrigin, slug, { vcf: wantsVcf, error: 'slow-down' }), 429)
+    const typed = await postedPassword(request)
+    if (typed === null || !(await verifyPassword(typed, record.lock)))
+      return html(passwordPage(deps.siteOrigin, slug, { vcf: wantsVcf, error: 'wrong' }), 401)
+    unlocked = typed
+  } else if (request.method === 'POST') {
+    return new Response('Method not allowed', {
+      status: 405,
+      headers: { ...baseHeaders, Allow: 'GET, HEAD' },
+    })
+  }
+
   if (record.page) {
     if (wantsVcf) {
       const file = vcardFile(record.page.fields)
@@ -130,6 +164,7 @@ export async function handleRequest(request: Request, deps: RedirectDeps): Promi
         accent: resolveAccent(style.accent),
         slug,
         siteOrigin: deps.siteOrigin,
+        ...(unlocked !== undefined ? { unlock: unlocked } : {}),
       }),
       200,
     )
@@ -147,5 +182,9 @@ export async function handleRequest(request: Request, deps: RedirectDeps): Promi
   if (request.method === 'GET')
     deps.waitUntil(deps.recordScan(request, record, rule).catch(() => undefined))
   // 302, never 301: destinations (and which rule applies) change, so phones must not cache them.
-  return new Response(null, { status: 302, headers: { ...baseHeaders, Location: dest } })
+  // After a password form, 303 so the browser follows with a GET.
+  return new Response(null, {
+    status: request.method === 'POST' ? 303 : 302,
+    headers: { ...baseHeaders, Location: dest },
+  })
 }

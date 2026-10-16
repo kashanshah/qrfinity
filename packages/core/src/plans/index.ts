@@ -82,6 +82,7 @@ export const RELEASED_FEATURES: readonly Feature[] = [
   ...FREE_FEATURES,
   'customSlugs',
   'redirectRules',
+  'passwordProtection',
 ]
 
 export function isPlan(v: unknown): v is Plan {

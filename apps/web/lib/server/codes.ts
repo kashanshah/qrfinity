@@ -9,6 +9,8 @@ import {
   generateSlug,
   validateDestination,
   validateRules,
+  checkPassword,
+  hashPassword,
   cleanVcardFields,
   encodeContent,
   isPageType,
@@ -70,7 +72,20 @@ export type ServiceContext = {
 }
 
 type CodeRow = typeof codes.$inferSelect
-export type CodeView = CodeRow & { tags: string[]; folderName: string | null }
+/** A code as the owner sees it. The password hash never leaves the server: only whether one is set. */
+export type CodeView = Omit<CodeRow, 'passwordHash'> & {
+  hasPassword: boolean
+  tags: string[]
+  folderName: string | null
+}
+
+/** Drops the password hash from a row headed for a browser. */
+export function publicCode<T extends CodeRow>(
+  row: T,
+): Omit<T, 'passwordHash'> & { hasPassword: boolean } {
+  const { passwordHash, ...rest } = row
+  return { ...rest, hasPassword: passwordHash !== null }
+}
 
 const NAME_MAX = 80
 
@@ -221,6 +236,8 @@ export async function syncCode(db: Database, edge: EdgeSync, codeId: string): Pr
               },
             }
           : {}),
+        // Kept even when advanced features are paused: protected stays protected.
+        ...(row.passwordHash ? { lock: row.passwordHash } : {}),
       }
       await edge.put(row.domain, row.slug, record)
     }
@@ -315,7 +332,7 @@ async function attachTags(
     .orderBy(asc(tags.name))
   const byCode = new Map<string, string[]>()
   for (const t of tagRows) byCode.set(t.codeId, [...(byCode.get(t.codeId) ?? []), t.name])
-  return rows.map((r) => ({ ...r, tags: byCode.get(r.id) ?? [] }))
+  return rows.map((r) => ({ ...publicCode(r), tags: byCode.get(r.id) ?? [] }))
 }
 
 export async function getCode(ctx: ServiceContext, id: string): Promise<CodeView> {
@@ -415,12 +432,16 @@ export async function createDynamicCode(
   throw new Error('Could not allocate a unique short link')
 }
 
-/** A live code that uses at least one advanced feature (custom short link or redirect rules). */
-const usesAdvanced = sql`(${codes.customSlug} or ${codes.rules} is not null)`
+/** A live code that uses at least one advanced feature (custom short link, rules or a password). */
+const usesAdvanced = sql`(${codes.customSlug} or ${codes.rules} is not null or ${codes.passwordHash} is not null)`
+
+/** Whether a stored code uses any advanced feature. Keep in step with `usesAdvanced`. */
+const isAdvanced = (row: Pick<CodeRow, 'customSlug' | 'rules' | 'passwordHash'>) =>
+  row.customSlug || row.rules !== null || row.passwordHash !== null
 
 /**
  * Codes using advanced features, and how many the user's plan allows. A code counts once however
- * many advanced features it uses: custom short links and redirect rules today, passwords later.
+ * many advanced features it uses: custom short links, redirect rules and passwords.
  */
 export async function advancedCodeUsage(ctx: Pick<ServiceContext, 'db' | 'userId'>) {
   const [plan, free, [row]] = await Promise.all([
@@ -590,7 +611,7 @@ export async function setRules(ctx: ServiceContext, id: string, input: unknown) 
   if (!parsed.ok) throw new ServiceError(parsed.error, 'invalid')
   const rules: RedirectRule[] | null = parsed.rules.length ? parsed.rules : null
 
-  if (rules && !row.rules && !row.customSlug) {
+  if (rules && !isAdvanced(row)) {
     // Adding the code's first advanced feature takes one place in the allowance.
     const { used, allowance } = await advancedCodeUsage(ctx)
     if (used >= allowance)
@@ -629,7 +650,59 @@ export async function setRules(ctx: ServiceContext, id: string, input: unknown) 
   })
   await syncCode(ctx.db, ctx.edge, id)
   // Removing the last advanced feature frees a place: a paused code may get its features back.
-  if (!rules && row.rules && !row.customSlug)
+  if (!rules && row.rules && !row.customSlug && !row.passwordHash)
+    await refreshAdvancedFeatures(ctx.db, ctx.userId, ctx.edge)
+  return getCode(ctx, id)
+}
+
+/**
+ * Sets, changes or removes a code's password (an advanced feature). Scans then ask for it before
+ * opening the destination or contact page. Only a salted hash is stored. Removing is always
+ * allowed; protection is never paused by the plan, so a code never turns public on its own.
+ */
+export async function setPassword(ctx: ServiceContext, id: string, password: string | null) {
+  const row = await ownedCode(ctx, id)
+  if (row.kind !== 'dynamic')
+    throw new ServiceError('Only dynamic codes can have a password.', 'invalid')
+  if (row.status === 'disabled')
+    throw new ServiceError(
+      'This code was turned off for breaking our rules and can’t be edited.',
+      'forbidden',
+    )
+  if (password === null && row.passwordHash === null) return getCode(ctx, id)
+  let hash: string | null = null
+  if (password !== null) {
+    const checked = checkPassword(password)
+    if (!checked.ok) throw new ServiceError(checked.error, 'invalid')
+    if (!isAdvanced(row)) {
+      // Adding the code's first advanced feature takes one place in the allowance.
+      const { used, allowance } = await advancedCodeUsage(ctx)
+      if (used >= allowance)
+        throw new ServiceError(
+          `You’re using advanced features on ${used} of ${allowance} ${allowance === 1 ? 'code' : 'codes'}. Choose a plan to add a password to more codes.`,
+          'invalid',
+        )
+    } else if (row.advancedPaused && row.passwordHash === null) {
+      throw new ServiceError(
+        'Advanced features on this code are paused because your plan covers fewer codes. Choose a plan to add a password.',
+        'invalid',
+      )
+    }
+    hash = await hashPassword(checked.password)
+  }
+  await limit(ctx, 'edit-hour', LIMITS.editPerHour)
+  await ctx.db.transaction(async (tx) => {
+    const [u] = await tx
+      .update(codes)
+      .set({ passwordHash: hash, version: sql`${codes.version} + 1` })
+      .where(eq(codes.id, id))
+      .returning({ version: codes.version })
+    await enqueue(tx, id, u!.version)
+  })
+  await syncCode(ctx.db, ctx.edge, id)
+  await audit(ctx.db, ctx.userId, hash ? 'code.password_set' : 'code.password_removed', 'code', id)
+  // Removing the last advanced feature frees a place: a paused code may get its features back.
+  if (!hash && !row.rules && !row.customSlug)
     await refreshAdvancedFeatures(ctx.db, ctx.userId, ctx.edge)
   return getCode(ctx, id)
 }
@@ -723,7 +796,7 @@ export async function deleteCode(ctx: ServiceContext, id: string) {
   })
   await syncCode(ctx.db, ctx.edge, id)
   // A deleted code no longer counts, so a paused one may get its advanced features back.
-  if (row.customSlug || row.rules) await refreshAdvancedFeatures(ctx.db, ctx.userId, ctx.edge)
+  if (isAdvanced(row)) await refreshAdvancedFeatures(ctx.db, ctx.userId, ctx.edge)
 }
 
 export async function duplicateCode(ctx: ServiceContext, id: string) {
@@ -847,6 +920,7 @@ export async function exportAll(ctx: ServiceContext) {
     short_link: c.domain && c.slug ? `https://${c.domain}/${c.slug}` : null,
     destination: c.destination,
     status: c.status,
+    password_protected: c.hasPassword,
     folder: c.folderName,
     tags: c.tags,
     content: c.content,
@@ -886,6 +960,7 @@ export const CODE_CSV_COLUMNS = [
   'short_link',
   'destination',
   'status',
+  'password_protected',
   'folder',
   'tags',
   'created_at',

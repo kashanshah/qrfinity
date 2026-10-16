@@ -16,8 +16,8 @@ A free QR code generator whose codes never expire, built as an organic traffic m
 - Phase 4 (abuse protection, reports, admin) approved and merged. Legal pages finalized 2026-10-16 (Ontario law, 12-month shutdown notice, 2-year retention of reports and audit log); contact mailboxes: hello@, info@, abuse@, legal@ qrfinity.com.
 - Phase 5 (SEO pages) approved and merged; pages stay `noindex` until `NEXT_PUBLIC_INDEXABLE=true`. Competitor facts on `/alternatives/*` must be re-checked on the live sites before launch.
 - Phase 6 (plans, feature flags, analytics roll-ups, partner links; no billing) approved and merged. All phases in the plan are done.
-- Pricing model (2026-10-16): every feature free; advanced features (custom short links and redirect rules; passwords planned) on 1 code free, 10/100/unlimited codes on Plus $5, Pro $20, Unlimited $50 a month; first plan free for 30 days. Billing: Stripe Checkout + portal + Stripe Tax, live once the keys are set (docs/billing.md).
-- When a plan ends, codes and custom short links keep working; redirect rules on codes beyond the free allowance pause (scans go to the main destination) until a plan returns. See docs/decisions.md.
+- Pricing model (2026-10-16): every feature free; advanced features (custom short links, redirect rules, password protection) on 1 code free, 10/100/unlimited codes on Plus $5, Pro $20, Unlimited $50 a month; first plan free for 30 days. Billing: Stripe Checkout + portal + Stripe Tax, live once the keys are set (docs/billing.md).
+- When a plan ends, codes and custom short links keep working; redirect rules on codes beyond the free allowance pause (scans go to the main destination) until a plan returns; passwords stay on. See docs/decisions.md.
 - Launch readiness: IndexNow, llms.txt/llms-full.txt, AI crawler rules, security.txt, search console verification tags, About page.
 - Domains qrfinity.com, qrfinity.link and qrfinity.ca are registered. Exact-name trademark searches (USPTO, CIPO) came back clear.
 

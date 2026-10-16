@@ -36,27 +36,31 @@ const ADVANCED: { name: string; detail: string; ready: boolean }[] = [
   },
   {
     name: 'Password protection',
-    detail: 'Only people with the password can open the link',
-    ready: false,
+    detail: 'Only people with the password can open the link or contact card',
+    ready: true,
   },
 ]
 
 const FAQ: FaqItem[] = [
   {
     q: 'Is QRfinity really free?',
-    a: 'Yes. Every feature is free: unlimited static and dynamic codes, analytics, every design option and every download format. Paid plans only let you use advanced features, like custom short links and redirect rules, on more than one code.',
+    a: 'Yes. Every feature is free: unlimited static and dynamic codes, analytics, every design option and every download format. Paid plans only let you use advanced features, like custom short links, redirect rules and passwords, on more than one code.',
   },
   {
     q: 'What counts as a code with advanced features?',
-    a: 'Any dynamic code that uses at least one advanced feature, such as a custom short link or redirect rules. A code counts once however many advanced features it uses. Plain dynamic codes never count and are always unlimited.',
+    a: 'Any dynamic code that uses at least one advanced feature, such as a custom short link, redirect rules or a password. A code counts once however many advanced features it uses. Plain dynamic codes never count and are always unlimited.',
   },
   {
     q: 'What happens if I stop paying?',
-    a: 'Every code keeps working, and custom short links keep working too, so nothing you printed breaks. Advanced features stay on as many codes as the free plan covers (your oldest); on the others, redirect rules pause and scans go to each code’s main destination. Choose a plan again and they switch straight back on.',
+    a: 'Every code keeps working, and custom short links keep working too, so nothing you printed breaks. Advanced features stay on as many codes as the free plan covers (your oldest); on the others, redirect rules pause and scans go to each code’s main destination. Passwords stay on, so a protected code never opens to everyone. Choose a plan again and the rules switch straight back on.',
   },
   {
     q: 'Will my free codes ever stop working?',
     a: 'No. Codes never expire and are never paused for not paying. A dynamic code only stops if you pause it yourself, or if we turn it off because it breaks our acceptable use policy (for example, phishing).',
+  },
+  {
+    q: 'How does password protection work?',
+    a: 'People who scan the code type the password before they see the link or contact card, every time they scan. We store only a scrambled copy (a salted hash), so we can’t tell you the password if you forget it; you can set a new one at any time. Wrong guesses are slowed down to stop anyone trying password after password.',
   },
   {
     q: 'Could a free feature move to a paid plan later?',
