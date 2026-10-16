@@ -236,6 +236,10 @@ export async function searchUsers(db: Database, q: string, opts: ListOptions = {
   const where = term ? or(ilike(user.email, like), ilike(user.name, like)) : undefined
   // Qualified on purpose: inside the subquery a bare "id" would mean codes.id (a uuid), not the user's id.
   const codeCount = sql<number>`(select count(*)::int from codes c where c.user_id = "user"."id" and c.deleted_at is null)`
+  // The best plan the person pays for (null when they don't), next to the plan an admin granted.
+  const paidPlan = sql<
+    string | null
+  >`(select s.plan from subscriptions s where s.user_id = "user"."id" and s.status in ('active', 'trialing', 'past_due') order by array_position(array['plus','pro','unlimited'], s.plan) desc limit 1)`
   return paged(opts, {
     sorts: {
       email: lower(user.email),
@@ -262,6 +266,7 @@ export async function searchUsers(db: Database, q: string, opts: ListOptions = {
           suspendedAt: user.suspendedAt,
           role: user.role,
           plan: user.plan,
+          paidPlan,
           codes: codeCount,
         })
         .from(user)

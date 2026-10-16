@@ -1,4 +1,3 @@
-import { PLANS, PLAN_DETAILS, type Plan } from '@qrfinity/core'
 import { Check, Clock } from 'lucide-react'
 import { Breadcrumbs } from '@/components/content/Breadcrumbs'
 import { Faq, type FaqItem } from '@/components/content/Faq'
@@ -7,6 +6,7 @@ import { FactBlock } from '@/components/content/Prose'
 import { HOME, PRICING } from '@/content/registry'
 import { env } from '@/lib/server/env'
 import { pageMetadata } from '@/lib/seo'
+import { PlanPicker } from './PlanPicker'
 import { WaitlistForm } from './WaitlistForm'
 
 export const metadata = pageMetadata(PRICING)
@@ -39,11 +39,6 @@ const ADVANCED: { name: string; detail: string; ready: boolean }[] = [
   },
 ]
 
-const codes = (plan: Plan) => {
-  const n = PLAN_DETAILS[plan].advancedCodes
-  return Number.isFinite(n) ? `${n} ${n === 1 ? 'code' : 'codes'}` : 'every code'
-}
-
 const FAQ: FaqItem[] = [
   {
     q: 'Is QRfinity really free?',
@@ -65,13 +60,32 @@ const FAQ: FaqItem[] = [
     q: 'Could a free feature move to a paid plan later?',
     a: 'No. We will never move a free feature behind a paywall. That promise is part of our terms of service.',
   },
+]
+
+const SOON: FaqItem = {
+  q: 'When can I buy a plan?',
+  a: 'Paid plans are coming soon. Join the list below and we’ll send one email when you can sign up.',
+}
+
+const BILLING: FaqItem[] = [
   {
-    q: 'When can I buy a plan?',
-    a: 'Paid plans are coming soon. Join the list below and we’ll send one email when you can sign up.',
+    q: 'How do I cancel or change my plan?',
+    a: 'From your account page, open Manage plan and billing. You can switch plans, update your card, download invoices or cancel there. After cancelling, your plan stays until the end of the period you paid for.',
+  },
+  {
+    q: 'Can I get a refund?',
+    a: 'Yes, within 14 days of your first payment for a plan: email hello@qrfinity.com and we’ll refund it in full. Renewals aren’t refunded, but you can cancel any time so the next one never happens.',
+  },
+  {
+    q: 'Do prices include tax?',
+    a: 'Prices are in US dollars before tax. Sales tax, VAT or GST is added at checkout where the law requires it, based on your billing address. Businesses can add a tax ID.',
   },
 ]
 
 export default function PricingPage() {
+  // Read at build time: set the Stripe keys, then redeploy to switch plans on.
+  const billingOn = env.stripe !== null
+  const faq = billingOn ? [...FAQ, ...BILLING] : [...FAQ, SOON]
   return (
     <div className="mx-auto max-w-[1200px] px-4 pb-4 pt-6 md:px-6 md:pt-10">
       <Breadcrumbs
@@ -171,46 +185,21 @@ export default function PricingPage() {
           Every plan includes every feature. Plans differ only in how many codes can use advanced
           features.
         </p>
-        <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {PLANS.map((plan) => {
-            const d = PLAN_DETAILS[plan]
-            return (
-              <li
-                key={plan}
-                className={`flex flex-col rounded-lg border bg-surface p-5 ${plan === 'free' ? 'border-[1.5px] border-evergreen' : 'border-hairline'}`}
-              >
-                <h3 className="subheading text-ink">{d.name}</h3>
-                <p className="mt-2 text-ink">
-                  <span className="heading">
-                    {d.monthlyUsd === null ? '$0' : `$${d.monthlyUsd}`}
-                  </span>
-                  <span className="text-ink-muted">
-                    {d.monthlyUsd === null ? ' forever' : ' /month'}
-                  </span>
-                </p>
-                {d.yearlyUsd ? (
-                  <p className="body-small text-ink-muted">or ${d.yearlyUsd} a year</p>
-                ) : (
-                  <p className="body-small text-ink-muted">No card needed</p>
-                )}
-                <p className="mt-3 text-ink">Advanced features on {codes(plan)}</p>
-                <p className="label mt-auto pt-4 text-ink-muted">
-                  {plan === 'free' ? 'Available now' : 'Coming soon'}
-                </p>
-              </li>
-            )
-          })}
-        </ul>
-        <div className="mt-8 max-w-[560px] rounded-lg border border-hairline bg-surface p-5 md:p-6">
-          <h3 className="subheading mb-3 text-ink">Get one email when paid plans launch</h3>
-          <WaitlistForm
-            siteKey={env.turnstileDisabled ? undefined : process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-          />
-        </div>
+        <PlanPicker billingOn={billingOn} />
+        {billingOn ? null : (
+          <div className="mt-8 max-w-[560px] rounded-lg border border-hairline bg-surface p-5 md:p-6">
+            <h3 className="subheading mb-3 text-ink">Get one email when paid plans launch</h3>
+            <WaitlistForm
+              siteKey={
+                env.turnstileDisabled ? undefined : process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+              }
+            />
+          </div>
+        )}
       </section>
 
       <div className="max-w-[960px]">
-        <Faq items={FAQ} />
+        <Faq items={faq} />
         <FactBlock />
       </div>
       <JsonLd data={softwareApplication(PRICING)} />

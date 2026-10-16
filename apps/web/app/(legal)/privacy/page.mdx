@@ -46,6 +46,10 @@ We set no cookies on the short domain (qrfinity.link), and people who scan your 
 
 If you report a QR code, we store what you send. Your email is optional; if you give it, we use it only to follow up, and we never share it with the code's owner.
 
+## Paid plans
+
+If you buy a plan, Stripe handles the payment. You give your card details and billing address to Stripe on its own checkout page; we never see or store your card number. We store which plan you're on, its status, when it renews and your Stripe customer number. Your billing address, and a tax ID if you add one, are kept by Stripe to work out tax and issue invoices; we can see them there. We use all this only to bill you and to keep the records tax law requires.
+
 ## Waitlist for paid plans
 
 If you join the waitlist on the pricing page, we store your email address and when you joined. We use it once, to tell you when paid plans launch.
@@ -76,6 +80,7 @@ We use these companies to run QRfinity. They process data only on our instructio
 - **Resend**: sends sign-in and notification emails.
 - **Google**: if you choose Google sign-in; Google Web Risk, which checks code destinations for phishing and malware (it receives the destination address, nothing about you); and Google Analytics, described above.
 - **PostHog**: site analytics, described above.
+- **Stripe**: takes payments for paid plans, calculates tax and sends receipts. Stripe also acts on its own account for some purposes, such as preventing fraud and meeting its legal duties; see [Stripe's privacy policy](https://stripe.com/privacy).
 
 Our database and web servers are in the United States, and Cloudflare runs its network in data centres around the world, so your data may be processed outside Canada. Each provider is bound by a data processing agreement and protects data to standards comparable to Canadian law. Laws in those countries may allow their authorities to access data in some circumstances.
 
@@ -85,9 +90,10 @@ Our database and web servers are in the United States, and Cloudflare runs its n
 - Individual scan records: 90 days.
 - Daily scan totals per code: until the code is deleted.
 - Abuse reports and our audit log of moderation actions: 2 years.
+- Billing records (plans, invoices, payments, billing address and tax ID): 6 years after the end of the tax year they relate to, as Canadian tax law requires, even if you delete your account.
 - Waitlist for paid plans: until they launch and we've sent the one email we promised, or until you ask us to remove you.
 
-When you delete your account we remove your email and sign-in records and delete your codes. We keep a record that each short link existed, without your details, so it's never given to someone else.
+When you delete your account we end any paid plan, remove your email and sign-in records and delete your codes. We keep a record that each short link existed, without your details, so it's never given to someone else.
 
 ## Your rights
 

@@ -2,7 +2,16 @@
  * Database schema (Postgres). Postgres is the source of truth; the edge KV store holds
  * a disposable copy of each dynamic code's destination for fast redirects.
  */
-import type { ContentFields, ContentType, Design, LinkStatus, Plan } from '@qrfinity/core'
+import type {
+  BillingInterval,
+  ContentFields,
+  ContentType,
+  Design,
+  LinkStatus,
+  PaidPlan,
+  Plan,
+  SubscriptionStatus,
+} from '@qrfinity/core'
 import { sql } from 'drizzle-orm'
 import {
   bigserial,
@@ -39,8 +48,13 @@ export const user = pgTable('user', {
   role: text('role').$type<'user' | 'admin'>().notNull().default('user'),
   /** Set by an admin (Phase 4). A suspended user can't sign in or edit; their codes keep working unless disabled one by one. */
   suspendedAt: timestamp('suspended_at', { withTimezone: true }),
-  /** Free, plus, pro or unlimited: how many codes may use advanced features. Set by an admin until billing exists. */
+  /**
+   * Plan granted by an admin: free, plus, pro or unlimited. The plan in effect is the higher of
+   * this and any paying subscription (see effectivePlan in @qrfinity/core).
+   */
   plan: text('plan').$type<Plan>().notNull().default('free'),
+  /** The payment provider's customer id (Stripe), created at first checkout. */
+  billingCustomerId: text('billing_customer_id').unique(),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 })
@@ -373,3 +387,27 @@ export const appSettings = pgTable('app_settings', {
   updatedBy: text('updated_by'),
   updatedAt: updatedAt(),
 })
+
+/**
+ * Paid subscriptions, a copy of the payment provider's state kept current by its webhooks.
+ * Rows are kept after a subscription ends, as a record.
+ */
+export const subscriptions = pgTable(
+  'subscriptions',
+  {
+    /** The provider's subscription id (Stripe sub_...). */
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    customerId: text('customer_id').notNull(),
+    plan: text('plan').$type<PaidPlan>().notNull(),
+    interval: text('interval').$type<BillingInterval>().notNull(),
+    status: text('status').$type<SubscriptionStatus>().notNull(),
+    currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }),
+    cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index('subscriptions_user_idx').on(t.userId)],
+)

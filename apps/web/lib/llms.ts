@@ -29,7 +29,7 @@ const FACTS = [
   'Downloads: PNG, JPG, SVG, PDF and EPS, all free, no watermark.',
   'Short links for dynamic codes use qrfinity.link. No IP addresses are stored; no cookies on short links.',
   'Promises in the terms of service: codes never expire; free features never move behind a paywall.',
-  'Every feature is free. Advanced features (custom short links now; redirect rules and password protection coming) work on 1 code free; paid plans (coming soon) cover 10 codes for $5/month, 100 for $20, or every code for $50. Stopping a plan never breaks a code.',
+  'Every feature is free. Advanced features (custom short links now; redirect rules and password protection coming) work on 1 code free; paid plans cover 10 codes for $5/month, 100 for $20, or every code for $50. Stopping a plan never breaks a code.',
   'Made by Teknoffice Technologies Inc., Ontario, Canada. Contact: hello@qrfinity.com.',
 ]
 

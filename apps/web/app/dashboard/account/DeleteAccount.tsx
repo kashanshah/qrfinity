@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/Field'
 import { deleteAccountAction } from './actions'
 
-export function DeleteAccount({ email }: { email: string }) {
+export function DeleteAccount({ email, paying = false }: { email: string; paying?: boolean }) {
   const [open, setOpen] = useState(false)
   const [typed, setTyped] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -60,6 +60,7 @@ export function DeleteAccount({ email }: { email: string }) {
               </strong>{' '}
               and show “not active” instead. This can’t be undone. Export your data first if you
               want a copy.
+              {paying ? ' Your paid plan ends now and you won’t be charged again.' : null}
             </p>
           </div>
           <TextField

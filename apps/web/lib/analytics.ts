@@ -59,6 +59,7 @@ export type AnalyticsEvent =
   | { name: 'dynamic_code_created'; props: { content_type: string; custom_slug: boolean } }
   | { name: 'sign_in_requested'; props: { method: 'email' | 'google' } }
   | { name: 'pro_waitlist_joined'; props: Record<string, never> }
+  | { name: 'checkout_started'; props: { plan: string; interval: 'month' | 'year' } }
 
 type Gtag = (...args: unknown[]) => void
 type PostHogLike = { capture: (event: string, props?: Record<string, unknown>) => void }

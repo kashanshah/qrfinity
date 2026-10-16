@@ -42,6 +42,7 @@ import {
 } from '@qrfinity/db'
 
 import { ServiceError } from './errors'
+import { effectivePlanFor } from './billing'
 import { getFreeAdvancedCodeAllowance } from './settings'
 import { LIMITS, rateKey, retryMessage } from './rate-limit'
 import { screenForCode } from './screening'
@@ -336,8 +337,8 @@ export async function createDynamicCode(
  * will count here too.
  */
 export async function advancedCodeUsage(ctx: ServiceContext) {
-  const [[owner], free, [row]] = await Promise.all([
-    ctx.db.select({ plan: user.plan }).from(user).where(eq(user.id, ctx.userId)),
+  const [plan, free, [row]] = await Promise.all([
+    effectivePlanFor(ctx.db, ctx.userId),
     getFreeAdvancedCodeAllowance(ctx.db),
     ctx.db
       .select({ used: sql<number>`count(*)::int` })
@@ -346,7 +347,6 @@ export async function advancedCodeUsage(ctx: ServiceContext) {
         and(eq(codes.userId, ctx.userId), eq(codes.customSlug, true), isNull(codes.deletedAt)),
       ),
   ])
-  const plan = isPlan(owner?.plan) ? owner.plan : 'free'
   return { used: row?.used ?? 0, allowance: advancedCodeAllowance(plan, free), plan }
 }
 

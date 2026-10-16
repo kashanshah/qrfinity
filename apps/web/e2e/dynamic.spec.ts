@@ -99,6 +99,10 @@ test('the dashboard requires sign-in and export works', async ({ page, request }
   await expect(page).toHaveURL(/\/login\?next=%2Fdashboard/)
   await signIn(page, request, `e2e-export-${Date.now()}@example.com`)
   await page.goto('/dashboard/account')
+  // Without Stripe keys, the plan section shows the free plan and no checkout.
+  await expect(page.getByRole('heading', { name: 'Free plan' })).toBeVisible()
+  await expect(page.getByText('Advanced features on 0 of 1 code used.')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Paid plans are coming soon' })).toBeVisible()
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     page.getByRole('link', { name: 'Download CSV' }).click(),
