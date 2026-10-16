@@ -8,9 +8,9 @@ export const dynamic = 'force-dynamic'
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser()
   return (
-    <div className="mx-auto max-w-[1200px] px-4 md:px-6">
+    <div className="mx-auto max-w-[1200px] px-4 pt-2 md:px-6">
       <DashboardNav email={user.email} />
-      <div className="pb-12 pt-6">{children}</div>
+      <div className="pb-12 pt-8">{children}</div>
     </div>
   )
 }
