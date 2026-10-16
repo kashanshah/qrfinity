@@ -20,6 +20,7 @@ import {
   priceLookupKey,
 } from '@qrfinity/core'
 import Stripe from 'stripe'
+import { planCopy } from '../lib/plan-copy'
 
 const key = process.env.STRIPE_SECRET_KEY
 if (!key) {
@@ -40,8 +41,6 @@ const WEBHOOK_EVENTS: Stripe.WebhookEndpointCreateParams.EnabledEvent[] = [
   'customer.subscription.resumed',
 ]
 
-const codes = (n: number) => (Number.isFinite(n) ? `${n} codes` : 'every code')
-
 async function main() {
   console.log(`Stripe ${key!.includes('_live_') ? 'LIVE' : 'test'} mode\n`)
   const existing = await stripe.products.list({ limit: 100 })
@@ -50,9 +49,11 @@ async function main() {
 
   for (const plan of PAID_PLANS) {
     const d = PLAN_DETAILS[plan]
+    const copy = planCopy(plan)
     const fields = {
       name: `QRfinity ${d.name}`,
-      description: `Advanced features on ${codes(d.advancedCodes)}. Every other feature stays free.`,
+      description: copy.description,
+      marketing_features: copy.features.map((name) => ({ name })),
       metadata: { qrfinity_plan: plan },
     }
     let product = existing.data.find((p) => p.metadata.qrfinity_plan === plan)

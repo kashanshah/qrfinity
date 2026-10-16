@@ -72,3 +72,25 @@ describe('contact page templates', () => {
     expect(readableAccent('#0f5132', '#ffffff')).toBe('#0f5132')
   })
 })
+
+describe('templates by plan', () => {
+  it('falls back to Classic beyond the plan, and names the plan each template needs', async () => {
+    const { templateWithin, planForTemplateIndex, PAGE_TEMPLATES, CONTACT_TEMPLATES_BY_PLAN } =
+      await import('../src')
+    expect(PAGE_TEMPLATES).toHaveLength(CONTACT_TEMPLATES_BY_PLAN.unlimited)
+    expect(templateWithin('centered', CONTACT_TEMPLATES_BY_PLAN.free)).toBe('centered')
+    expect(templateWithin('banner', CONTACT_TEMPLATES_BY_PLAN.free)).toBe('classic')
+    expect(templateWithin('compact', CONTACT_TEMPLATES_BY_PLAN.pro)).toBe('compact')
+    expect(templateWithin('elegant', CONTACT_TEMPLATES_BY_PLAN.pro)).toBe('classic')
+    expect(PAGE_TEMPLATES.map((_, i) => planForTemplateIndex(i))).toEqual([
+      'free',
+      'free',
+      'plus',
+      'plus',
+      'pro',
+      'pro',
+      'unlimited',
+      'unlimited',
+    ])
+  })
+})

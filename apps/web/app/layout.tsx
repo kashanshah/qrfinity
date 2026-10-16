@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: '%s | QRfinity',
   },
   description:
-    'Make free QR codes that never expire. No sign-up, no watermark, every format free: PNG, SVG, PDF and EPS.',
+    'Make free QR codes that never expire. Static and dynamic codes, no sign-up for static ones, no watermark, scan analytics.',
   robots: indexable ? { index: true, follow: true } : { index: false, follow: false },
   // Search console ownership checks (set the values from Google Search Console and Bing Webmaster Tools).
   verification: {

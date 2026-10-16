@@ -66,8 +66,7 @@ export default function AboutPage() {
             <Link href="/terms" className="text-evergreen underline">
               terms
             </Link>
-            , not just our marketing: codes never expire, and free features never move behind a
-            paywall.
+            : codes never expire, and they’re never paused for not paying.
           </p>
         </section>
 
@@ -77,12 +76,12 @@ export default function AboutPage() {
           </h2>
           <p className="mb-4">
             Static codes cost us nothing: they’re made on your device. Dynamic codes run on an edge
-            network that costs a few dollars per ten million scans. Everything you need is free;{' '}
+            network that costs a few dollars per ten million scans. The core is free;{' '}
             <Link href="/pricing" className="text-evergreen underline">
               paid plans
             </Link>{' '}
-            let heavy users put advanced features on more codes. We don’t show ads and we don’t sell
-            data.
+            add print formats and extras, and let heavy users put advanced features on more codes.
+            We don’t show ads and we don’t sell data.
           </p>
         </section>
 

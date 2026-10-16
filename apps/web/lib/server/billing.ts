@@ -8,7 +8,7 @@ import {
 } from '@qrfinity/core'
 import { and, desc, eq, isNull, subscriptions, user, type Database } from '@qrfinity/db'
 import { audit } from './admin'
-import { refreshAdvancedFeatures } from './codes'
+import { refreshAdvancedFeatures, refreshContactPages } from './codes'
 import { ServiceError } from './errors'
 
 /**
@@ -139,6 +139,7 @@ export async function syncSubscription(
     .values({ id: state.id, ...values })
     .onConflictDoUpdate({ target: subscriptions.id, set: values })
   await refreshAdvancedFeatures(db, owner.id, edge)
+  await refreshContactPages(db, owner.id, edge)
   if (before?.plan !== state.plan || before?.status !== state.status)
     await audit(db, 'billing', 'billing.subscription', 'user', owner.id, {
       subscription: state.id,

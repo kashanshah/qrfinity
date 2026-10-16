@@ -6,14 +6,36 @@
 import { contrastRatio, isHexColor, normalizeHex, parseHex } from '../color'
 import type { VcardFields } from '../content'
 
-export const PAGE_TEMPLATES = ['classic', 'banner', 'centered', 'minimal'] as const
+/**
+ * In plan order: a plan with N templates (CONTACT_TEMPLATES_BY_PLAN) gets the first N. Classic,
+ * the first, is what a page falls back to when its template isn't on the owner's plan.
+ */
+export const PAGE_TEMPLATES = [
+  'classic',
+  'centered',
+  'banner',
+  'minimal',
+  'buttons',
+  'compact',
+  'spotlight',
+  'elegant',
+] as const
 export type PageTemplate = (typeof PAGE_TEMPLATES)[number]
 
 export const PAGE_TEMPLATE_LABEL: Record<PageTemplate, { name: string; hint: string }> = {
   classic: { name: 'Classic', hint: 'A card with your initials' },
-  banner: { name: 'Banner', hint: 'A colour band across the top' },
   centered: { name: 'Centered', hint: 'Like a printed business card' },
+  banner: { name: 'Banner', hint: 'A colour band across the top' },
   minimal: { name: 'Minimal', hint: 'Just your details, no card' },
+  buttons: { name: 'Buttons', hint: 'A big button for each way to reach you' },
+  compact: { name: 'Compact', hint: 'Labels and details side by side' },
+  spotlight: { name: 'Spotlight', hint: 'Your colour behind the card' },
+  elegant: { name: 'Elegant', hint: 'A serif name and fine lines' },
+}
+
+/** The template a page shows when its owner's plan includes `count` templates. */
+export function templateWithin(template: PageTemplate, count: number): PageTemplate {
+  return PAGE_TEMPLATES.indexOf(template) < Math.max(1, count) ? template : 'classic'
 }
 
 /** How a contact page looks. `accent` is #rrggbb, or null to match the printed code. */
@@ -160,6 +182,34 @@ footer a{color:var(--accent)}
 .t-minimal .save{background:none;color:var(--accent);border:2px solid var(--accent)}
 .t-minimal li{border-top:0;padding:8px 0}
 .t-minimal ul{margin-top:24px;border-left:3px solid var(--accent);padding-left:16px}
+.t-buttons .card{text-align:center}
+.t-buttons .av{margin:0 auto}
+.t-buttons ul{margin-top:8px}
+.t-buttons li{border-top:0;padding:4px 0}
+.t-buttons .k{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.t-buttons li a,.t-buttons li span{display:flex;align-items:center;justify-content:center;min-height:48px;padding:8px 16px;border:1.5px solid var(--accent);border-radius:10px}
+.t-buttons li span{border-color:var(--hairline)}
+.t-buttons footer{text-align:center}
+.t-compact .head{display:flex;align-items:center;gap:16px}
+.t-compact .av{width:52px;height:52px;font-size:20px}
+.t-compact h1{font-size:22px;line-height:28px;margin:0}
+.t-compact .save{margin-top:20px;min-height:44px}
+.t-compact li{flex-direction:row;justify-content:space-between;align-items:baseline;gap:16px;padding:10px 0}
+.t-compact .k{flex:none}
+.t-compact li a,.t-compact li span:last-child{text-align:right}
+.t-spotlight{background:var(--ground) linear-gradient(var(--accent),var(--accent)) top/100% 240px no-repeat}
+.t-spotlight main{padding-top:88px}
+.t-spotlight .card{border:0;box-shadow:0 12px 32px rgba(0,0,0,.18);text-align:center;overflow:visible}
+.t-spotlight .av{margin:-64px auto 0;width:80px;height:80px;font-size:28px;background:var(--surface);color:var(--accent);border:4px solid var(--accent)}
+.t-spotlight li{align-items:center}
+.t-spotlight .note{text-align:left}
+.t-elegant .card{border-radius:4px;border-top:4px solid var(--accent)}
+.t-elegant .av{display:none}
+.t-elegant h1{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:34px;line-height:40px;margin-top:4px;letter-spacing:0}
+.t-elegant .role{font-style:italic}
+.t-elegant .save{border-radius:4px;letter-spacing:.04em}
+.t-elegant .k{text-transform:uppercase;letter-spacing:.12em;font-size:12px}
+.t-elegant li a{font-weight:500}
 `
 
 /** The contact page for a card. `slug` builds the .vcf and report links. */
@@ -216,8 +266,14 @@ export function renderContactPage(input: {
   const template = isPageTemplate(input.style.template) ? input.style.template : 'classic'
   const accent = isHexColor(input.accent) ? normalizeHex(input.accent) : BRAND_ACCENT
   const report = `${input.siteOrigin}/report?code=${encodeURIComponent(input.slug)}`
-  const details = `<div class="av" aria-hidden="true">${esc(initials.slice(0, 2))}</div>
-<h1>${esc(name)}</h1>${role ? `<p class="role">${esc(role)}</p>` : ''}
+  const avatar = `<div class="av" aria-hidden="true">${esc(initials.slice(0, 2))}</div>`
+  const heading = `<h1>${esc(name)}</h1>${role ? `<p class="role">${esc(role)}</p>` : ''}`
+  const details = `${
+    template === 'compact'
+      ? `<div class="head">${avatar}<div>${heading}</div></div>`
+      : `${avatar}
+${heading}`
+  }
 ${
   input.unlock !== undefined
     ? `<form class="saveform" method="post" action="/${esc(encodeURIComponent(input.slug))}.vcf"><input type="hidden" name="password" value="${esc(input.unlock)}"><button class="save" type="submit">Save contact</button></form>`

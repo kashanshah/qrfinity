@@ -1,0 +1,58 @@
+export const faq = [
+  {
+    q: 'Can I test a QR code made with another generator?',
+    a: 'Yes. The tester reads any QR code image: a download from another site, a screenshot, or a design file exported as PNG or JPG. It tests the design itself, whoever made it.',
+  },
+  {
+    q: 'Is my image uploaded?',
+    a: 'No. The image is read and measured in your browser, and nothing is sent to us. That also means the tester doesn’t open the link inside the code; to check where a code goes, use the QR code checker.',
+  },
+  {
+    q: 'If the test passes, will every phone read my code?',
+    a: 'A pass means the design has no known weak spots. Printing adds its own risks: a glossy finish, a curved surface, a print smaller than the size we suggest. Always scan a test print with a couple of phones before a big run.',
+  },
+  {
+    q: 'What is a module?',
+    a: 'One of the small squares that make up a QR code. Sizes and margins are measured in modules, because what matters is how big each square is compared with the whole code.',
+  },
+  {
+    q: 'Why does a light-on-dark code get a warning?',
+    a: 'Phone cameras read inverted codes, but some older scanner apps, payment terminals and ticket readers only look for dark squares on a light background. If your code has to work everywhere, keep it dark on light.',
+  },
+  {
+    q: 'Can I test a photo of a printed code?',
+    a: 'You can, and the tester will read it, but a photo adds its own blur, angle and lighting, so the contrast and margin measurements are rougher. For the most accurate result, test the file you’re about to print.',
+  },
+]
+
+## What the tester checks
+
+The tester reads your QR code, then puts it through the conditions that make real codes fail:
+
+- **Contrast.** It measures how far apart the dark and light parts are, as a contrast ratio. Below 3:1, cameras struggle to tell them apart; 4.5:1 or more holds up in dim light and glare.
+- **Margin.** QR codes need a blank border, called the quiet zone, so a camera can find where the code starts. The standard asks for 4 modules on every side. The tester counts how much clear space your design leaves.
+- **Small reads.** It shrinks your code until each module is only a couple of pixels wide, like a code on a poster seen from across the room, and checks it still reads.
+- **Blur.** It blurs your code by about a third of a module, like a phone that hasn’t quite focused, and checks it still reads.
+- **Error correction.** Every QR code carries spare data that lets a phone rebuild a damaged or covered part. Level L recovers about 7%; M, Q and H recover more, which matters for print and for codes with a logo.
+- **Colours.** Light codes on a dark background get a warning, because some scanners can’t read them.
+- **Density.** Long links make bigger, busier codes that need a larger print.
+
+You also get the smallest print size we’d suggest, based on how many modules your code has.
+
+## How to test a QR code
+
+1. **Export the final design.** Download the PNG or JPG you plan to print, or take a screenshot of your artwork with the code in place.
+2. **Add it to the tester.** Choose the image, drop it on the box above, or paste a screenshot.
+3. **Read the verdict.** Problems come first, then warnings, then what passed. Each one says what to change.
+4. **Fix and test again.** Change the design, export it again and run the test until it passes.
+5. **Scan a test print.** Print one copy at the real size and scan it with two or three phones before you print the rest.
+
+## Fixing common problems
+
+- **Low contrast:** make the code darker or the background lighter. Pale greys, yellows and pastel codes are the usual culprits.
+- **No margin:** move text, borders and pictures away from the code, or shrink the code a little inside its space.
+- **Struggles when small or blurry:** use plain square modules, stronger contrast, a smaller logo, or simply print it larger.
+- **Low error correction:** remake the code at level M or higher; a code with a logo should use H.
+- **Dense code:** shorten the content. A dynamic code holds a short link instead of your long one, so it stays simple however long the destination is.
+
+If your code needs a rebuild, “Open in the generator” fills in the same content. The generator runs these checks on every design as you make it.

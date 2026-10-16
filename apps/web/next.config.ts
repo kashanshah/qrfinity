@@ -40,7 +40,11 @@ const nextConfig: NextConfig = {
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
   transpilePackages: ['@qrfinity/core'],
   // The app imports brand/tokens.css from the repository root.
-  turbopack: { root: path.resolve(process.cwd(), '../..') },
+  turbopack: {
+    root: path.resolve(process.cwd(), '../..'),
+    // harfbuzzjs (frame text) imports Node's 'module' only when running under Node.
+    resolveAlias: { module: { browser: './lib/empty-module.ts' } },
+  },
   outputFileTracingRoot: path.resolve(process.cwd(), '../..'),
   // PostHog through our own domain: not blocked by ad blockers, and no third-party CSP entries.
   skipTrailingSlashRedirect: true,

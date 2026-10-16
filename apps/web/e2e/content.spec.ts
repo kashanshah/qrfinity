@@ -73,6 +73,20 @@ test.describe('content pages', () => {
     await expect(page.getByLabel('Network name (SSID)')).toHaveValue('Cafe Guest')
   })
 
+  test('the tester passes a good design and fails a pale one', async ({ page }) => {
+    await page.goto('/qr-code-tester')
+    const fixture = (name: string) => fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url))
+    await page.locator('input[type=file]').setInputFiles(fixture('wifi-qr.png'))
+    await expect(page.getByRole('heading', { name: 'This code should scan well' })).toBeVisible()
+    await expect(page.getByText(/Print it at least/)).toBeVisible()
+    await page.getByRole('button', { name: 'Open in the generator' }).click()
+    await expect(page.getByLabel('Network name (SSID)')).toHaveValue('Cafe Guest')
+    await page.getByRole('button', { name: 'Test another code' }).click()
+    await page.locator('input[type=file]').setInputFiles(fixture('pale-qr.png'))
+    await expect(page.getByRole('heading', { name: 'This code is likely to fail' })).toBeVisible()
+    await expect(page.getByText('Contrast is too low')).toBeVisible()
+  })
+
   test('the WeChat page restyles a WeChat code without changing it', async ({ page }) => {
     await page.goto('/qr-code-generator/wechat')
     await page

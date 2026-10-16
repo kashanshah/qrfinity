@@ -5,3 +5,4 @@ docs/
 .next/
 packages/db/migrations/
 *.mdx
+apps/web/public/fonts/frame/

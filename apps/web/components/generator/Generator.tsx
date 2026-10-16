@@ -18,6 +18,7 @@ import {
 import { useId, useMemo, type ReactNode } from 'react'
 import { useAutoLogo } from '@/lib/brand-logo'
 import type { ExportJob } from '@/lib/export'
+import { useFrameText } from '@/lib/frame-text'
 import { GeneratorProvider, useGenerator } from '@/lib/generator-context'
 import { useScanCheck } from '@/lib/scan'
 import { DYNAMIC_TYPES, type CodeKind, type GeneratorInit } from '@/lib/store'
@@ -26,6 +27,7 @@ import { CodeTypeBadge, NeverExpiresBadge } from './Badges'
 import { CONTENT_TYPE_OPTIONS, ContentForm } from './ContentForm'
 import { DesignPanel } from './DesignPanel'
 import { HomeFinalStep } from './HomeFinalStep'
+import { KindChoice } from './KindChoice'
 import { ScanResult, type ScanSummary } from './ScanResult'
 
 export type FinalStepProps = {
@@ -117,6 +119,7 @@ function GeneratorBody({
   const printWidthMm = useGenerator((s) => s.printWidthMm)
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '')
   useAutoLogo()
+  const frameText = useFrameText(design.frame.style === 'none' ? '' : design.frame.text.trim())
 
   const content = useMemo<EncodeResult>(() => {
     const r = encodeContent(type, fields[type])
@@ -140,7 +143,7 @@ function GeneratorBody({
   const render = useMemo<Render>(() => {
     if (!payload) return { kind: content.ok ? 'empty' : content.reason }
     try {
-      const { scene, info } = buildScene(payload, design)
+      const { scene, info } = buildScene(payload, design, { frameText: frameText.outline })
       return {
         kind: 'ok',
         payload,
@@ -156,7 +159,7 @@ function GeneratorBody({
       if (e instanceof PayloadTooLongError) return { kind: 'too-long' }
       throw e
     }
-  }, [payload, content, design, type, kind])
+  }, [payload, content, design, type, kind, frameText.outline])
 
   const ok = render.kind === 'ok' ? render : null
   const scan = useScanCheck(
@@ -186,7 +189,8 @@ function GeneratorBody({
     }
   }, [ok, design, printWidthMm, scan])
 
-  const job: ExportJob | null = ok ? { ...ok.job, printWidthMm } : null
+  // Downloads wait for the frame text's outlines, so no format falls back to a system font.
+  const job: ExportJob | null = ok && !frameText.pending ? { ...ok.job, printWidthMm } : null
   const scanFailed = summary?.state === 'fail'
 
   // Each inline copy gets its own gradient ids; a shared id would resolve to the hidden copy.
@@ -273,18 +277,7 @@ function GeneratorBody({
             fixedContent.panel
           ) : (
             <div className="flex flex-col gap-6">
-              {kindChoice ? (
-                <OptionGroup
-                  label="Type of code"
-                  value={kind}
-                  onChange={setKind}
-                  columns="grid-cols-1 sm:grid-cols-2"
-                  options={[
-                    { value: 'static', label: 'Static: free, no sign-up, can’t be edited' },
-                    { value: 'dynamic', label: 'Dynamic: editable, with scan stats, free account' },
-                  ]}
-                />
-              ) : null}
+              {kindChoice ? <KindChoice value={kind} onChange={setKind} /> : null}
               <OptionGroup
                 label="Content type"
                 hideLabel
@@ -305,7 +298,7 @@ function GeneratorBody({
           <h2 id="step-design" className="subheading mb-2 text-ink">
             2. Make it yours
           </h2>
-          <DesignPanel />
+          <DesignPanel frameMissing={frameText.missing} />
         </section>
       </div>
 

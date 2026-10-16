@@ -2,6 +2,7 @@ import { DEFAULT_FIELDS, type VcardFields } from '@qrfinity/core'
 import { codes, destinationHistory, eq, sql, type Database } from '@qrfinity/db'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { runRiskChecks, type AdminContext } from '@/lib/server/admin'
+import { setUserPlan } from '@/lib/server/entitlements'
 import {
   createDynamicCode,
   duplicateCode,
@@ -34,6 +35,14 @@ const card = (patch: Partial<VcardFields> = {}) => ({
 const makeCard = (patch?: Partial<VcardFields>) =>
   createDynamicCode(ctx(), { name: 'Jane', content: card(patch), design })
 const lastPut = () => edge.calls.filter((c) => c.op === 'put').at(-1)?.record
+const admin = (): AdminContext => ({
+  db,
+  edge,
+  mailer: { send: async () => {} },
+  actor: 'admin',
+  abuseEmail: 'abuse@example.com',
+  siteUrl: 'https://qrfinity.com',
+})
 
 describe('dynamic contact cards', () => {
   it('creates a code with no destination that serves a contact page', async () => {
@@ -135,10 +144,10 @@ describe('dynamic contact cards', () => {
     const c = await makeCard()
     // No accent chosen and a black code: the brand green.
     expect(lastPut()?.page?.style).toEqual({ template: 'classic', accent: '#0f5132' })
-    await setPageStyle(ctx(), c.id, { template: 'banner', accent: '#C2410C' })
-    expect(lastPut()?.page?.style).toEqual({ template: 'banner', accent: '#c2410c' })
+    await setPageStyle(ctx(), c.id, { template: 'centered', accent: '#C2410C' })
+    expect(lastPut()?.page?.style).toEqual({ template: 'centered', accent: '#c2410c' })
     await updateDestination(ctx(), c.id, { content: card({ title: 'Owner' }) })
-    expect(lastPut()?.page?.style).toEqual({ template: 'banner', accent: '#c2410c' })
+    expect(lastPut()?.page?.style).toEqual({ template: 'centered', accent: '#c2410c' })
     expect(lastPut()?.page?.fields.title).toBe('Owner')
     await expect(setPageStyle(ctx(), c.id, { template: 'neon' })).resolves.toMatchObject({
       content: { style: { template: 'classic', accent: null } },
@@ -158,6 +167,32 @@ describe('dynamic contact cards', () => {
     const after = edge.calls.length
     await updateDetails(ctx(), c.id, { design })
     expect(edge.calls.length).toBe(after)
+  })
+
+  it('keeps paid templates for paid plans, and shows Classic once a plan ends', async () => {
+    const c = await makeCard()
+    await expect(setPageStyle(ctx(), c.id, { template: 'banner' })).rejects.toThrow(
+      'The Banner template comes with Plus and above.',
+    )
+    await expect(setPageStyle(ctx(), c.id, { template: 'elegant' })).rejects.toThrow(
+      'comes with Unlimited',
+    )
+    await setUserPlan(admin(), 'alice', 'pro')
+    await setPageStyle(ctx(), c.id, { template: 'compact', accent: '#1d4ed8' })
+    expect(lastPut()?.page?.style?.template).toBe('compact')
+    await expect(setPageStyle(ctx(), c.id, { template: 'spotlight' })).rejects.toThrow(
+      'comes with Unlimited',
+    )
+    // The plan ends: the saved template stays, the page shows Classic, and comes back with a plan.
+    await setUserPlan(admin(), 'alice', 'free')
+    expect(lastPut()?.page?.style?.template).toBe('classic')
+    const [row] = await db.select().from(codes).where(eq(codes.id, c.id))
+    expect((row!.content as { style: { template: string } }).style.template).toBe('compact')
+    // Changing just the colour keeps the saved template without needing the plan.
+    await setPageStyle(ctx(), c.id, { template: 'compact', accent: '#c2410c' })
+    expect(lastPut()?.page?.style).toEqual({ template: 'classic', accent: '#c2410c' })
+    await setUserPlan(admin(), 'alice', 'unlimited')
+    expect(lastPut()?.page?.style?.template).toBe('compact')
   })
 
   it('only styles contact cards', async () => {

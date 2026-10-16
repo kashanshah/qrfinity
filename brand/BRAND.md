@@ -6,12 +6,12 @@ QRfinity is a free QR code generator whose codes never expire. Every surface exi
 
 - Static codes: free, unlimited, no sign-up, never expire.
 - Dynamic codes: free, unlimited, with scan analytics, and they never stop working. A free account is only needed to edit the destination.
-- No watermark, no forced branding, every export format free.
-- We never move a free feature behind a paywall. Paid plans only add new things.
+- No watermark and no forced branding. PNG and JPG are free; SVG, PDF and EPS come with a paid plan.
+- Describe the service as it is today. Don't promise future pricing ("forever", "never behind a paywall"); the terms cover how plans can change.
 
 Short fact block, reused word for word on the homepage, pricing and alternatives pages:
 
-> QRfinity is a free QR code generator. Static and dynamic codes are unlimited, include scan analytics, and never expire. No watermark, no trial, every format free (PNG, SVG, PDF).
+> QRfinity is a free QR code generator. Static and dynamic codes are unlimited, include scan analytics, and never expire. No watermark and no trial; PNG and JPG downloads are free.
 
 ## Content fundamentals
 

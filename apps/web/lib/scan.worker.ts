@@ -9,8 +9,10 @@ prepareZXingModule({
   },
 })
 
-self.onmessage = async (event: MessageEvent<{ id: number; image: ImageData; photo?: boolean }>) => {
-  const { id, image, photo } = event.data
+self.onmessage = async (
+  event: MessageEvent<{ id: number; image: ImageData; photo?: boolean; detail?: boolean }>,
+) => {
+  const { id, image, photo, detail } = event.data
   try {
     const results = await readBarcodes(image, {
       formats: ['QRCode'],
@@ -20,7 +22,21 @@ self.onmessage = async (event: MessageEvent<{ id: number; image: ImageData; phot
       ...(photo ? { tryRotate: true, tryInvert: true, tryDownscale: true } : {}),
     })
     const hit = results.find((r) => r.isValid)
-    self.postMessage({ id, text: hit ? hit.text : null })
+    self.postMessage({
+      id,
+      text: hit ? hit.text : null,
+      // The QR code tester also wants where the code is and how it was made.
+      ...(detail && hit
+        ? {
+            info: {
+              ecLevel: hit.ecLevel,
+              version: hit.version,
+              inverted: hit.isInverted,
+              position: hit.position,
+            },
+          }
+        : {}),
+    })
   } catch (error) {
     self.postMessage({ id, text: null, error: String(error) })
   }

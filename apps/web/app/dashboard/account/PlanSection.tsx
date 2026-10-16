@@ -1,4 +1,10 @@
-import { PLAN_DETAILS, grantsPlan, planPrice, type Plan } from '@qrfinity/core'
+import {
+  PLAN_DETAILS,
+  grantsPlan,
+  planPrice,
+  type Plan,
+  CONTACT_TEMPLATES_BY_PLAN,
+} from '@qrfinity/core'
 import type { subscriptions } from '@qrfinity/db'
 import { CreditCard, TriangleAlert } from 'lucide-react'
 import Link from 'next/link'
@@ -53,8 +59,10 @@ export function PlanSection({
             </h2>
             <p className="mt-1 text-ink-muted">
               Advanced features on {used.toLocaleString('en')} of {codes(allowance)}
-              {Number.isFinite(allowance) ? ' used' : ''}. Every other feature is free and
-              unlimited.
+              {Number.isFinite(allowance) ? ' used' : ''}.{' '}
+              {plan === 'free'
+                ? 'Paid plans add SVG, PDF and EPS downloads and more contact card templates.'
+                : `Includes SVG, PDF and EPS downloads and ${CONTACT_TEMPLATES_BY_PLAN[plan]} contact card templates.`}
             </p>
             {paying?.status === 'trialing' ? (
               <p className="body-small mt-2 text-ink">

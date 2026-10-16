@@ -108,7 +108,7 @@ export async function exportEps(job: ExportJob): Promise<Blob> {
 }
 
 /** Every format, PNGs in several sizes, zipped. */
-export async function exportZip(job: ExportJob): Promise<Blob> {
+export async function exportZip(job: ExportJob, { vector = true } = {}): Promise<Blob> {
   const { zipSync } = await import('fflate')
   const bytes = async (b: Blob | Promise<Blob>) => new Uint8Array(await (await b).arrayBuffer())
   const n = job.baseName
@@ -118,9 +118,11 @@ export async function exportZip(job: ExportJob): Promise<Blob> {
   const print = printPixels(job.printWidthMm)
   files[`${n}-print-${job.printWidthMm}mm-300dpi.png`] = await bytes(exportPng(job, print))
   files[`${n}-1024px.jpg`] = await bytes(exportJpg(job, 1024))
-  files[`${n}.svg`] = await bytes(exportSvg(job))
-  files[`${n}.pdf`] = await bytes(exportPdf(job))
-  files[`${n}.eps`] = await bytes(exportEps(job))
+  if (vector) {
+    files[`${n}.svg`] = await bytes(exportSvg(job))
+    files[`${n}.pdf`] = await bytes(exportPdf(job))
+    files[`${n}.eps`] = await bytes(exportEps(job))
+  }
   // PNG, JPG and PDF are already compressed.
   return new Blob([zipSync(files, { level: 6 })], { type: 'application/zip' })
 }
