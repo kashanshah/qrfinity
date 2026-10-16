@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useId } from 'react'
+import { isPageKey } from './list-params'
 
 const STORAGE_KEY = 'qrfinity.admin.perPage'
 
@@ -16,7 +17,8 @@ function readStored(): number | null {
 
 /**
  * Rows per page. The choice is remembered in this browser and applied whenever the address
- * doesn't name a page size. Changing it goes back to the first page.
+ * doesn't name a page size. One setting covers every admin list. Changing it goes back to the
+ * first page.
  */
 export function PerPageSelect({ value, options }: { value: number; options: readonly number[] }) {
   const id = useId()
@@ -27,7 +29,7 @@ export function PerPageSelect({ value, options }: { value: number; options: read
   const go = (per: number, replace = false) => {
     const sp = new URLSearchParams(searchParams.toString())
     sp.set('per', String(per))
-    sp.delete('page')
+    for (const key of [...sp.keys()]) if (isPageKey(key)) sp.delete(key)
     const url = `${pathname}?${sp.toString()}`
     if (replace) router.replace(url)
     else router.push(url)

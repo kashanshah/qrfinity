@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
+import { hrefWith, type Params } from './list-params'
 
 const linkClass =
   'button inline-flex min-h-10 items-center gap-1 rounded-md border-[1.5px] border-control-border bg-surface px-3 text-ink hover:bg-surface-sunk'
@@ -10,6 +11,7 @@ const disabledClass =
 export function Pagination({
   path,
   params,
+  prefix = '',
   page,
   pages,
   perPage,
@@ -17,7 +19,9 @@ export function Pagination({
   noun,
 }: {
   path: string
-  params: Record<string, string | undefined>
+  params: Params
+  /** Set when two lists share a page, so each keeps its own page number. */
+  prefix?: string
   page: number
   pages: number
   perPage: number
@@ -25,13 +29,8 @@ export function Pagination({
   /** Plural, e.g. "users". */
   noun: string
 }) {
-  const href = (p: number) => {
-    const sp = new URLSearchParams()
-    for (const [k, v] of Object.entries(params)) if (v) sp.set(k, v)
-    if (p > 1) sp.set('page', String(p))
-    const qs = sp.toString()
-    return qs ? `${path}?${qs}` : path
-  }
+  const href = (p: number) =>
+    hrefWith(path, params, { [`${prefix}page`]: p > 1 ? String(p) : undefined })
   const from = total === 0 ? 0 : (page - 1) * perPage + 1
   const to = Math.min(page * perPage, total)
   return (
