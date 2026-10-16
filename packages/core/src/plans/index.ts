@@ -2,8 +2,8 @@
  * Plans and features (pricing model decided 2026-10-16, see docs/decisions.md).
  *
  * Plain static and dynamic codes are unlimited and free. Advanced features (custom short links,
- * redirect rules and password protection) can be used on a limited number of codes: 1 free, more
- * on paid plans. Plan features (print formats, more contact card templates) come with any paid
+ * redirect rules, password protection, split traffic, date and scan limits) can be used on a
+ * limited number of codes: 1 free, more on paid plans. Plan features (print formats, more contact card templates) come with any paid
  * plan (2026-10-16, before launch). Stopping paying never breaks a code; it only stops adding
  * paid extras to more codes.
  *
