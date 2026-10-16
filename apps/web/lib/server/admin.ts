@@ -32,6 +32,7 @@ import {
   type ReportStatus,
 } from '@qrfinity/db'
 import { syncCode } from './codes'
+import { codeDisabledEmail } from './emails'
 import { ServiceError } from './errors'
 import { invalidateBlocklist, loadBlocklist, nextRiskCheck } from './screening'
 
@@ -222,12 +223,17 @@ export async function disableCode(
   })
   if (opts.notify !== false && code.status !== 'disabled') {
     await ctx.mailer
-      .send({
-        to: ownerEmail,
-        subject: `We turned off your QR code “${code.name}”`,
-        text: `We turned off your dynamic QR code "${code.name}" (${code.domain}/${code.slug}).\n\nReason: ${why}\n\nScans now show a warning page instead of ${code.destination}. If you think this is a mistake, reply to ${ctx.abuseEmail} and we'll review it.\n\nOur acceptable use policy: ${ctx.siteUrl}/acceptable-use`,
-        html: `<p>We turned off your dynamic QR code <strong>${escapeHtml(code.name)}</strong> (${code.domain}/${code.slug}).</p><p>Reason: ${escapeHtml(why)}</p><p>Scans now show a warning page instead of the destination. If you think this is a mistake, write to <a href="mailto:${ctx.abuseEmail}">${ctx.abuseEmail}</a> and we’ll review it.</p><p><a href="${ctx.siteUrl}/acceptable-use">Acceptable use policy</a></p>`,
-      })
+      .send(
+        codeDisabledEmail({
+          to: ownerEmail,
+          name: code.name,
+          shortLink: `${code.domain}/${code.slug}`,
+          destination: code.destination,
+          reason: why,
+          abuseEmail: ctx.abuseEmail,
+          siteUrl: ctx.siteUrl,
+        }),
+      )
       .catch((e) => console.error('Could not email the code owner', e))
   }
 }
@@ -445,11 +451,4 @@ function threatLabel(t: string) {
     : t === 'SOCIAL_ENGINEERING'
       ? 'phishing'
       : t.toLowerCase().replace(/_/g, ' ')
-}
-
-function escapeHtml(s: string) {
-  return s.replace(
-    /[&<>"']/g,
-    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!,
-  )
 }

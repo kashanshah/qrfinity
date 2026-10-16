@@ -44,16 +44,3 @@ export function getMailer(): Mailer {
   if (env.resendApiKey) return new ResendMailer(env.resendApiKey, env.emailFrom)
   throw new Error('No email provider configured. Set RESEND_API_KEY (or DEV_MAILBOX=1 locally).')
 }
-
-export function magicLinkEmail(to: string, url: string): Email {
-  return {
-    to,
-    subject: 'Your QRfinity sign-in link',
-    text: `Sign in to QRfinity:\n\n${url}\n\nThe link works once and expires in 10 minutes. If you didn't ask for it, ignore this email.`,
-    html: `<div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px;line-height:26px;color:#14201a;max-width:480px">
-<p>Sign in to QRfinity:</p>
-<p><a href="${url}" style="display:inline-block;background:#0f5132;color:#fafaf7;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700">Sign in</a></p>
-<p style="color:#4f5b54;font-size:14px;line-height:22px">The link works once and expires in 10 minutes. If you didn't ask for it, ignore this email.</p>
-</div>`,
-  }
-}
