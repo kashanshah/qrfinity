@@ -12,10 +12,10 @@ import {
 import {
   and,
   asc,
+  count,
   auditLog,
   blocklist,
   codes,
-  desc,
   edgeSyncOutbox,
   eq,
   ilike,
@@ -30,10 +30,12 @@ import {
   type BlocklistKind,
   type Database,
   type ReportStatus,
+  type SQL,
 } from '@qrfinity/db'
 import { syncCode } from './codes'
 import { codeDisabledEmail } from './emails'
 import { ServiceError } from './errors'
+import { likePattern, lower, paged, type ListOptions, type Orderable } from './listing'
 import { invalidateBlocklist, loadBlocklist, nextRiskCheck } from './screening'
 
 export type AdminContext = {
@@ -85,95 +87,263 @@ export async function adminStats(db: Database) {
   return r!
 }
 
-export async function listReports(db: Database, status: ReportStatus = 'open') {
-  return db
-    .select({
-      report: reports,
-      code: {
-        id: codes.id,
-        name: codes.name,
-        slug: codes.slug,
-        destination: codes.destination,
-        status: codes.status,
-      },
-      ownerEmail: user.email,
-    })
-    .from(reports)
-    .leftJoin(codes, eq(codes.id, reports.codeId))
-    .leftJoin(user, eq(user.id, codes.userId))
-    .where(eq(reports.status, status))
-    .orderBy(desc(reports.createdAt))
-    .limit(200)
-}
+export const REPORT_SORTS = ['received', 'reason', 'reported'] as const
+export type ReportSort = (typeof REPORT_SORTS)[number]
 
-export async function listFlaggedCodes(db: Database) {
-  return db
-    .select({ code: codes, ownerEmail: user.email })
-    .from(codes)
-    .innerJoin(user, eq(user.id, codes.userId))
-    .where(
-      and(eq(codes.riskStatus, 'flagged'), ne(codes.status, 'disabled'), isNull(codes.deletedAt)),
-    )
-    .orderBy(desc(codes.riskCheckedAt))
-    .limit(200)
-}
-
-/** Codes matching a search, newest first. With no search, the newest codes. */
-export async function searchCodes(db: Database, q: string) {
+/** Reports with a given status and the code they point to, searchable and one page at a time. */
+export async function listReports(
+  db: Database,
+  status: ReportStatus = 'open',
+  q = '',
+  opts: ListOptions = {},
+) {
   const term = q.trim()
-  const like = `%${term.replace(/[%_\\]/g, (c) => '\\' + c)}%`
+  const like = likePattern(term)
+  const where = and(
+    eq(reports.status, status),
+    term
+      ? or(
+          ilike(reports.reported, like),
+          ilike(reports.details, like),
+          ilike(reports.reporterEmail, like),
+          ilike(codes.name, like),
+          ilike(codes.destination, like),
+          ilike(user.email, like),
+        )
+      : undefined,
+  )
+  return paged(opts, {
+    sorts: {
+      received: reports.createdAt,
+      reason: reports.reason,
+      reported: lower(reports.reported),
+    } satisfies Record<ReportSort, Orderable>,
+    defaultSort: 'received',
+    defaultDir: 'desc',
+    tiebreak: reports.id,
+    count: async () => {
+      const [r] = await db
+        .select({ n: count() })
+        .from(reports)
+        .leftJoin(codes, eq(codes.id, reports.codeId))
+        .leftJoin(user, eq(user.id, codes.userId))
+        .where(where)
+      return r?.n ?? 0
+    },
+    rows: (orderBy, limit, offset) =>
+      db
+        .select({
+          report: reports,
+          code: {
+            id: codes.id,
+            name: codes.name,
+            slug: codes.slug,
+            destination: codes.destination,
+            status: codes.status,
+          },
+          ownerEmail: user.email,
+        })
+        .from(reports)
+        .leftJoin(codes, eq(codes.id, reports.codeId))
+        .leftJoin(user, eq(user.id, codes.userId))
+        .where(where)
+        .orderBy(...orderBy)
+        .limit(limit)
+        .offset(offset),
+  })
+}
+
+export const CODE_SORTS = ['name', 'link', 'owner', 'status', 'created', 'checked'] as const
+export type CodeSort = (typeof CODE_SORTS)[number]
+
+const codeSorts = {
+  name: lower(codes.name),
+  link: codes.slug,
+  owner: lower(user.email),
+  status: codes.status,
+  created: codes.createdAt,
+  checked: codes.riskCheckedAt,
+} satisfies Record<CodeSort, Orderable>
+
+function pagedCodes(
+  db: Database,
+  where: SQL | undefined,
+  opts: ListOptions,
+  defaultSort: CodeSort,
+) {
+  return paged(opts, {
+    sorts: codeSorts,
+    defaultSort,
+    defaultDir: 'desc',
+    tiebreak: codes.id,
+    count: async () => {
+      const [r] = await db
+        .select({ n: count() })
+        .from(codes)
+        .innerJoin(user, eq(user.id, codes.userId))
+        .where(where)
+      return r?.n ?? 0
+    },
+    rows: (orderBy, limit, offset) =>
+      db
+        .select({ code: codes, ownerEmail: user.email })
+        .from(codes)
+        .innerJoin(user, eq(user.id, codes.userId))
+        .where(where)
+        .orderBy(...orderBy)
+        .limit(limit)
+        .offset(offset),
+  })
+}
+
+/** Search terms for codes: a pasted short link or slug, a destination, an owner email or a name. */
+function codeSearch(q: string) {
+  const term = q.trim()
+  if (!term) return undefined
+  const like = likePattern(term)
   const slug = term.replace(/^https?:\/\/[^/]+\//, '').replace(/\/$/, '')
-  return db
-    .select({ code: codes, ownerEmail: user.email })
-    .from(codes)
-    .innerJoin(user, eq(user.id, codes.userId))
-    .where(
-      and(
-        isNull(codes.deletedAt),
-        term
-          ? or(
-              eq(codes.slug, slug),
-              ilike(codes.destination, like),
-              ilike(user.email, like),
-              ilike(codes.name, like),
-            )
-          : undefined,
-      ),
-    )
-    .orderBy(desc(codes.createdAt))
-    .limit(100)
+  return or(
+    eq(codes.slug, slug),
+    ilike(codes.destination, like),
+    ilike(user.email, like),
+    ilike(codes.name, like),
+  )
 }
 
-export async function searchUsers(db: Database, q: string) {
+/** Live codes the scheduled re-check flagged, most recently checked first by default. */
+export async function listFlaggedCodes(db: Database, q = '', opts: ListOptions = {}) {
+  const where = and(
+    eq(codes.riskStatus, 'flagged'),
+    ne(codes.status, 'disabled'),
+    isNull(codes.deletedAt),
+    codeSearch(q),
+  )
+  return pagedCodes(db, where, opts, 'checked')
+}
+
+/** Codes matching a search (every code when empty), newest first by default. */
+export async function searchCodes(db: Database, q: string, opts: ListOptions = {}) {
+  return pagedCodes(db, and(isNull(codes.deletedAt), codeSearch(q)), opts, 'created')
+}
+
+export const USER_SORTS = ['email', 'joined', 'codes', 'plan', 'status'] as const
+export type UserSort = (typeof USER_SORTS)[number]
+
+/** Users matching an email or name search (all users when empty), newest first by default. */
+export async function searchUsers(db: Database, q: string, opts: ListOptions = {}) {
   const term = q.trim()
-  const like = `%${term.replace(/[%_\\]/g, (c) => '\\' + c)}%`
-  return db
-    .select({
-      id: user.id,
-      email: user.email,
-      createdAt: user.createdAt,
-      suspendedAt: user.suspendedAt,
-      role: user.role,
+  const like = likePattern(term)
+  const where = term ? or(ilike(user.email, like), ilike(user.name, like)) : undefined
+  // Qualified on purpose: inside the subquery a bare "id" would mean codes.id (a uuid), not the user's id.
+  const codeCount = sql<number>`(select count(*)::int from codes c where c.user_id = "user"."id" and c.deleted_at is null)`
+  return paged(opts, {
+    sorts: {
+      email: lower(user.email),
+      joined: user.createdAt,
+      codes: codeCount,
       plan: user.plan,
-      // Qualified on purpose: inside the subquery a bare "id" would mean codes.id (a uuid), not the user's id.
-      codes: sql<number>`(select count(*)::int from codes c where c.user_id = "user"."id" and c.deleted_at is null)`,
-    })
-    .from(user)
-    .where(term ? ilike(user.email, like) : undefined)
-    .orderBy(desc(user.createdAt))
-    .limit(100)
+      // Suspended accounts first when descending; active ones have no date and sort last.
+      status: user.suspendedAt,
+    } satisfies Record<UserSort, Orderable>,
+    defaultSort: 'joined',
+    defaultDir: 'desc',
+    tiebreak: user.id,
+    count: async () => {
+      const [r] = await db.select({ n: count() }).from(user).where(where)
+      return r?.n ?? 0
+    },
+    rows: (orderBy, limit, offset) =>
+      db
+        .select({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          createdAt: user.createdAt,
+          suspendedAt: user.suspendedAt,
+          role: user.role,
+          plan: user.plan,
+          codes: codeCount,
+        })
+        .from(user)
+        .where(where)
+        .orderBy(...orderBy)
+        .limit(limit)
+        .offset(offset),
+  })
 }
 
-export async function listAudit(db: Database, limit = 200) {
-  return db
-    .select()
-    .from(auditLog)
-    .orderBy(desc(auditLog.createdAt), desc(auditLog.id))
-    .limit(limit)
+export const AUDIT_SORTS = ['when', 'who', 'action', 'target'] as const
+export type AuditSort = (typeof AUDIT_SORTS)[number]
+
+/** The audit log, newest first by default, searchable by who, what, target or details. */
+export async function listAudit(db: Database, q = '', opts: ListOptions = {}) {
+  const term = q.trim()
+  const like = likePattern(term)
+  const where = term
+    ? or(
+        ilike(auditLog.actor, like),
+        ilike(auditLog.action, like),
+        ilike(auditLog.targetId, like),
+        ilike(sql`${auditLog.details}::text`, like),
+      )
+    : undefined
+  return paged(opts, {
+    sorts: {
+      when: auditLog.createdAt,
+      who: lower(auditLog.actor),
+      action: auditLog.action,
+      target: sql`${auditLog.targetType} || ':' || ${auditLog.targetId}`,
+    } satisfies Record<AuditSort, Orderable>,
+    defaultSort: 'when',
+    defaultDir: 'desc',
+    tiebreak: auditLog.id,
+    count: async () => {
+      const [r] = await db.select({ n: count() }).from(auditLog).where(where)
+      return r?.n ?? 0
+    },
+    rows: (orderBy, limit, offset) =>
+      db
+        .select()
+        .from(auditLog)
+        .where(where)
+        .orderBy(...orderBy)
+        .limit(limit)
+        .offset(offset),
+  })
 }
 
-export async function listBlocklist(db: Database) {
-  return db.select().from(blocklist).orderBy(asc(blocklist.kind), asc(blocklist.value))
+export const BLOCK_SORTS = ['value', 'kind', 'reason', 'by', 'added'] as const
+export type BlockSort = (typeof BLOCK_SORTS)[number]
+
+/** Blocklist entries, alphabetical by default, searchable by value or reason. */
+export async function listBlocklist(db: Database, q = '', opts: ListOptions = {}) {
+  const term = q.trim()
+  const like = likePattern(term)
+  const where = term ? or(ilike(blocklist.value, like), ilike(blocklist.reason, like)) : undefined
+  return paged(opts, {
+    sorts: {
+      value: lower(blocklist.value),
+      kind: blocklist.kind,
+      reason: lower(blocklist.reason),
+      by: lower(blocklist.createdBy),
+      added: blocklist.createdAt,
+    } satisfies Record<BlockSort, Orderable>,
+    defaultSort: 'value',
+    defaultDir: 'asc',
+    tiebreak: blocklist.id,
+    count: async () => {
+      const [r] = await db.select({ n: count() }).from(blocklist).where(where)
+      return r?.n ?? 0
+    },
+    rows: (orderBy, limit, offset) =>
+      db
+        .select()
+        .from(blocklist)
+        .where(where)
+        .orderBy(...orderBy)
+        .limit(limit)
+        .offset(offset),
+  })
 }
 
 // ---------------------------------------------------------------------------
