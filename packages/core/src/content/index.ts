@@ -62,6 +62,11 @@ export type LocationFields = {
   address: string
   latitude: string
   longitude: string
+  /**
+   * Google place ID from an address suggestion, so Maps opens that exact place rather than the
+   * best match for the text. Empty when the address was typed by hand.
+   */
+  placeId?: string
 }
 export type EventFields = {
   title: string
@@ -134,7 +139,7 @@ export const DEFAULT_FIELDS: ContentFields = {
   sms: { phone: '', message: '' },
   phone: { phone: '' },
   whatsapp: { phone: '', message: '' },
-  location: { mode: 'address', address: '', latitude: '', longitude: '' },
+  location: { mode: 'address', address: '', latitude: '', longitude: '', placeId: '' },
   event: { title: '', allDay: false, start: '', end: '', location: '', description: '' },
   app: { store: 'ios', url: '' },
   social: { platform: 'instagram', handle: '' },
@@ -300,7 +305,12 @@ function encodeLocation(f: LocationFields): EncodeResult {
   const base = 'https://www.google.com/maps/search/?api=1&query='
   if (f.mode === 'address') {
     if (!f.address.trim()) return empty()
-    return ok(base + encodeURIComponent(f.address.trim()))
+    const placeId = f.placeId?.trim()
+    return ok(
+      base +
+        encodeURIComponent(f.address.trim()) +
+        (placeId ? `&query_place_id=${encodeURIComponent(placeId)}` : ''),
+    )
   }
   if (!f.latitude.trim() && !f.longitude.trim()) return empty()
   const lat = Number(f.latitude)
