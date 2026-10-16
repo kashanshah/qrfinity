@@ -41,7 +41,7 @@ describe('plans and feature flags', () => {
   it('lets an admin set a plan, audited', async () => {
     await setUserPlan(admin(), 'alice', 'plus')
     await expect(setUserPlan(admin(), 'alice', 'gold')).rejects.toThrow(
-      'Choose free, starter, plus, pro or unlimited',
+      'Choose free, plus, pro or unlimited',
     )
     expect(await db.select().from(auditLog)).toMatchObject([
       { action: 'user.plan', targetId: 'alice' },

@@ -514,9 +514,9 @@ export const PRICING: ContentPage = {
   kind: 'pricing',
   label: 'Pricing',
   h1: 'Everything free. Pay only for more.',
-  title: 'Pricing: every feature free, plans from $2/month',
+  title: 'Pricing: every feature free, plans from $5/month',
   description:
-    'Unlimited static and dynamic codes, analytics and every format, free forever. Use advanced features on one code free, or more from $2/month.',
+    'Unlimited static and dynamic codes, analytics and every format, free forever. Use advanced features on one code free, or more from $5/month.',
   intro: 'Every feature is free. Paid plans let you use advanced features on more codes.',
   updated: U,
 }

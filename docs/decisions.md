@@ -119,12 +119,13 @@ Admin → Usage compares the qrfinity.link Cloudflare account with its plan's li
 Kashan's direction: keep every feature free unless it costs us; charge for volume.
 
 - **Free, unlimited:** static codes, dynamic codes, editing, full design, every format, scan analytics including up to 2 years of history (daily roll-ups cost almost nothing), data export.
-- **Advanced features** count toward a per-account allowance of codes that may use them: custom short links (live), redirect rules by device/country/time, password protection, custom domains (planned). A code counts once however many advanced features it uses. Plain dynamic codes never count.
+- **Advanced features** count toward a per-account allowance of codes that may use them: custom short links (live), redirect rules by device/country/time and password protection (planned). A code counts once however many advanced features it uses. Plain dynamic codes never count.
 - **No new jargon for users.** They see "static" and "dynamic" codes, and "advanced features on N codes". Internally: "advanced codes".
-- **Plans** (`PLAN_DETAILS` in `packages/core/src/plans`): Free, advanced features on 1 code (admin setting, default 1); Starter 3 codes, $2/month; Plus 10, $5; Pro 100, $20; Unlimited, every code, $50. Yearly prices are 10× monthly (2 months free), a proposal to confirm. Low tiers lose about 30% to payment fees when paid monthly, so yearly billing matters there.
+- **Plans** (`PLAN_DETAILS` in `packages/core/src/plans`): Free, advanced features on 1 code (admin setting, default 1); Plus 10 codes, $5/month; Pro 100, $20; Unlimited, every code, $50. A $2 tier for 3 codes was dropped (fees would take about a third of it). Yearly prices are 10× monthly (2 months free), a proposal to confirm.
 - **Rules carried over:** stopping paying never breaks anything (codes with advanced features keep working; you can't add more); an allowance never shrinks for what already exists; free features never move behind a paywall.
-- **Dropped:** retargeting pixels (would track scanners on qrfinity.link). **Made free:** analytics history and its CSV. **Undecided:** bulk creation, team seats, API; custom domains likely from Plus up because they have a per-domain cost.
-- **Not built yet:** billing (provider to choose: Paddle or Lemon Squeezy as merchant of record, or Stripe), redirect rules, password protection, custom domains. Until billing exists an admin sets plans, and the pricing page shows plans as "Coming soon" with a waitlist.
+- **Dropped:** retargeting pixels (would track scanners on qrfinity.link). **Made free:** analytics history and its CSV. **Undecided:** bulk creation, team seats, API. **Later, only if customers ask:** custom domains (low demand among small businesses, the most work, and a per-domain cost); not shown on the pricing page.
+- **Billing: Stripe** (already in use), with Stripe Tax to calculate and collect tax. Canadian GST/HST is generally zero-rated for customers outside Canada, but EU and UK VAT apply to consumer sales from the first sale, US states after their thresholds, and GST/HST to Canadian customers past the $30k small-supplier threshold: confirm with an accountant before launch.
+- **Not built yet:** billing, redirect rules, password protection. Until billing exists an admin sets plans, and the pricing page shows plans as "Coming soon" with a waitlist.
 
 ## Name and domains
 

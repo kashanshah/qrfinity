@@ -37,7 +37,6 @@ const ADVANCED: { name: string; detail: string; ready: boolean }[] = [
     detail: 'Only people with the password can open the link',
     ready: false,
   },
-  { name: 'Your own domain', detail: 'go.joescafe.com instead of qrfinity.link', ready: false },
 ]
 
 const codes = (plan: Plan) => {
@@ -172,7 +171,7 @@ export default function PricingPage() {
           Every plan includes every feature. Plans differ only in how many codes can use advanced
           features.
         </p>
-        <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PLANS.map((plan) => {
             const d = PLAN_DETAILS[plan]
             return (

@@ -43,8 +43,8 @@ describe('plans', () => {
   it('uses the admin setting for free and never gives a paid plan less', () => {
     expect(advancedCodeAllowance('free', 1)).toBe(1)
     expect(advancedCodeAllowance('free', 2)).toBe(2)
-    expect(advancedCodeAllowance('starter', 1)).toBe(3)
-    expect(advancedCodeAllowance('starter', 5)).toBe(5)
+    expect(advancedCodeAllowance('plus', 1)).toBe(10)
+    expect(advancedCodeAllowance('plus', 12)).toBe(12)
     expect(advancedCodeAllowance('unlimited', 1)).toBe(Number.POSITIVE_INFINITY)
   })
 

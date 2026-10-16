@@ -71,11 +71,12 @@ describe('custom short links', () => {
   })
 
   it('gives more codes with advanced features on paid plans', async () => {
-    await setUserPlan(admin(), 'alice', 'starter')
     await make('alice', 'menu-one')
+    await expect(make('alice', 'menu-two')).rejects.toThrow('on 1 of 1 code')
+    await setUserPlan(admin(), 'alice', 'plus')
+    expect((await advancedCodeUsage(ctxFor(db, 'alice'))).allowance).toBe(10)
     await make('alice', 'menu-two')
     await make('alice', 'menu-three')
-    await expect(make('alice', 'menu-four')).rejects.toThrow('on 3 of 3 codes')
     await setUserPlan(admin(), 'alice', 'unlimited')
     expect((await advancedCodeUsage(ctxFor(db, 'alice'))).allowance).toBe(Number.POSITIVE_INFINITY)
     await make('alice', 'menu-four')

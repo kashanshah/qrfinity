@@ -39,7 +39,7 @@ export const user = pgTable('user', {
   role: text('role').$type<'user' | 'admin'>().notNull().default('user'),
   /** Set by an admin (Phase 4). A suspended user can't sign in or edit; their codes keep working unless disabled one by one. */
   suspendedAt: timestamp('suspended_at', { withTimezone: true }),
-  /** Free, starter, plus, pro or unlimited: how many codes may use advanced features. Set by an admin until billing exists. */
+  /** Free, plus, pro or unlimited: how many codes may use advanced features. Set by an admin until billing exists. */
   plan: text('plan').$type<Plan>().notNull().default('free'),
   createdAt: createdAt(),
   updatedAt: updatedAt(),

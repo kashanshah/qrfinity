@@ -16,7 +16,7 @@ A free QR code generator whose codes never expire, built as an organic traffic m
 - Phase 4 (abuse protection, reports, admin) approved and merged. Legal pages finalized 2026-10-16 (Ontario law, 12-month shutdown notice, 2-year retention of reports and audit log); contact mailboxes: hello@, info@, abuse@, legal@ qrfinity.com.
 - Phase 5 (SEO pages) approved and merged; pages stay `noindex` until `NEXT_PUBLIC_INDEXABLE=true`. Competitor facts on `/alternatives/*` must be re-checked on the live sites before launch.
 - Phase 6 (plans, feature flags, analytics roll-ups, partner links; no billing) approved and merged. All phases in the plan are done.
-- Pricing model (2026-10-16): every feature free; advanced features (custom short links now; redirect rules, passwords, custom domains planned) on 1 code free, 3/10/100/unlimited codes on Starter $2, Plus $5, Pro $20, Unlimited $50 a month. No billing yet. See docs/decisions.md.
+- Pricing model (2026-10-16): every feature free; advanced features (custom short links now; redirect rules and passwords planned) on 1 code free, 10/100/unlimited codes on Plus $5, Pro $20, Unlimited $50 a month. Billing: Stripe (not built yet). See docs/decisions.md.
 - Launch readiness: IndexNow, llms.txt/llms-full.txt, AI crawler rules, security.txt, search console verification tags, About page.
 - Domains qrfinity.com, qrfinity.link and qrfinity.ca are registered. Exact-name trademark searches (USPTO, CIPO) came back clear.
 

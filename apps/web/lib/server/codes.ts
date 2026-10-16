@@ -332,8 +332,8 @@ export async function createDynamicCode(
 
 /**
  * Codes using advanced features, and how many the user's plan allows. A code counts once however
- * many advanced features it uses. Today that's custom short links; redirect rules, passwords and
- * custom domains will count here too.
+ * many advanced features it uses. Today that's custom short links; redirect rules and passwords
+ * will count here too.
  */
 export async function advancedCodeUsage(ctx: ServiceContext) {
   const [[owner], free, [row]] = await Promise.all([

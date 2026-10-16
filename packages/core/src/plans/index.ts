@@ -2,7 +2,7 @@
  * Plans and features (pricing model decided 2026-10-16, see docs/decisions.md).
  *
  * Every feature is free to use. Plain dynamic codes are unlimited. Advanced features (custom short
- * links, redirect rules, password protection, and later custom domains) can be used on a limited
+ * links, redirect rules and password protection) can be used on a limited
  * number of codes: 1 free, more on paid plans. Stopping paying never breaks a code; it only stops
  * adding advanced features to more codes. No billing exists yet: an admin sets a user's plan.
  *
@@ -10,7 +10,7 @@
  * promise; test/plans.test.ts fails if anything is removed from it.
  */
 
-export const PLANS = ['free', 'starter', 'plus', 'pro', 'unlimited'] as const
+export const PLANS = ['free', 'plus', 'pro', 'unlimited'] as const
 export type Plan = (typeof PLANS)[number]
 
 export type PlanDetails = {
@@ -24,7 +24,6 @@ export type PlanDetails = {
 
 export const PLAN_DETAILS: Record<Plan, PlanDetails> = {
   free: { name: 'Free', advancedCodes: 1, monthlyUsd: null, yearlyUsd: null },
-  starter: { name: 'Starter', advancedCodes: 3, monthlyUsd: 2, yearlyUsd: 20 },
   plus: { name: 'Plus', advancedCodes: 10, monthlyUsd: 5, yearlyUsd: 50 },
   pro: { name: 'Pro', advancedCodes: 100, monthlyUsd: 20, yearlyUsd: 200 },
   unlimited: {
@@ -50,8 +49,8 @@ export const FEATURES = {
   customSlugs: 'Custom short links, like qrfinity.link/joes-menu',
   redirectRules: 'Redirect rules by device, country or time',
   passwordProtection: 'Password-protected codes',
+  // Planned or later, scope not decided (custom domains: only if customers ask)
   customDomain: 'Your own short domain, like go.joescafe.com',
-  // Planned, scope not decided
   bulkCreate: 'Bulk creation from a spreadsheet',
   teamSeats: 'Team seats',
   api: 'API access',
@@ -75,7 +74,6 @@ export const ADVANCED_FEATURES = [
   'customSlugs',
   'redirectRules',
   'passwordProtection',
-  'customDomain',
 ] as const satisfies readonly Feature[]
 export type AdvancedFeature = (typeof ADVANCED_FEATURES)[number]
 

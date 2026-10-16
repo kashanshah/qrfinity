@@ -25,9 +25,9 @@ export default async function AdminSettings() {
         <h2 className="subheading text-ink">Free codes with advanced features</h2>
         <p className="mt-1 text-ink-muted">
           How many codes each free account can use advanced features on (custom short links today;
-          redirect rules, passwords and custom domains later). Paid plans get 3, 10, 100 or
-          unlimited, and never fewer than this. Lowering it only affects new codes; existing ones
-          keep working and stay with their owners.
+          redirect rules and passwords later). Paid plans get 10, 100 or unlimited, and never fewer
+          than this. Lowering it only affects new codes; existing ones keep working and stay with
+          their owners.
         </p>
         <p className="body-small mt-2 text-ink-muted">
           In use: {stats?.links ?? 0} codes with advanced features across {stats?.owners ?? 0}{' '}
