@@ -19,12 +19,47 @@ function getWorker(): Worker {
   return worker
 }
 
-async function decode(image: ImageData): Promise<string | null> {
+async function decode(image: ImageData, photo = false): Promise<string | null> {
   const id = nextId++
   return new Promise((resolve) => {
     pending.set(id, resolve)
-    getWorker().postMessage({ id, image }, [image.data.buffer])
+    getWorker().postMessage({ id, image, photo }, [image.data.buffer])
   })
+}
+
+function pixels(source: CanvasImageSource, width: number, height: number, maxSide: number) {
+  const scale = Math.min(1, maxSide / Math.max(width, height))
+  const w = Math.max(1, Math.round(width * scale))
+  const h = Math.max(1, Math.round(height * scale))
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })!
+  ctx.fillStyle = '#ffffff' // transparent PNGs decode against white, like paper
+  ctx.fillRect(0, 0, w, h)
+  ctx.drawImage(source, 0, 0, w, h)
+  return ctx.getImageData(0, 0, w, h)
+}
+
+/**
+ * Reads a QR code from a photo, screenshot or saved image, entirely in the browser. Big photos
+ * are tried scaled down first (faster, and often more reliable), then at up to 3000 px.
+ */
+export async function decodeImageFile(file: Blob): Promise<string | null> {
+  const bitmap = await createImageBitmap(file)
+  try {
+    const { width, height } = bitmap
+    const first = await decode(pixels(bitmap, width, height, 1600), true)
+    if (first !== null || Math.max(width, height) <= 1600) return first
+    return await decode(pixels(bitmap, width, height, 3000), true)
+  } finally {
+    bitmap.close()
+  }
+}
+
+/** Reads a QR code from one camera frame. */
+export function decodeVideoFrame(video: HTMLVideoElement): Promise<string | null> {
+  return decode(pixels(video, video.videoWidth, video.videoHeight, 1280), true)
 }
 
 export type ScanState = { status: 'checking' } | { status: 'done'; decoded: string | null }

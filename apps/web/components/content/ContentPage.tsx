@@ -1,5 +1,6 @@
 import { DYNAMIC_TYPES } from '@qrfinity/core'
 import type { MDXComponents } from 'mdx/types'
+import type { ReactNode } from 'react'
 import { Generator } from '@/components/generator/Generator'
 import { getPage, HOME, type ContentPage as Page } from '@/content/registry'
 import type { ContentModule } from '@/content/load'
@@ -44,7 +45,16 @@ const formatDate = (iso: string) =>
  * breadcrumbs, H1 and promise line, the preloaded generator (if any), the MDX body,
  * FAQ, related links and the fact block, plus structured data.
  */
-export function ContentPage({ page, content }: { page: Page; content: ContentModule }) {
+export function ContentPage({
+  page,
+  content,
+  tool,
+}: {
+  page: Page
+  content: ContentModule
+  /** A tool page's tool, shown where other pages show the generator. */
+  tool?: ReactNode
+}) {
   const Body = content.default
   const g = page.generator
   const dated = page.kind === 'guide' || page.kind === 'alternative' || page.kind === 'landing'
@@ -60,6 +70,12 @@ export function ContentPage({ page, content }: { page: Page; content: ContentMod
           </p>
         ) : null}
       </header>
+
+      {tool ? (
+        <section aria-label={page.label} className="mb-12">
+          {tool}
+        </section>
+      ) : null}
 
       {g ? (
         <section aria-label="QR code generator" className="mb-12">

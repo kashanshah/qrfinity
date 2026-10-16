@@ -9,13 +9,15 @@ prepareZXingModule({
   },
 })
 
-self.onmessage = async (event: MessageEvent<{ id: number; image: ImageData }>) => {
-  const { id, image } = event.data
+self.onmessage = async (event: MessageEvent<{ id: number; image: ImageData; photo?: boolean }>) => {
+  const { id, image, photo } = event.data
   try {
     const results = await readBarcodes(image, {
       formats: ['QRCode'],
       tryHarder: true,
       maxNumberOfSymbols: 1,
+      // Photos and screenshots of printed codes: turned, light-on-dark or tiny in a big frame.
+      ...(photo ? { tryRotate: true, tryInvert: true, tryDownscale: true } : {}),
     })
     const hit = results.find((r) => r.isValid)
     self.postMessage({ id, text: hit ? hit.text : null })

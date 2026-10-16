@@ -9,7 +9,16 @@ export const SITE_URL = 'https://qrfinity.com'
 export const SITE_NAME = 'QRfinity'
 
 export type PageKind =
-  'home' | 'use-case' | 'landing' | 'guide' | 'alternative' | 'hub' | 'pricing' | 'about' | 'legal'
+  | 'home'
+  | 'use-case'
+  | 'landing'
+  | 'tool'
+  | 'guide'
+  | 'alternative'
+  | 'hub'
+  | 'pricing'
+  | 'about'
+  | 'legal'
 
 export type GeneratorPreset = {
   type: ContentType
@@ -509,6 +518,36 @@ export const HOME: ContentPage = {
   updated: U,
 }
 
+/** Free tools that run in the browser, next to the generator. */
+export const TOOLS: ContentPage[] = [
+  {
+    path: '/qr-code-scanner',
+    kind: 'tool',
+    label: 'QR code scanner',
+    h1: 'QR code scanner: read a code from an image or your camera',
+    title: 'QR code scanner online: read from an image or camera',
+    description:
+      'Scan a QR code from a photo, screenshot or your camera, right in your browser. See what it holds before you open it. Free, no app, nothing uploaded.',
+    intro: 'See what a code holds before you open it. It never leaves your browser.',
+    updated: U,
+    related: ['/qr-code-checker', '/qr-code-generator/url', '/qr-code-generator/wifi'],
+    guides: ['/guides/static-vs-dynamic-qr-codes', '/guides/do-qr-codes-expire'],
+  },
+  {
+    path: '/qr-code-checker',
+    kind: 'tool',
+    label: 'QR code checker',
+    h1: 'Find out why your QR code stopped working',
+    title: 'QR code checker: why did my QR code stop working?',
+    description:
+      'Upload a photo of a QR code that stopped working. See where it points, who made it and if the link still works, then make one that never expires.',
+    intro: 'Find out what broke, and replace it with a code that never expires.',
+    updated: U,
+    related: ['/qr-code-stopped-working', '/dynamic-qr-code-generator', '/qr-code-scanner'],
+    guides: ['/guides/do-qr-codes-expire', '/guides/static-vs-dynamic-qr-codes'],
+  },
+]
+
 export const PRICING: ContentPage = {
   path: '/pricing',
   kind: 'pricing',
@@ -574,6 +613,7 @@ export const ALL_PAGES: ContentPage[] = [
   ...HUBS,
   ...USE_CASES,
   ...LANDINGS,
+  ...TOOLS,
   ...GUIDES,
   ...ALTERNATIVES,
   PRICING,

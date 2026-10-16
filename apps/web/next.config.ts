@@ -60,7 +60,17 @@ const nextConfig: NextConfig = {
           { key: 'Content-Security-Policy', value: csp },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
+      // The scanner and checker read codes with the camera; every other page keeps it off.
+      {
+        source: '/:path((?!qr-code-scanner$|qr-code-checker$).*)',
+        headers: [{ key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' }],
+      },
+      {
+        source: '/:path(qr-code-scanner|qr-code-checker)',
+        headers: [
+          { key: 'Permissions-Policy', value: 'camera=(self), microphone=(), geolocation=()' },
         ],
       },
     ]

@@ -18,6 +18,8 @@ const COLUMNS = [
       ['/dynamic-qr-code-generator', 'Dynamic QR codes'],
       ['/qr-code-no-expiration', 'No expiration'],
       ['/qr-code-stopped-working', 'Code stopped working?'],
+      ['/qr-code-checker', 'QR code checker'],
+      ['/qr-code-scanner', 'QR code scanner'],
       [PRICING.path, PRICING.label],
     ],
   },

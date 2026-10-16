@@ -31,6 +31,7 @@ export const LIMITS = {
   editPerHour: { limit: 300, window: 3600 },
   magicLinkPerEmail: { limit: 5, window: 3600 },
   magicLinkPerVisitor: { limit: 20, window: 3600 },
+  linkCheckPerVisitor: { limit: 30, window: 3600 },
 } as const
 
 export function retryMessage(seconds: number): string {
