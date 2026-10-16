@@ -36,6 +36,13 @@
       "when": 1792114722365,
       "tag": "0004_pro_waitlist",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792118039180,
+      "tag": "0005_plans_flags_scan_daily",
+      "breakpoints": true
     }
   ]
 }

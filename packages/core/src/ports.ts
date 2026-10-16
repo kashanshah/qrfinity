@@ -2,6 +2,7 @@
  * Interfaces for every outside service the app depends on. Each has one implementation
  * today; swapping hosts or vendors means writing another implementation, not changing callers.
  */
+import type { DailyRollup } from './analytics/rollup'
 import type { ReportScope, ScanReport } from './analytics/report'
 import type { LinkRecord } from './links/record'
 import type { ReputationResult } from './links/screening'
@@ -16,6 +17,8 @@ export interface EdgeSync {
 export interface ScanAnalytics {
   report(scope: ReportScope, days?: number): Promise<ScanReport>
   codeTotals(ownerId: string, days?: number): Promise<Map<string, number>>
+  /** Per-code totals for one complete UTC day (YYYY-MM-DD), for the nightly roll-up. */
+  dailyRollup(day: string): Promise<DailyRollup[]>
   /** True when real data is available (false for a sample/unconfigured backend). */
   readonly live: boolean
 }

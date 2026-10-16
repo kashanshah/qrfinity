@@ -1,7 +1,7 @@
 'use client'
 
 import { formatPrintSize } from '@qrfinity/core'
-import { Download } from 'lucide-react'
+import { Download, Sticker } from 'lucide-react'
 import { useId, useState } from 'react'
 import {
   MAX_RASTER_PX,
@@ -16,6 +16,7 @@ import {
   type ExportJob,
 } from '@/lib/export'
 import { useGenerator } from '@/lib/generator-context'
+import { PRINT_PARTNER_URL } from '@/lib/partners'
 import { Button } from '../ui/Button'
 import { SelectField } from '../ui/Field'
 
@@ -27,6 +28,7 @@ export function ExportPanel({ job, scanFailed }: { job: ExportJob | null; scanFa
   const [pngSize, setPngSize] = useState<PngSize>('1024')
   const [busy, setBusy] = useState<string | null>(null)
   const [status, setStatus] = useState<string | null>(null)
+  const [downloaded, setDownloaded] = useState(false)
   const widthId = useId()
   const printPx = printPixels(printWidthMm)
   const disabled = !job || busy !== null
@@ -42,6 +44,7 @@ export function ExportPanel({ job, scanFailed }: { job: ExportJob | null; scanFa
     try {
       downloadBlob(await make(job), filename)
       setStatus(`Downloaded ${filename}.`)
+      setDownloaded(true)
     } catch {
       setStatus(`The ${label} could not be created in this browser. Try another format.`)
     } finally {
@@ -143,6 +146,17 @@ export function ExportPanel({ job, scanFailed }: { job: ExportJob | null; scanFa
             ? 'Fix the scan warning before you print.'
             : 'Every format is free. No watermark, no sign-up.')}
       </p>
+      {downloaded && PRINT_PARTNER_URL ? (
+        <a
+          href={PRINT_PARTNER_URL}
+          target="_blank"
+          rel="noopener"
+          className="body-small inline-flex items-center gap-1.5 self-start text-evergreen underline"
+        >
+          <Sticker aria-hidden="true" size={16} strokeWidth={1.75} />
+          Print your QR code as stickers or magnets
+        </a>
+      ) : null}
     </div>
   )
 }

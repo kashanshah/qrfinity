@@ -3,6 +3,7 @@
 import { weekly, type Breakdown, type ScanReport } from '@qrfinity/core'
 import { Download, Table2 } from 'lucide-react'
 import Link from 'next/link'
+import { rangeLabel } from '@/lib/days'
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 
 const COUNTRY = new Intl.DisplayNames(['en'], { type: 'region' })
@@ -246,11 +247,17 @@ export function AnalyticsView({
   days,
   live,
   basePath,
+  ranges = [7, 30, 90],
+  history = false,
 }: {
   report: ScanReport
   days: number
   live: boolean
   basePath: string
+  /** Ranges this user can choose; longer than 90 days needs analytics history. */
+  ranges?: number[]
+  /** True when the report comes from daily roll-ups (complete days up to yesterday). */
+  history?: boolean
 }) {
   const [grain, setGrain] = useState<'day' | 'week'>(days > 30 ? 'week' : 'day')
   const [showTable, setShowTable] = useState(false)
@@ -310,8 +317,8 @@ export function AnalyticsView({
     <div className="flex flex-col gap-6">
       {/* Filters: one row, above everything they scope. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <nav aria-label="Date range" className="flex gap-1">
-          {[7, 30, 90].map((d) => (
+        <nav aria-label="Date range" className="flex flex-wrap gap-1">
+          {ranges.map((d) => (
             <Link
               key={d}
               href={`${basePath}?days=${d}`}
@@ -319,7 +326,7 @@ export function AnalyticsView({
               aria-current={d === days ? 'page' : undefined}
               className={pill(d === days)}
             >
-              Last {d} days
+              {rangeLabel(d)}
             </Link>
           ))}
         </nav>
@@ -346,6 +353,12 @@ export function AnalyticsView({
       {!live ? (
         <p className="body-small rounded-md bg-surface-sunk px-4 py-3 text-ink-muted">
           Analytics isn’t connected in this environment, so every count shows zero.
+        </p>
+      ) : null}
+      {history ? (
+        <p className="body-small rounded-md bg-surface-sunk px-4 py-3 text-ink-muted">
+          Long ranges come from daily totals, updated each night. They cover complete days up to
+          yesterday.
         </p>
       ) : null}
 

@@ -7,6 +7,7 @@ import { sql } from 'drizzle-orm'
 import {
   bigserial,
   boolean,
+  date,
   index,
   integer,
   jsonb,
@@ -38,6 +39,8 @@ export const user = pgTable('user', {
   role: text('role').$type<'user' | 'admin'>().notNull().default('user'),
   /** Set by an admin (Phase 4). A suspended user can't sign in or edit; their codes keep working unless disabled one by one. */
   suspendedAt: timestamp('suspended_at', { withTimezone: true }),
+  /** 'free', 'pro' or 'business' (Phase 6). No billing yet: set by an admin. */
+  plan: text('plan').$type<'free' | 'pro' | 'business'>().notNull().default('free'),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 })
@@ -324,3 +327,39 @@ export const proWaitlist = pgTable('pro_waitlist', {
   email: text('email').primaryKey(),
   createdAt: createdAt(),
 })
+
+/**
+ * Feature flags (Phase 6): switch an unreleased or paid feature on for everyone or for listed
+ * users. Flags only ever add features; free features don't depend on them.
+ */
+export const featureFlags = pgTable('feature_flags', {
+  key: text('key').primaryKey(),
+  enabled: boolean('enabled').notNull().default(false),
+  userIds: text('user_ids')
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+  updatedBy: text('updated_by'),
+  updatedAt: updatedAt(),
+})
+
+/**
+ * Daily scan totals per code (Phase 6), rolled up each night from the live analytics backend so
+ * history outlives Analytics Engine's 90-day retention. One row per code per UTC day with scans.
+ */
+export const scanDaily = pgTable(
+  'scan_daily',
+  {
+    codeId: uuid('code_id')
+      .notNull()
+      .references(() => codes.id, { onDelete: 'cascade' }),
+    day: date('day', { mode: 'string' }).notNull(),
+    scans: integer('scans').notNull(),
+    uniques: integer('uniques').notNull(),
+    /** Scans per UTC hour, 24 numbers. */
+    hours: jsonb('hours').$type<number[]>().notNull(),
+    /** Top keys per breakdown for the day: { countries: { CA: 3 }, devices: { mobile: 2 }, … }. */
+    breakdowns: jsonb('breakdowns').$type<Record<string, Record<string, number>>>().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.codeId, t.day] }), index('scan_daily_day_idx').on(t.day)],
+)

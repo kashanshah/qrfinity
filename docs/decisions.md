@@ -80,6 +80,13 @@ Full detail in `docs/architecture.md`.
 - Extras: "print your QR code as stickers or magnets" link to Craftigure; "need a campaign built?" link to Teknoffice. No ads on the generator, dashboard or redirects.
 - Rule: never move an existing free feature behind the paywall; never deactivate a code.
 
+### Built in Phase 6 (October 2026, no billing yet)
+
+- **Plans in code** (`packages/core/src/plans`): every feature, which plan includes it, and `FREE_FEATURES`, the public promise. A test fails if anything leaves the free list or if a higher plan stops including a lower one.
+- **Entitlements = plan + flags.** `user.plan` (free, pro, business) is set by an admin until billing exists. `feature_flags` turns a paid or unreleased feature on for everyone or for named accounts (admin → Feature flags). Flags only add; free features never depend on them. Every change is in the audit log.
+- **Analytics history**: a nightly Vercel Cron (`/api/cron/rollup`, 02:40 UTC) rolls yesterday and the day before into `scan_daily` (one row per code per day: scans, uniques, 24 hourly counts, top 25 keys per breakdown). It runs for every code, free or paid, so history already exists when someone upgrades; it's tiny (a few hundred bytes per active code per day). Postgres instead of D1/R2, because Postgres is our database (Phase 1). Ranges over 90 days (1 and 2 years) read the roll-ups and are offered only with `analyticsHistory`. `?days=90` on the cron backfills once after the first deploy. To confirm on real Analytics Engine: `toDateTime()` in the roll-up queries (same caveat as `COUNT(DISTINCT …)`).
+- **Partner links**: "Print your QR code as stickers or magnets" after a download (`NEXT_PUBLIC_PRINT_PARTNER_URL`, intended for Craftigure) and "Need a QR campaign or landing page built?" in the footer (`NEXT_PUBLIC_AGENCY_URL`, Teknoffice). Hidden when unset; UTM tags added automatically. No ads anywhere.
+
 ## Name and domains
 
 - Chosen: **QRfinity** (QR + infinity). Rejected: QRLasts (sounds like "QR Last"; qrlast.com belongs to someone else), QRVow (sounds like "QR Wow"), QRLasting (clear but forgettable), InfiniQR (spelling risk).
