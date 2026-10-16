@@ -38,6 +38,7 @@ const ICONS = {
   // The mark is the wordmark alone; its app icon is the white wordmark on red.
   xiaohongshu: { icon: si.siXiaohongshu, bg: '#FF2442', mark: '#FFFFFF' },
   wechat: { icon: si.siWechat },
+  alipay: { icon: si.siAlipay },
   spotify: { icon: si.siSpotify },
   appstore: { icon: si.siAppstore },
   googleplay: { icon: si.siGoogleplay },

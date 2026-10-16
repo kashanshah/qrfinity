@@ -23,6 +23,7 @@ export const BRAND_ICONS = {
   bilibili: 'bilibili',
   xiaohongshu: 'Xiaohongshu',
   wechat: 'WeChat',
+  alipay: 'Alipay',
   spotify: 'Spotify',
   appstore: 'App Store',
   googleplay: 'Google Play',
@@ -69,6 +70,7 @@ const HOSTS: [BrandIcon, string[]][] = [
   ['bilibili', ['bilibili.com', 'b23.tv']],
   ['xiaohongshu', ['xiaohongshu.com', 'xhslink.com']],
   ['wechat', ['weixin.qq.com', 'wechat.com']],
+  ['alipay', ['alipay.com']],
   ['spotify', ['spotify.com', 'spotify.link']],
   ['appstore', ['apps.apple.com', 'itunes.apple.com']],
   ['googleplay', ['play.google.com']],
@@ -100,6 +102,9 @@ export function brandFor<K extends ContentType>(
       return (fields as ContentFields['app']).store === 'ios' ? 'appstore' : 'googleplay'
     case 'url':
       return brandForUrl((fields as ContentFields['url']).url)
+    case 'text':
+      // WeChat Pay codes hold a wxp:// address rather than a web link.
+      return /^\s*wxp:\/\//i.test((fields as ContentFields['text']).text) ? 'wechat' : null
     default:
       return null
   }

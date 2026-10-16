@@ -30,12 +30,7 @@ import type { LinkCheck } from '@/lib/server/link-check'
 
 type Mode = 'scanner' | 'checker'
 
-type Phase =
-  | { s: 'idle' }
-  | { s: 'reading' }
-  | { s: 'camera' }
-  | { s: 'none'; message: string }
-  | { s: 'found'; text: string }
+type Phase = { s: 'idle' } | { s: 'reading' } | { s: 'camera' } | { s: 'none'; message: string }
 
 /**
  * Reads a QR code from an image, a pasted screenshot or the camera, entirely in the browser, and
@@ -43,6 +38,39 @@ type Phase =
  * might have stopped working. Only the optional link check talks to our server.
  */
 export function QrReader({ mode, shortLinkBase }: { mode: Mode; shortLinkBase: string }) {
+  const [text, setText] = useState<string | null>(null)
+  if (text !== null) {
+    return (
+      <Result text={text} mode={mode} shortLinkBase={shortLinkBase} onReset={() => setText(null)} />
+    )
+  }
+  return (
+    <QrInput
+      heading={
+        mode === 'checker'
+          ? 'Add a photo or screenshot of the QR code that stopped working'
+          : 'Add a photo or screenshot of a QR code'
+      }
+      onFound={setText}
+      onRead={(source, found) => report(mode, source, found)}
+    />
+  )
+}
+
+/**
+ * The image, paste and camera input shared by the QR tools. Everything is decoded in the
+ * browser; `onFound` gets the text inside the code.
+ */
+export function QrInput({
+  heading,
+  onFound,
+  onRead,
+}: {
+  heading: string
+  onFound: (text: string) => void
+  /** Every read attempt, found or not (for analytics). */
+  onRead?: (source: 'image' | 'camera', text: string | null) => void
+}) {
   const [phase, setPhase] = useState<Phase>({ s: 'idle' })
   const fileInput = useRef<HTMLInputElement>(null)
   const inputId = useId()
@@ -56,21 +84,22 @@ export function QrReader({ mode, shortLinkBase }: { mode: Mode; shortLinkBase: s
       setPhase({ s: 'reading' })
       try {
         const text = await decodeImageFile(file)
-        report(mode, 'image', text)
-        setPhase(
-          text === null
-            ? {
-                s: 'none',
-                message:
-                  'We couldn’t find a QR code in that image. Try a sharper photo, taken straight on, with the whole code in view.',
-              }
-            : { s: 'found', text },
-        )
+        onRead?.('image', text)
+        if (text === null) {
+          setPhase({
+            s: 'none',
+            message:
+              'We couldn’t find a QR code in that image. Try a sharper photo, taken straight on, with the whole code in view.',
+          })
+        } else {
+          setPhase({ s: 'idle' })
+          onFound(text)
+        }
       } catch {
         setPhase({ s: 'none', message: 'That image couldn’t be opened. Try a JPG or PNG.' })
       }
     },
-    [mode],
+    [onFound, onRead],
   )
 
   // Paste a screenshot anywhere on the page.
@@ -87,23 +116,13 @@ export function QrReader({ mode, shortLinkBase }: { mode: Mode; shortLinkBase: s
     return () => window.removeEventListener('paste', onPaste)
   }, [readFile])
 
-  if (phase.s === 'found') {
-    return (
-      <Result
-        text={phase.text}
-        mode={mode}
-        shortLinkBase={shortLinkBase}
-        onReset={() => setPhase({ s: 'idle' })}
-      />
-    )
-  }
-
   if (phase.s === 'camera') {
     return (
       <CameraScan
         onFound={(text) => {
-          report(mode, 'camera', text)
-          setPhase({ s: 'found', text })
+          onRead?.('camera', text)
+          setPhase({ s: 'idle' })
+          onFound(text)
         }}
         onCancel={(message) => setPhase(message ? { s: 'none', message } : { s: 'idle' })}
       />
@@ -121,11 +140,7 @@ export function QrReader({ mode, shortLinkBase }: { mode: Mode; shortLinkBase: s
           if (file) void readFile(file)
         }}
       >
-        <p className="subheading text-ink">
-          {mode === 'checker'
-            ? 'Add a photo or screenshot of the QR code that stopped working'
-            : 'Add a photo or screenshot of a QR code'}
-        </p>
+        <p className="subheading text-ink">{heading}</p>
         <p className="body-small max-w-[48ch] text-ink-muted">
           Drop an image here, paste a screenshot, or use your camera. The image is read in your
           browser and never uploaded.

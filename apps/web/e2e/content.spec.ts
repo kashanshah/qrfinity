@@ -73,6 +73,22 @@ test.describe('content pages', () => {
     await expect(page.getByLabel('Network name (SSID)')).toHaveValue('Cafe Guest')
   })
 
+  test('the WeChat page restyles a WeChat code without changing it', async ({ page }) => {
+    await page.goto('/qr-code-generator/wechat')
+    await page
+      .locator('input[type=file]')
+      .setInputFiles(fileURLToPath(new URL('./fixtures/wechat-group-qr.png', import.meta.url)))
+    await expect(page.getByRole('heading', { name: '1. Your WeChat group code' })).toBeVisible()
+    await expect(page.getByText('https://weixin.qq.com/g/AbCdEf123456')).toBeVisible()
+    await expect(page.getByText(/stop working 7 days after WeChat makes them/)).toBeVisible()
+    // Static only, no content form, the WeChat icon by default, and the copy still scans.
+    await expect(page.getByText('Type of code')).toHaveCount(0)
+    await expect(page.getByText('The WeChat icon', { exact: true })).toBeVisible()
+    await expect(
+      page.getByRole('complementary', { name: 'Your QR code' }).getByText(/^(Scans|Won’t scan)$/),
+    ).toHaveText('Scans', { timeout: 15_000 })
+  })
+
   test('unknown addresses get the 404 page', async ({ page }) => {
     const res = await page.goto('/no-such-page')
     expect(res?.status()).toBe(404)
