@@ -11,6 +11,7 @@ for (const f of [
   'qrfinity-logo-reversed.svg',
   'qrfinity-mark.svg',
   'qrfinity-mark-reversed.svg',
+  'qrfinity-logo-reversed-email.png',
 ]) {
   copyFileSync(join(logo, f), join(web, 'public', 'brand', f))
 }

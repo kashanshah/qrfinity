@@ -6,7 +6,8 @@ import { nextCookies } from 'better-auth/next-js'
 import { magicLink } from 'better-auth/plugins'
 import { getDb } from './db'
 import { env } from './env'
-import { getMailer, magicLinkEmail } from './mailer'
+import { magicLinkEmail } from './emails'
+import { getMailer } from './mailer'
 import { LIMITS, PostgresRateLimiter, rateKey, retryMessage } from './rate-limit'
 import { verifyTurnstile } from './turnstile'
 
@@ -60,7 +61,7 @@ function createAuth() {
       magicLink({
         expiresIn: 600,
         sendMagicLink: async ({ email, url }) => {
-          await getMailer().send(magicLinkEmail(email, url))
+          await getMailer().send(magicLinkEmail(email, url, env.appUrl))
         },
       }),
       nextCookies(),
