@@ -15,6 +15,7 @@ import {
   printPixels,
   type ExportJob,
 } from '@/lib/export'
+import { track } from '@/lib/analytics'
 import { useGenerator } from '@/lib/generator-context'
 import { PRINT_PARTNER_URL } from '@/lib/partners'
 import { Button } from '../ui/Button'
@@ -25,6 +26,8 @@ type PngSize = '512' | '1024' | '2048' | 'print'
 export function ExportPanel({ job, scanFailed }: { job: ExportJob | null; scanFailed: boolean }) {
   const printWidthMm = useGenerator((s) => s.printWidthMm)
   const setPrintWidthMm = useGenerator((s) => s.setPrintWidthMm)
+  const contentType = useGenerator((s) => s.type)
+  const kind = useGenerator((s) => s.kind)
   const [pngSize, setPngSize] = useState<PngSize>('1024')
   const [busy, setBusy] = useState<string | null>(null)
   const [status, setStatus] = useState<string | null>(null)
@@ -45,6 +48,7 @@ export function ExportPanel({ job, scanFailed }: { job: ExportJob | null; scanFa
       downloadBlob(await make(job), filename)
       setStatus(`Downloaded ${filename}.`)
       setDownloaded(true)
+      track('qr_downloaded', { format: label, content_type: contentType, kind })
     } catch {
       setStatus(`The ${label} could not be created in this browser. Try another format.`)
     } finally {

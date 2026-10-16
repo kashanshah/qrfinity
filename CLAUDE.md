@@ -28,6 +28,7 @@ A free QR code generator whose codes never expire, built as an organic traffic m
 - The redirect service runs on qrfinity.link, isolated from qrfinity.com.
 - Abuse protection (URL-reputation checks, reporting, admin disable) ships before public launch.
 - No ads on the generator, dashboard or redirects. No raw IP storage.
+- Site analytics (GA4, PostHog) only on qrfinity.com, cookieless until consent, never on qrfinity.link; events carry no code content, links or emails (`apps/web/lib/analytics.ts`).
 
 ## Stack and conventions
 
