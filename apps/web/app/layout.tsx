@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { JsonLd, organization } from '@/components/content/JsonLd'
 import { SiteFooter } from '@/components/SiteFooter'
 import { SiteHeader } from '@/components/SiteHeader'
 import './globals.css'
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
         <SiteFooter />
+        <JsonLd data={organization()} />
       </body>
     </html>
   )

@@ -318,3 +318,9 @@ export const redirectLookup = pgView('redirect_lookup').as((qb) =>
     .from(codes)
     .where(sql`${codes.kind} = 'dynamic' and ${codes.deletedAt} is null`),
 )
+
+/** People who asked to hear when Pro launches. One row per address; nothing else is stored. */
+export const proWaitlist = pgTable('pro_waitlist', {
+  email: text('email').primaryKey(),
+  createdAt: createdAt(),
+})

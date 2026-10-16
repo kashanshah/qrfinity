@@ -1,0 +1,65 @@
+export const faq = [
+  {
+    q: 'Does QRfinity host my PDF?',
+    a: 'No. We don’t store files. Upload the PDF to your own website, Google Drive or Dropbox, copy its share link, and make a code for that link.',
+  },
+  {
+    q: 'How do I share a PDF from Google Drive for a QR code?',
+    a: 'In Google Drive, open Share on the file and set General access to “Anyone with the link”, then copy the link. If the file stays restricted, people who scan will be asked to request access.',
+  },
+  {
+    q: 'Can I replace the PDF after printing the code?',
+    a: 'Yes, with a dynamic code. Upload the new file, copy its link and change the destination in your dashboard. The printed code then opens the new PDF, usually within about a minute.',
+  },
+  {
+    q: 'Will the PDF open on phones?',
+    a: 'Yes. iPhones and Android phones open PDFs in the browser or in a built-in viewer. Keep the file small and readable on a narrow screen: large scanned images load slowly on mobile data.',
+  },
+  {
+    q: 'Why does my PDF code ask people to sign in?',
+    a: 'The file’s sharing settings are probably restricted. Change them so anyone with the link can view, then open the link in a private browser window to check it works without signing in.',
+  },
+]
+
+## What a PDF QR code does
+
+A PDF QR code is a link code that opens a PDF. Someone scans it and the document opens on their phone: a brochure, a manual, a price list, a spec sheet, a programme, a form or a set of instructions. It moves a long document off the printed page and into the reader’s pocket.
+
+Manufacturers print them on packaging and inside product boxes, event organisers on posters and badges, estate agents on window cards, schools on letters home and trades on quotes.
+
+## Where to put the PDF
+
+QRfinity doesn’t host files, so the PDF needs a home with a public link first:
+
+- **Your own website.** The most reliable choice. Upload the file, open it in your browser and copy the address.
+- **Google Drive.** Upload the file, choose Share, set General access to “Anyone with the link”, then copy the link.
+- **Dropbox.** Choose Share, create a view link and copy it.
+
+Open the link in a private browser window to check it works for someone who isn’t signed in.
+
+## How to make a PDF QR code
+
+1. **Paste the PDF’s link.** Put the share link into “Website address”.
+2. **Choose Dynamic.** Under “Type of code”, pick Dynamic so you can point the code at a new file later.
+3. **Make it yours.** Add a frame with text that names the document, such as “Instructions” or “Price list”, and your logo if you like.
+4. **Save your dynamic code.** Sign in with an email link or Google, save the code, then download it as PNG, JPG, SVG, PDF or EPS.
+
+<Screenshot name="pdf" alt="The QRfinity generator with Link selected, a Google Drive file link in the website address field, Dynamic chosen, and the preview showing a scannable code." />
+
+<Callout tone="warning">
+If you delete the file, move it or change its sharing settings, the code will open an error page. With a dynamic code you can fix that by pointing it at the new link; with a static code you would need to reprint.
+</Callout>
+
+## Design and print tips
+
+- **Name the document.** “Scan for the user manual” or “Full price list” tells people what they’ll get and that it’s worth opening.
+- **Keep the file light.** Compress large images and aim for a few megabytes at most. Many people will open it on mobile data.
+- **Make it readable on a phone.** Use a single column and readable text sizes, or offer a mobile-friendly web page instead.
+- **Size for the surface.** On packaging and inserts, 2 to 2.5 cm is usually enough; on a poster, scale up to about one tenth of the viewing distance.
+- **Use vector files for print.** Send SVG, PDF or EPS to your printer or packaging designer so the code stays sharp.
+
+## Static or dynamic?
+
+<Recommendation pick="dynamic">
+Choose dynamic. Documents get revised, and file links break when files move. A dynamic code lets you link a new version without reprinting the boxes, posters or letters the code is already on.
+</Recommendation>

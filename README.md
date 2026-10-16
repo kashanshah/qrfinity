@@ -11,6 +11,7 @@
 | `apps/edge-api` | Private Cloudflare Worker: the only writer of link records in KV (HMAC-signed requests) |
 | `packages/core` | Framework-free core: encoders, QR renderer, scan checks, slugs, link records, signing, analytics |
 | `packages/db` | Drizzle schema and migrations (Postgres) |
+| `apps/web/content` | SEO pages: the page registry (titles, descriptions, links) and MDX content |
 | `docs/build-plan.md` | Phased build plan (architecture → static generator → dynamic codes → abuse protection → SEO pages → monetization hooks) |
 | `docs/architecture.md` | Architecture (Phase 1): Vercel app, Cloudflare redirects, Postgres, auth, DNS, costs |
 | `docs/decisions.md` | Research and decisions: market, ranking strategy, costs, pricing, naming |
@@ -40,6 +41,8 @@ pnpm build && pnpm test:e2e   # Playwright: starts the app and both Workers, use
 pnpm lint && pnpm typecheck && pnpm format:check
 ```
 
+Screenshots of the generator used on the use-case pages are regenerated with `node apps/web/scripts/screenshots.mjs [slug…]` while `pnpm dev` runs (set `PLAYWRIGHT_CHROMIUM_PATH` to use a preinstalled Chromium).
+
 The EPS test renders through Ghostscript when `gs` is installed (CI installs it) and is skipped otherwise.
 
 ## Deploying
@@ -54,4 +57,4 @@ Nothing is deployed yet. The order, once accounts exist:
 
 ## Status
 
-Phases 1–3 done. Phase 4 (abuse protection: screening, re-checks, reports, admin panel, draft legal pages) is built and awaiting review. The legal drafts need legal review before public launch.
+Phases 1–4 done. Phase 5 (SEO pages: 20 use cases, 3 landing pages, 6 guides, 5 comparisons, hubs, pricing with a Pro waitlist, structured data, share images, sitemap) is built and awaiting review; all pages stay `noindex` until approved. The legal drafts need legal review before public launch.

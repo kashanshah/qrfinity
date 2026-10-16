@@ -1,0 +1,59 @@
+export const faq = [
+  {
+    q: 'Can one QR code open the App Store on iPhone and Google Play on Android?',
+    a: 'Not today. One code holds one store link. Sending each phone to its own store needs device-based redirect rules, which are planned for QRfinity Pro but not available yet.',
+  },
+  {
+    q: 'What should I do if my app is on both stores?',
+    a: 'Print two codes side by side, labelled “App Store” and “Google Play”, or make one code that links to a page on your site with both store buttons.',
+  },
+  {
+    q: 'Where do I find my app’s store link?',
+    a: 'Open your app’s page in the App Store or Google Play, use the share button and copy the link. You can also copy it from App Store Connect or the Google Play Console.',
+  },
+  {
+    q: 'Can I count how many installs came from the QR code?',
+    a: 'A dynamic code counts scans, unique scans, devices and countries. Installs are counted by the store, so compare your scan numbers with the store’s own reports.',
+  },
+  {
+    q: 'Will the code still work if my app’s link changes?',
+    a: 'A dynamic code can be pointed at the new link in a minute or so. A static code can’t be edited, so it would need reprinting.',
+  },
+]
+
+## What an app store QR code does
+
+An app store QR code opens your app’s listing in the App Store or Google Play. The person lands on the install page with your icon, screenshots and reviews, and is one tap from downloading. They don’t have to search for your app’s name and pick the right one from a list of lookalikes.
+
+Teams put them on product packaging, in-store displays, print ads, receipts and conference stands, wherever someone holding a phone might want the app right now.
+
+## How to make an app store QR code
+
+1. **Choose the store.** Under “Store”, pick App Store (iPhone) or Google Play (Android).
+2. **Paste the app link.** Copy your listing’s share link and paste it into “App link”.
+3. **Make it yours.** Add your app icon as the logo and a frame that names the store, so people know which phone it’s for.
+4. **Save or download.** Save a dynamic code to your free account to count scans and change the link later, or download a static code straight away.
+
+<Screenshot name="app-store" alt="The QRfinity generator with App store selected, Google Play chosen as the store, an app link pasted in, and the preview showing a scannable code." />
+
+## Design and print tips
+
+- **Label each code with its store.** If you print two codes, put “App Store” under one and “Google Play” under the other. Use the store names in plain text; check each store’s own badge guidelines if you add their badges.
+- **Give each code room.** Keep at least 1 cm between side-by-side codes so a camera doesn’t pick up both at once.
+- **Size for packaging.** On a box or sleeve, 2.5 cm is a sensible minimum. On a shop poster, aim for 20 cm or more.
+- **Use your icon, sparingly.** A logo in the centre helps recognition. Keep it within the size the scan check accepts.
+- **Mind the colour.** Brand colours are fine if the code stays dark on light with at least 3:1 contrast; the scan check will warn you if it doesn’t.
+
+<Callout>
+One code, one store. For a single code that serves both, link to a page on your site that shows both store buttons. Device-based redirects are planned for Pro.
+</Callout>
+
+## Two codes or one landing page?
+
+Two labelled codes are the quickest route: each scan goes straight to the store, with no extra page to load. They need more space, though, and some people scan the wrong one. A single code that opens a page on your site with both store buttons takes one more tap, but fits small packaging and lets you add a short pitch, screenshots or a web version. Make that code dynamic, and you can switch it to a direct store link later if your app becomes single-platform.
+
+## Static or dynamic?
+
+<Recommendation pick="dynamic">
+Choose dynamic. If you rename the app, move to a new listing or later want to send people to a landing page with both stores, you change the link without reprinting, and you can see how many people scanned each placement.
+</Recommendation>

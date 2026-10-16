@@ -1,0 +1,55 @@
+export const faq = [
+  {
+    q: 'Which maps app does a location QR code open?',
+    a: 'It opens a Google Maps link. On a phone with the Google Maps app it opens there; otherwise it opens Google Maps in the browser, where people can still get directions.',
+  },
+  {
+    q: 'Does it work on iPhone?',
+    a: 'Yes. We use a Google Maps link rather than a geo: link because the iPhone camera doesn’t open geo: links. A Maps link works from the camera on iPhone and Android alike.',
+  },
+  {
+    q: 'Should I use an address or coordinates?',
+    a: 'Use an address or place name for shops, offices and venues that Maps already knows. Use latitude and longitude for a side entrance, a car park, a trailhead or a field with no street address.',
+  },
+  {
+    q: 'What if my business moves?',
+    a: 'A static location code keeps pointing at the old place. A dynamic code lets you change the destination later, usually live within about a minute, without reprinting.',
+  },
+  {
+    q: 'Can I see how many people scanned it?',
+    a: 'Yes, if you make it a dynamic code. You get total and unique scans, devices, countries and 90 days of history. We don’t store raw IP addresses.',
+  },
+]
+
+## What a location QR code does
+
+A location QR code opens a place in Google Maps. One scan shows the pin, and one more tap starts directions by car, foot or transit. Nobody has to type a street name they half heard or guess which of three similar addresses is yours.
+
+Shops print them on flyers and business cards, event organisers put them on invitations, and property managers stick them inside welcome packs. They’re also useful for places that are hard to describe: a loading dock, the right gate at a stadium, a meeting point in a park.
+
+## How to make a location QR code
+
+1. **Choose how to find the place.** Under “Find the place by”, pick Address or Coordinates.
+2. **Enter the place.** Type the address or business name in “Address or place name”, or paste the “Latitude” and “Longitude” from Google Maps (press and hold on the map to copy them).
+3. **Check the scan result.** Scan the preview with your phone and make sure the pin lands exactly where people should go, not on the building next door.
+4. **Pick static or dynamic, then finish.** For a static code, style it and download. For a dynamic code, save it to your free account so you can change the place later.
+
+<Screenshot name="location" alt="The QRfinity generator with Location selected, an address typed into “Address or place name”, and the preview showing a scannable code." />
+
+## Design and print tips
+
+- **Label it.** Frame text such as “Directions” or “Find us” tells people what they’ll get. Print the written address next to the code too, for anyone who prefers to read it.
+- **Use coordinates for awkward spots.** If your entrance is round the back, drop the pin on the door, not the street address.
+- **Size for the setting.** On a business card, 2 cm is the minimum; on a sign people read from a car park 5 metres away, aim for 50 cm.
+- **Weatherproof outdoor signs.** Use matte vinyl or a laminated sign, and keep the code out of direct glare.
+- **Test on both phone types.** Ask someone with the other kind of phone to scan it before a big print run.
+
+## Address or coordinates?
+
+An address is easy to read and works well when Maps already lists your business, because people see your name, opening hours and photos along with the pin. Coordinates are exact to a few metres. They’re the better choice when the street address puts the pin in the wrong place, which often happens with new buildings, rural properties, campuses and large sites with several entrances. If you aren’t sure, scan both versions and see which pin lands closer to the door.
+
+## Static or dynamic?
+
+<Recommendation pick="dynamic">
+Make it dynamic if there’s any chance you’ll move, open a second site or change the meeting point: you edit the destination and every printed code follows. If the place will never change, such as a monument or a family home on a wedding invitation, a static code is fine.
+</Recommendation>
