@@ -18,10 +18,18 @@ import {
   isAdmin,
   restoreCode,
   runRiskChecks,
+  searchCodes,
+  searchUsers,
   suspendUser,
   type AdminContext,
 } from '@/lib/server/admin'
-import { createDynamicCode, getCode, setPaused, updateDestination } from '@/lib/server/codes'
+import {
+  createDynamicCode,
+  deleteCode,
+  getCode,
+  setPaused,
+  updateDestination,
+} from '@/lib/server/codes'
 import { createReport, slugFromReported } from '@/lib/server/reports'
 import { invalidateBlocklist } from '@/lib/server/screening'
 import { FakeEdge, FakeReputation, ctxFor, design, freshDb, makeUser } from './helpers'
@@ -154,6 +162,29 @@ describe('admin actions', () => {
     expect(isAdmin({ email: 'a@x.com', role: 'admin' }, [])).toBe(true)
     expect(isAdmin({ email: 'Boss@X.com', role: 'user' }, ['boss@x.com'])).toBe(true)
     expect(isAdmin({ email: 'a@x.com', role: 'user' }, ['boss@x.com'])).toBe(false)
+  })
+})
+
+describe('admin search', () => {
+  it('lists users with their plan and live code count, and finds codes', async () => {
+    const ctx = ctxFor(db, 'alice')
+    await createDynamicCode(ctx, { name: 'Menu', destination: 'example.com', design })
+    const gone = await createDynamicCode(ctx, {
+      name: 'Old',
+      destination: 'example.com/old',
+      design,
+    })
+    await deleteCode(ctx, gone.id)
+    await makeUser(db, 'bob')
+    const all = await searchUsers(db, '')
+    expect(all.find((u) => u.id === 'alice')).toMatchObject({
+      email: 'alice@example.com',
+      plan: 'free',
+      codes: 1,
+    })
+    expect(all.find((u) => u.id === 'bob')).toMatchObject({ codes: 0 })
+    expect((await searchUsers(db, 'ALICE')).map((u) => u.id)).toEqual(['alice'])
+    expect((await searchCodes(db, 'alice@example.com')).length).toBeGreaterThanOrEqual(1)
   })
 })
 
