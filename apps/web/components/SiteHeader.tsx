@@ -1,6 +1,7 @@
 import { Menu } from 'lucide-react'
 import Link from 'next/link'
 import { HeaderAccountLink } from './HeaderAccountLink'
+import { ThemeOptions, ThemeSwitch } from './ThemeSwitch'
 
 const NAV = [
   { href: '/qr-code-generator', label: 'QR code types' },
@@ -14,19 +15,21 @@ export function SiteHeader() {
     <header className="border-b border-hairline bg-ground">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-6 px-4 md:px-6">
         <Link href="/" aria-label="QRfinity home" className="shrink-0 rounded-sm">
-          <picture>
-            <source
-              srcSet="/brand/qrfinity-logo-reversed.svg"
-              media="(prefers-color-scheme: dark)"
-            />
-            <img
-              src="/brand/qrfinity-logo.svg"
-              alt="QRfinity"
-              width={122}
-              height={32}
-              className="h-8 w-auto"
-            />
-          </picture>
+          {/* Both logos are in the page; CSS shows the one for the theme (auto, or the visitor's choice). */}
+          <img
+            src="/brand/qrfinity-logo.svg"
+            alt="QRfinity"
+            width={122}
+            height={32}
+            className="theme-light-only h-8 w-auto"
+          />
+          <img
+            src="/brand/qrfinity-logo-reversed.svg"
+            alt="QRfinity"
+            width={122}
+            height={32}
+            className="theme-dark-only h-8 w-auto"
+          />
         </Link>
 
         <nav aria-label="Main" className="hidden md:block">
@@ -45,6 +48,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
+          <ThemeSwitch />
           <HeaderAccountLink />
           {/* Phones: the same links in a disclosure, so the menu works without JavaScript. */}
           <details className="group relative md:hidden">
@@ -56,7 +60,7 @@ export function SiteHeader() {
             </summary>
             <nav
               aria-label="Main"
-              className="absolute right-0 top-12 z-40 w-56 rounded-lg border border-hairline bg-surface p-2 shadow-card"
+              className="absolute right-0 top-12 z-40 w-64 rounded-lg border border-hairline bg-surface p-2 shadow-card"
             >
               <ul className="flex flex-col">
                 {NAV.map((l) => (
@@ -70,6 +74,10 @@ export function SiteHeader() {
                   </li>
                 ))}
               </ul>
+              <div className="mt-2 border-t border-hairline pt-2">
+                <p className="label px-3 pb-1 text-ink-muted">Theme</p>
+                <ThemeOptions />
+              </div>
             </nav>
           </details>
         </div>

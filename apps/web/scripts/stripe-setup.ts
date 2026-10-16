@@ -43,7 +43,7 @@ const WEBHOOK_EVENTS: Stripe.WebhookEndpointCreateParams.EnabledEvent[] = [
 const codes = (n: number) => (Number.isFinite(n) ? `${n} codes` : 'every code')
 
 async function main() {
-  console.log(`Stripe ${key!.startsWith('sk_live_') ? 'LIVE' : 'test'} mode\n`)
+  console.log(`Stripe ${key!.includes('_live_') ? 'LIVE' : 'test'} mode\n`)
   const existing = await stripe.products.list({ limit: 100 })
   const portalProducts: Stripe.BillingPortal.ConfigurationCreateParams.Features.SubscriptionUpdate.Product[] =
     []

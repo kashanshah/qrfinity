@@ -3,6 +3,7 @@ import { JsonLd, organization } from '@/components/content/JsonLd'
 import { Analytics } from '@/components/Analytics'
 import { SiteFooter } from '@/components/SiteFooter'
 import { SiteHeader } from '@/components/SiteHeader'
+import { GROUND, THEME_SCRIPT } from '@/lib/theme'
 import './globals.css'
 
 // Pages stay out of search results until launch (set NEXT_PUBLIC_INDEXABLE=true to allow).
@@ -31,14 +32,18 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#fafaf7' },
-    { media: '(prefers-color-scheme: dark)', color: '#0e1411' },
+    { media: '(prefers-color-scheme: light)', color: GROUND.light },
+    { media: '(prefers-color-scheme: dark)', color: GROUND.dark },
   ],
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    // The theme script sets data-theme before React loads, so the attribute differs from the server's.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-dvh flex flex-col">
         <a
           href="#main"
