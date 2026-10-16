@@ -191,9 +191,11 @@ function WithSuggestions({
             </ul>
             {/*
               Google's terms require its logo next to Places data shown without a map. The file is
-              Google's own, unaltered, at its native size (see public/third-party/README.md).
+              Google's own, unaltered, at its native size (see public/third-party/README.md). The
+              label sits beside the logo, never in a sentence around it, as Google's rules ask.
             */}
-            <div className="flex justify-end border-t border-hairline px-3 py-2">
+            <div className="flex items-center justify-end gap-1.5 border-t border-hairline px-3 py-2">
+              <span className="body-small text-ink-muted">Powered by</span>
               {/* eslint-disable-next-line @next/next/no-img-element -- static third-party logo */}
               <img src="/third-party/google-logo.svg" alt="Google" width={56} height={20} />
             </div>
