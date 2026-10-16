@@ -19,12 +19,29 @@ export type Fill =
   /** `from` at the centre, `to` at the corners. */
   | { type: 'radial'; from: string; to: string }
 
-export type Logo = {
+/** An uploaded logo. */
+export type ImageLogo = {
+  type?: 'image'
   /** A data: URL (PNG or JPEG). Logos are processed in the browser and never uploaded. */
   src: string
   width: number
   height: number
 }
+
+/**
+ * A logo drawn as shapes (the platform icons), so every format keeps it sharp. Paths use only
+ * absolute M, L, C and Z commands, in a `width` × `height` box with its corner at 0,0.
+ */
+export type VectorLogo = {
+  type: 'vector'
+  width: number
+  height: number
+  paths: { d: string; fill: string }[]
+}
+
+export type Logo = ImageLogo | VectorLogo
+
+export const isVectorLogo = (logo: Logo | null): logo is VectorLogo => logo?.type === 'vector'
 
 export type Design = {
   dotStyle: DotStyle
@@ -37,6 +54,11 @@ export type Design = {
   background: string
   transparentBackground: boolean
   logo: Logo | null
+  /**
+   * The logo follows the content: the platform's icon for WhatsApp, social profiles, app stores
+   * and other known links, none otherwise. Picking "None" or uploading a logo turns it off.
+   */
+  logoAuto: boolean
   /** Logo box as a fraction of the code's width (0.1–0.3). */
   logoSize: number
   /** Clear space around the logo, in modules. */
@@ -59,6 +81,7 @@ export const DEFAULT_DESIGN: Design = {
   background: '#ffffff',
   transparentBackground: false,
   logo: null,
+  logoAuto: true,
   logoSize: 0.22,
   logoMargin: 1,
   clearBehindLogo: true,

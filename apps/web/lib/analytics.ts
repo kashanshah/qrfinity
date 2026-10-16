@@ -62,7 +62,7 @@ export type AnalyticsEvent =
   | {
       name: 'qr_read'
       props: {
-        tool: 'scanner' | 'checker'
+        tool: 'scanner' | 'checker' | 'restyle'
         source: 'image' | 'camera'
         found: boolean
         content_type: string | null

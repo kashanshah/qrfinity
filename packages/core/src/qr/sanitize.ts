@@ -15,6 +15,8 @@ import {
   LOGO_SIZE_MIN,
   type Design,
   type Fill,
+  type Logo,
+  type VectorLogo,
 } from './design'
 
 export const MAX_LOGO_DATA_URL = 1_000_000
@@ -43,14 +45,42 @@ function fill(v: unknown): Fill {
   return { type: 'solid', color: color(f.color, '#000000') }
 }
 
+const MAX_VECTOR_PATHS = 16
+const MAX_VECTOR_PATH_DATA = 100_000
+/** Absolute M/L/C/Z commands and plain numbers only: nothing that could break out of an attribute. */
+const VECTOR_PATH_RE = /^[MLCZ0-9.,\s-]+$/
+
+function vectorLogo(lg: Obj): VectorLogo | null {
+  if (!Array.isArray(lg.paths) || !lg.paths.length || lg.paths.length > MAX_VECTOR_PATHS)
+    return null
+  let total = 0
+  const paths: VectorLogo['paths'] = []
+  for (const raw of lg.paths) {
+    const p = obj(raw)
+    if (typeof p.d !== 'string' || !VECTOR_PATH_RE.test(p.d)) return null
+    if (typeof p.fill !== 'string' || !isHexColor(p.fill)) return null
+    total += p.d.length
+    if (total > MAX_VECTOR_PATH_DATA) return null
+    paths.push({ d: p.d, fill: normalizeHex(p.fill) })
+  }
+  return {
+    type: 'vector',
+    width: num(lg.width, 1, 1000, 24),
+    height: num(lg.height, 1, 1000, 24),
+    paths,
+  }
+}
+
 export function sanitizeDesign(input: unknown): Design {
   const d = obj(input)
   const fr = obj(d.frame)
   const lg = obj(d.logo)
-  const logo =
-    typeof lg.src === 'string' && lg.src.length <= MAX_LOGO_DATA_URL && LOGO_RE.test(lg.src)
-      ? { src: lg.src, width: num(lg.width, 1, 4096, 512), height: num(lg.height, 1, 4096, 512) }
-      : null
+  const logo: Logo | null =
+    lg.type === 'vector'
+      ? vectorLogo(lg)
+      : typeof lg.src === 'string' && lg.src.length <= MAX_LOGO_DATA_URL && LOGO_RE.test(lg.src)
+        ? { src: lg.src, width: num(lg.width, 1, 4096, 512), height: num(lg.height, 1, 4096, 512) }
+        : null
   return {
     dotStyle: oneOf(d.dotStyle, DOT_STYLES, DEFAULT_DESIGN.dotStyle),
     eyeFrameStyle: oneOf(d.eyeFrameStyle, EYE_FRAME_STYLES, DEFAULT_DESIGN.eyeFrameStyle),
@@ -67,6 +97,8 @@ export function sanitizeDesign(input: unknown): Design {
     background: color(d.background, DEFAULT_DESIGN.background),
     transparentBackground: d.transparentBackground === true,
     logo,
+    // Designs saved before automatic logos existed keep exactly the logo they had.
+    logoAuto: d.logoAuto === true,
     logoSize: num(d.logoSize, LOGO_SIZE_MIN, LOGO_SIZE_MAX, DEFAULT_DESIGN.logoSize),
     logoMargin: num(d.logoMargin, 0, 3, DEFAULT_DESIGN.logoMargin),
     clearBehindLogo: d.clearBehindLogo !== false,

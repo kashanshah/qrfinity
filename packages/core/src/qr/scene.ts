@@ -4,9 +4,9 @@
  * format draws exactly the same code.
  */
 import { encode, QrCodeDataType } from 'uqr'
-import { effectiveEcc, type Design, type EccLevel, type Fill } from './design'
+import { effectiveEcc, isVectorLogo, type Design, type EccLevel, type Fill } from './design'
 import { CAP_HEIGHT, textWidth } from './font'
-import { PathBuilder } from './path'
+import { fmt, PathBuilder } from './path'
 
 export type Paint =
   | { type: 'solid'; color: string }
@@ -299,14 +299,29 @@ export function buildScene(payload: string, design: Design): SceneResult {
   })
 
   if (design.logo && logoBox) {
-    items.push({
-      kind: 'image',
-      href: design.logo.src,
-      x: ox + logoBox.x,
-      y: oy + logoBox.y,
-      width: logoBox.w,
-      height: logoBox.h,
-    })
+    const logo = design.logo
+    if (isVectorLogo(logo)) {
+      // Fit the logo's box into the logo area, keeping its shape (as the image's "meet" does).
+      const k = Math.min(logoBox.w / logo.width, logoBox.h / logo.height)
+      const lx = ox + logoBox.x + (logoBox.w - logo.width * k) / 2
+      const ly = oy + logoBox.y + (logoBox.h - logo.height * k) / 2
+      for (const p of logo.paths) {
+        items.push({
+          kind: 'path',
+          d: transformPath(p.d, k, lx, ly),
+          fill: { type: 'solid', color: p.fill },
+        })
+      }
+    } else {
+      items.push({
+        kind: 'image',
+        href: logo.src,
+        x: ox + logoBox.x,
+        y: oy + logoBox.y,
+        width: logoBox.w,
+        height: logoBox.h,
+      })
+    }
   }
 
   items.push(...frameItems)
@@ -345,5 +360,18 @@ function pushLabel(
     y: cy + (size * CAP_HEIGHT) / 2,
     fontSize: size,
     fill: color,
+  })
+}
+
+/** Scales an M/L/C/Z path by `k` and moves it to (x, y). */
+function transformPath(d: string, k: number, x: number, y: number): string {
+  return d.replace(/([MLCZ])([^MLCZ]*)/g, (_, op: string, args: string) => {
+    const nums = args.trim()
+      ? args
+          .trim()
+          .split(/[\s,]+/)
+          .map(Number)
+      : []
+    return op + nums.map((v, i) => fmt(i % 2 === 0 ? x + v * k : y + v * k)).join(' ')
   })
 }

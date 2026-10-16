@@ -61,6 +61,9 @@ const FILLS = {
   spotify: [['Website address', 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M']],
   'payment-link': [['Website address', 'https://buy.stripe.com/test_maplecafe']],
   'amazon-review': [['Website address', 'https://maplecafe.ca/setup-guide']],
+  telegram: [['Username or profile link', 'maplecafe']],
+  // Restyles an uploaded code instead of filling a form (see below).
+  wechat: [],
   bulk: [],
 }
 
@@ -85,6 +88,13 @@ for (const slug of slugs) {
   }
   for (const [label, value] of FILLS[slug] ?? [])
     await page.getByRole('textbox', { name: label, exact: true }).first().fill(value)
+  if (slug === 'wechat') {
+    await page
+      .locator('input[type="file"]')
+      .first()
+      .setInputFiles(new URL('../e2e/fixtures/wechat-group-qr.png', import.meta.url).pathname)
+    await page.locator('#step-content').waitFor()
+  }
   if (slug === 'with-logo') {
     await page
       .locator('input[type="file"]')

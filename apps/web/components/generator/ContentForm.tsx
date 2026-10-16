@@ -57,6 +57,23 @@ const SOCIAL_LABELS: Record<SocialPlatform, string> = {
   youtube: 'YouTube',
   threads: 'Threads',
   pinterest: 'Pinterest',
+  telegram: 'Telegram',
+  line: 'LINE',
+  kakaotalk: 'KakaoTalk',
+  weibo: 'Weibo',
+  bilibili: 'bilibili',
+  douyin: 'Douyin',
+  xiaohongshu: 'Xiaohongshu',
+}
+
+/** Field label and placeholder where the platform doesn't take a plain @username. */
+const SOCIAL_INPUT: Partial<Record<SocialPlatform, { label: string; placeholder: string }>> = {
+  line: { label: 'LINE ID or link', placeholder: '@official-account or your LINE ID' },
+  kakaotalk: { label: 'Channel or open chat link', placeholder: 'open.kakao.com/o/…' },
+  weibo: { label: 'User ID or profile link', placeholder: 'weibo.com/u/…' },
+  bilibili: { label: 'UID or space link', placeholder: 'space.bilibili.com/…' },
+  douyin: { label: 'Share link', placeholder: 'v.douyin.com/…' },
+  xiaohongshu: { label: 'Share link', placeholder: 'xhslink.com/…' },
 }
 
 /** Errors show once a field has been left, so nobody is told off mid-typing. */
@@ -359,10 +376,10 @@ export function ContentForm({ result }: { result: EncodeResult }) {
             options={SOCIAL_PLATFORMS.map((p) => ({ value: p, label: SOCIAL_LABELS[p] }))}
           />
           <TextField
-            label="Username or profile link"
+            label={SOCIAL_INPUT[f.platform]?.label ?? 'Username or profile link'}
             autoCapitalize="none"
             spellCheck={false}
-            placeholder="@yourname"
+            placeholder={SOCIAL_INPUT[f.platform]?.placeholder ?? '@yourname'}
             {...bind('social', 'handle')}
           />
         </div>

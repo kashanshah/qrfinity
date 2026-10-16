@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ContentPage } from '@/components/content/ContentPage'
+import { QrRestyle } from '@/components/tools/QrRestyle'
 import { loadContent } from '@/content/load'
 import { USE_CASES, findPage } from '@/content/registry'
 import { pageMetadata } from '@/lib/seo'
+import { shortLinkBase } from '@/lib/short-link'
 
 export const dynamicParams = false
 
@@ -22,5 +24,11 @@ export default async function Page({ params }: Props) {
   const { slug } = await params
   const page = findPage(`/qr-code-generator/${slug}`)
   if (!page) notFound()
-  return <ContentPage page={page} content={await loadContent('use-cases', slug)} />
+  return (
+    <ContentPage
+      page={page}
+      content={await loadContent('use-cases', slug)}
+      tool={page.tool === 'restyle' ? <QrRestyle shortLinkBase={shortLinkBase()} /> : undefined}
+    />
+  )
 }

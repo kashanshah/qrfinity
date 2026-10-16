@@ -1,6 +1,8 @@
 'use client'
 
 import {
+  BRAND_ICONS,
+  isVectorLogo,
   DOT_STYLES,
   EYE_BALL_STYLES,
   EYE_FRAME_STYLES,
@@ -16,6 +18,7 @@ import {
 } from '@qrfinity/core'
 import { ArrowLeftRight, ImagePlus, RotateCcw, Trash2 } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { brandIconUrl, useBrand } from '@/lib/brand-logo'
 import { useGenerator } from '@/lib/generator-context'
 import { LogoError, processLogo } from '@/lib/logo'
 import { Button } from '../ui/Button'
@@ -313,6 +316,8 @@ function ColoursSection({
   )
 }
 
+type LogoChoice = 'auto' | 'none' | 'custom'
+
 function LogoSection({
   design,
   setDesign,
@@ -323,13 +328,23 @@ function LogoSection({
   const input = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  // "Your own" picked but no file chosen yet: the code has no logo until one is.
+  const [pendingCustom, setPendingCustom] = useState(false)
+  const brand = useBrand()
+  const brandName = brand ? BRAND_ICONS[brand] : null
+
+  const choice: LogoChoice = design.logoAuto
+    ? 'auto'
+    : design.logo || pendingCustom
+      ? 'custom'
+      : 'none'
 
   async function onFile(file: File | undefined) {
     if (!file) return
     setError(null)
     setBusy(true)
     try {
-      setDesign({ logo: await processLogo(file) })
+      setDesign({ logo: await processLogo(file), logoAuto: false })
     } catch (e) {
       setError(
         e instanceof LogoError ? e.message : 'That image could not be opened. Try a PNG or JPG.',
@@ -340,8 +355,28 @@ function LogoSection({
     }
   }
 
+  function choose(next: LogoChoice) {
+    setError(null)
+    setPendingCustom(next === 'custom')
+    if (next === 'auto') setDesign({ logoAuto: true })
+    else if (next === 'none') setDesign({ logoAuto: false, logo: null })
+    else {
+      setDesign({ logoAuto: false, logo: null })
+      input.current?.click()
+    }
+  }
+
+  const summary =
+    choice === 'auto'
+      ? brandName
+        ? `The ${brandName} icon`
+        : 'Automatic'
+      : choice === 'custom'
+        ? 'Your logo in the middle of the code'
+        : 'No logo'
+
   return (
-    <Section title="Logo" summary="Your logo in the middle of the code">
+    <Section title="Logo" summary={summary}>
       <input
         ref={input}
         type="file"
@@ -351,35 +386,68 @@ function LogoSection({
         aria-hidden="true"
         onChange={(e) => onFile(e.target.files?.[0])}
       />
-      <div className="flex flex-wrap items-center gap-3">
-        {design.logo ? (
-          // eslint-disable-next-line @next/next/no-img-element -- local data URL
-          <img
-            src={design.logo.src}
-            alt="Your logo"
-            className="size-14 rounded-sm border border-hairline bg-surface object-contain p-1"
-          />
-        ) : null}
-        <Button
-          icon={<ImagePlus aria-hidden="true" size={18} strokeWidth={1.75} />}
-          onClick={() => input.current?.click()}
-          disabled={busy}
-        >
-          {design.logo ? 'Change logo' : 'Add a logo'}
-        </Button>
-        {design.logo ? (
-          <Button
-            icon={<Trash2 aria-hidden="true" size={18} strokeWidth={1.75} />}
-            onClick={() => setDesign({ logo: null })}
-          >
-            Remove
-          </Button>
-        ) : null}
-      </div>
-      <p className="body-small text-ink-muted" role={error ? 'alert' : undefined}>
-        {error ??
-          'Your logo stays on your device; it is never uploaded. PNG, JPG, WebP, GIF or SVG, up to 10 MB.'}
-      </p>
+      <OptionGroup
+        label="Logo to show"
+        hideLabel
+        value={choice}
+        onChange={choose}
+        columns="grid-cols-3"
+        options={[
+          { value: 'auto', label: 'Automatic' },
+          { value: 'none', label: 'None' },
+          { value: 'custom', label: 'Your own' },
+        ]}
+      />
+      {choice === 'auto' ? (
+        <div className="flex flex-wrap items-center gap-3">
+          {design.logo && brand && brandName ? (
+            // eslint-disable-next-line @next/next/no-img-element -- static icon
+            <img
+              src={brandIconUrl(brand)}
+              alt={`${brandName} icon`}
+              className="size-14 rounded-sm border border-hairline bg-surface object-contain p-1"
+            />
+          ) : null}
+          <p className="body-small min-w-0 flex-1 text-ink-muted">
+            {brandName
+              ? `Shows the ${brandName} icon because the code opens ${brandName}. Choose None or your own logo to change it.`
+              : 'Adds the platform’s icon when the code opens WhatsApp, a social profile, an app store or another app we recognise. This code doesn’t, so it has no logo.'}
+          </p>
+        </div>
+      ) : null}
+      {choice === 'custom' ? (
+        <>
+          <div className="flex flex-wrap items-center gap-3">
+            {design.logo && !isVectorLogo(design.logo) ? (
+              // eslint-disable-next-line @next/next/no-img-element -- local data URL
+              <img
+                src={design.logo.src}
+                alt="Your logo"
+                className="size-14 rounded-sm border border-hairline bg-surface object-contain p-1"
+              />
+            ) : null}
+            <Button
+              icon={<ImagePlus aria-hidden="true" size={18} strokeWidth={1.75} />}
+              onClick={() => input.current?.click()}
+              disabled={busy}
+            >
+              {design.logo ? 'Change logo' : 'Add a logo'}
+            </Button>
+            {design.logo ? (
+              <Button
+                icon={<Trash2 aria-hidden="true" size={18} strokeWidth={1.75} />}
+                onClick={() => choose('none')}
+              >
+                Remove
+              </Button>
+            ) : null}
+          </div>
+          <p className="body-small text-ink-muted" role={error ? 'alert' : undefined}>
+            {error ??
+              'Your logo stays on your device; it is never uploaded. PNG, JPG, WebP, GIF or SVG, up to 10 MB.'}
+          </p>
+        </>
+      ) : null}
       {design.logo ? (
         <>
           <Slider

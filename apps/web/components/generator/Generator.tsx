@@ -16,6 +16,7 @@ import {
   type SceneInfo,
 } from '@qrfinity/core'
 import { useId, useMemo, type ReactNode } from 'react'
+import { useAutoLogo } from '@/lib/brand-logo'
 import type { ExportJob } from '@/lib/export'
 import { GeneratorProvider, useGenerator } from '@/lib/generator-context'
 import { useScanCheck } from '@/lib/scan'
@@ -48,6 +49,12 @@ export type GeneratorProps = {
   shortLink?: string
   contentTitle?: string
   finalStep?: (props: FinalStepProps) => ReactNode
+  /**
+   * Restyling a code made elsewhere: the content can't change, so step 1 shows `panel` instead of
+   * the content form, and `note` replaces the static/dynamic explanation (and the never-expires
+   * badge, since what the code opens may still expire in its app).
+   */
+  fixedContent?: { panel: ReactNode; note: ReactNode }
 }
 
 export function Generator(props: GeneratorProps) {
@@ -99,6 +106,7 @@ function GeneratorBody({
   shortLink,
   contentTitle,
   finalStep,
+  fixedContent,
 }: GeneratorProps) {
   const kind = useGenerator((s) => s.kind)
   const setKind = useGenerator((s) => s.setKind)
@@ -108,6 +116,7 @@ function GeneratorBody({
   const design = useGenerator((s) => s.design)
   const printWidthMm = useGenerator((s) => s.printWidthMm)
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '')
+  useAutoLogo()
 
   const content = useMemo<EncodeResult>(() => {
     const r = encodeContent(type, fields[type])
@@ -229,7 +238,7 @@ function GeneratorBody({
   const badges = (
     <div className="flex flex-wrap items-center gap-2">
       <CodeTypeBadge type={kind} />
-      <NeverExpiresBadge />
+      {fixedContent ? null : <NeverExpiresBadge />}
       {kind === 'dynamic' ? <span className="mono text-evergreen">{linkLabel}</span> : null}
     </div>
   )
@@ -245,7 +254,7 @@ function GeneratorBody({
           <div className="flex min-w-0 flex-col gap-2">
             <div className="flex flex-wrap gap-2">
               <CodeTypeBadge type={kind} />
-              <NeverExpiresBadge />
+              {fixedContent ? null : <NeverExpiresBadge />}
             </div>
             {summary ? <ScanResult summary={{ ...summary, warnings: [] }} /> : null}
           </div>
@@ -260,29 +269,33 @@ function GeneratorBody({
           <h2 id="step-content" className="subheading mb-4 text-ink">
             {contentTitle ?? '1. What should the code open?'}
           </h2>
-          <div className="flex flex-col gap-6">
-            {kindChoice ? (
+          {fixedContent ? (
+            fixedContent.panel
+          ) : (
+            <div className="flex flex-col gap-6">
+              {kindChoice ? (
+                <OptionGroup
+                  label="Type of code"
+                  value={kind}
+                  onChange={setKind}
+                  columns="grid-cols-1 sm:grid-cols-2"
+                  options={[
+                    { value: 'static', label: 'Static: free, no sign-up, can’t be edited' },
+                    { value: 'dynamic', label: 'Dynamic: editable, with scan stats, free account' },
+                  ]}
+                />
+              ) : null}
               <OptionGroup
-                label="Type of code"
-                value={kind}
-                onChange={setKind}
-                columns="grid-cols-1 sm:grid-cols-2"
-                options={[
-                  { value: 'static', label: 'Static: free, no sign-up, can’t be edited' },
-                  { value: 'dynamic', label: 'Dynamic: editable, with scan stats, free account' },
-                ]}
+                label="Content type"
+                hideLabel
+                value={type}
+                onChange={setType}
+                columns="grid-cols-3 sm:grid-cols-4 xl:grid-cols-6"
+                options={typeOptions}
               />
-            ) : null}
-            <OptionGroup
-              label="Content type"
-              hideLabel
-              value={type}
-              onChange={setType}
-              columns="grid-cols-3 sm:grid-cols-4 xl:grid-cols-6"
-              options={typeOptions}
-            />
-            <ContentForm result={content} />
-          </div>
+              <ContentForm result={content} />
+            </div>
+          )}
         </section>
 
         <section
@@ -311,13 +324,15 @@ function GeneratorBody({
           <div className="flex flex-col gap-2 border-t border-hairline pt-4">
             {badges}
             <p className="body-small text-ink-muted">
-              {kind === 'static'
-                ? 'The content is stored in the code itself, so it works forever without us. It can’t be edited or tracked after printing.'
-                : type === 'vcard'
-                  ? 'The code holds a short link to your contact page, with a Save contact button. Update your details any time; the printed code keeps working and is never deactivated.'
-                  : shortLink
-                    ? 'The code holds this short link. Change where it goes any time; the printed code keeps working and is never deactivated.'
-                    : 'The code holds a short link that sends people to your destination. Change it any time and see scan stats. Free with an account, never deactivated.'}
+              {fixedContent
+                ? fixedContent.note
+                : kind === 'static'
+                  ? 'The content is stored in the code itself, so it works forever without us. It can’t be edited or tracked after printing.'
+                  : type === 'vcard'
+                    ? 'The code holds a short link to your contact page, with a Save contact button. Update your details any time; the printed code keeps working and is never deactivated.'
+                    : shortLink
+                      ? 'The code holds this short link. Change where it goes any time; the printed code keeps working and is never deactivated.'
+                      : 'The code holds a short link that sends people to your destination. Change it any time and see scan stats. Free with an account, never deactivated.'}
             </p>
           </div>
         </div>

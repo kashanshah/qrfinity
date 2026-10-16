@@ -44,6 +44,8 @@ export type ContentPage = {
   related?: string[]
   /** Guide paths linked from the page (2 on use-case pages). */
   guides?: string[]
+  /** A tool shown in place of the generator (restyle: remake a code made by WeChat or Alipay). */
+  tool?: 'restyle'
 }
 
 const U = '2026-10-16'
@@ -282,6 +284,31 @@ export const USE_CASES: ContentPage[] = [
     ['google-review', 'pdf', 'youtube'],
     ['how-to-print-qr-codes-on-packaging', 'qr-code-size-for-print'],
   ),
+  makeUseCase(
+    'telegram',
+    'Telegram',
+    'Free Telegram QR code generator',
+    'Free Telegram QR code generator for profiles and channels',
+    'Make a QR code that opens your Telegram profile, channel or group. Type the username, keep the Telegram logo, download free.',
+    'Scan to open your Telegram profile, channel or group in the app.',
+    { type: 'social', fields: { social: { platform: 'telegram', handle: '' } } },
+    ['whatsapp', 'wechat', 'instagram'],
+    ['static-vs-dynamic-qr-codes', 'qr-code-design-best-practices'],
+  ),
+  {
+    ...makeUseCase(
+      'wechat',
+      'WeChat',
+      'Restyle your WeChat QR code',
+      'WeChat QR code: restyle it with your colours and logo',
+      'Give your WeChat or Alipay QR code your colours, the WeChat logo and a frame. It still opens the same contact, group or payment.',
+      'Your WeChat or Alipay code in your colours, opening exactly what it opens now.',
+      undefined,
+      ['telegram', 'whatsapp', 'payment-link'],
+      ['qr-code-design-best-practices', 'qr-code-size-for-print'],
+    ),
+    tool: 'restyle',
+  },
   makeUseCase(
     'bulk',
     'Bulk from a spreadsheet',

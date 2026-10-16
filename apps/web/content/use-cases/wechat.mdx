@@ -1,0 +1,65 @@
+export const faq = [
+  {
+    q: 'Will the restyled code still work in WeChat?',
+    a: 'Yes. The new code holds exactly the same text as your original, character for character, so WeChat reads it the same way. Colours, a logo and a frame change how it looks, not what it says. Scan it with WeChat before you print, as you would any code.',
+  },
+  {
+    q: 'Can you make a WeChat group code that never expires?',
+    a: 'No. WeChat ends a group code’s invitation 7 days after making it, and a copy ends with it. No outside tool can change that. For a group people should be able to join for longer, share your contact code instead and add people to the group yourself.',
+  },
+  {
+    q: 'Can I restyle a WeChat Pay or Alipay payment code?',
+    a: 'Yes. Upload the code the app gives you to collect payments. Before you print, scan the new code with your phone and check the name the app shows is yours, and put the print where nobody can cover it with another code.',
+  },
+  {
+    q: 'Is my code uploaded anywhere?',
+    a: 'No. The screenshot is read in your browser and never leaves your device, and the new code is made in your browser too. We don’t see what your code holds.',
+  },
+  {
+    q: 'Why can’t I choose a dynamic code here?',
+    a: 'A dynamic code holds one of our short links, which then forwards people on. Codes made by WeChat need to reach WeChat as they are, so this page only makes static codes, which hold your original content directly.',
+  },
+  {
+    q: 'Can I restyle a mini program code?',
+    a: 'No. Mini program codes, the round ones, aren’t QR codes; only WeChat can read and make them.',
+  },
+]
+
+{/* source: https://boei.help/help/wechat (group QR codes valid for 7 days), seen 2026-10-16 */}
+{/* source: https://help.aliyun.com/en/document_detail/2928316.html (temporary Official Account codes valid 1 to 30 days), seen 2026-10-16 */}
+
+## What this page does
+
+WeChat and Alipay make their own QR codes: your contact card, a group invitation, an Official Account, or a code to collect payments. Only the apps can make them, and they all look the same: black and white, with no hint of whose code it is.
+
+This page restyles them. You add a screenshot of your code, your browser reads it, and you get a new code that holds exactly the same thing, in your colours, with the WeChat or Alipay logo in the middle and a frame with your own words. People scan it with WeChat or Alipay as usual, and it opens the same contact, group or payment page.
+
+## How to restyle your code
+
+1. **Get your code from the app.** Open your QR code in WeChat or Alipay and take a screenshot.
+2. **Add the screenshot.** Choose the image, drop it on the box above, or paste it. You can also point your camera at a code on another screen.
+3. **Check what was found.** The page tells you what kind of code it is and shows exactly what it holds, which stays the same.
+4. **Make it yours.** The WeChat or Alipay logo is already in the middle. Pick colours and a frame, or switch the logo to your own.
+5. **Scan it, then download.** Scan the new code with your phone first. Then download PNG for screens or SVG, PDF or EPS for print.
+
+<Screenshot name="wechat" alt="The QRfinity WeChat page after reading a WeChat group code: the code’s content, a note that group codes expire after 7 days, and a restyled code with the WeChat logo in the middle." />
+
+## Which WeChat codes work
+
+- **Your contact code** opens your profile so people can add you. It keeps working unless you reset your code in WeChat.
+- **Official Account codes** open the account so people can follow it. Some are made to be temporary and expire after up to 30 days; if a restyled one stops working, the original has too.
+- **Group codes** open a group invitation, but only for 7 days after WeChat made the code. Use them for something short, like this week’s event, and make a new one after.
+- **WeChat Pay and Alipay codes** for collecting payments work the same way after restyling. Check the name the app shows before you print.
+
+## Design and print tips
+
+- **Keep it dark on light.** Coloured codes scan fine, but the modules need to be clearly darker than the background. The scan check flags anything under 3:1 contrast.
+- **Say what the code is for.** “Add me on WeChat”, “Join our group” or “Pay here” gets more scans than a bare code.
+- **Use Latin letters in the frame for now.** Frame text uses Helvetica, so every download matches; Chinese characters in the frame won’t print correctly in PDF and EPS yet. Put Chinese text around the code in your own design instead.
+- **Size it for the distance.** 2.5 cm suits a business card, 4 to 5 cm a flyer or table card, and 20 cm or more a poster read from 2 metres away.
+
+## Static or dynamic?
+
+<Recommendation pick="static">
+Codes made by WeChat and Alipay need to reach those apps exactly as they are, so a restyled code is always static: it holds your original content, with nothing in between. For a link of your own, such as a website, the main generator also makes dynamic codes you can change later.
+</Recommendation>
