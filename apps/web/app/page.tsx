@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react'
 import Link from 'next/link'
 import { Faq, type FaqItem } from '@/components/content/Faq'
-import { JsonLd, softwareApplication } from '@/components/content/JsonLd'
+import { JsonLd, softwareApplication, website } from '@/components/content/JsonLd'
 import { PageGrid } from '@/components/content/PageGrid'
 import { FactBlock } from '@/components/content/Prose'
 import { Generator } from '@/components/generator/Generator'
@@ -113,7 +113,7 @@ export default function HomePage() {
         <Faq items={FAQ} />
         <FactBlock />
       </div>
-      <JsonLd data={softwareApplication(HOME)} />
+      <JsonLd data={[website(), softwareApplication(HOME)]} />
     </div>
   )
 }

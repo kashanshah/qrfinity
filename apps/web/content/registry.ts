@@ -8,7 +8,8 @@ import type { ContentFields, ContentType } from '@qrfinity/core'
 export const SITE_URL = 'https://qrfinity.com'
 export const SITE_NAME = 'QRfinity'
 
-export type PageKind = 'home' | 'use-case' | 'landing' | 'guide' | 'alternative' | 'hub' | 'pricing'
+export type PageKind =
+  'home' | 'use-case' | 'landing' | 'guide' | 'alternative' | 'hub' | 'pricing' | 'about' | 'legal'
 
 export type GeneratorPreset = {
   type: ContentType
@@ -520,6 +521,54 @@ export const PRICING: ContentPage = {
   updated: U,
 }
 
+export const ABOUT: ContentPage = {
+  path: '/about',
+  kind: 'about',
+  label: 'About',
+  h1: 'About QRfinity',
+  title: 'About QRfinity: who makes it and how to reach us',
+  description:
+    'QRfinity is a free QR code generator made by Teknoffice Technologies Inc. in Ontario, Canada. Why we built it, how it stays free, and how to contact us.',
+  intro: 'Who makes QRfinity, why codes here never expire, and how to reach a person.',
+  updated: U,
+}
+
+export const LEGAL: ContentPage[] = [
+  {
+    path: '/terms',
+    kind: 'legal',
+    label: 'Terms',
+    h1: 'Terms of service',
+    title: 'Terms of service | QRfinity',
+    description:
+      'The terms for using QRfinity, including our binding promises: codes never expire, free features stay free, and no watermark on any format.',
+    intro: 'The agreement between you and us, promises included.',
+    updated: U,
+  },
+  {
+    path: '/privacy',
+    kind: 'legal',
+    label: 'Privacy',
+    h1: 'Privacy policy',
+    title: 'Privacy policy | QRfinity',
+    description:
+      'What QRfinity collects, why, and for how long. We never store IP addresses, set no cookies on short links and never sell or rent data.',
+    intro: 'What we collect, what we never collect, and your rights.',
+    updated: U,
+  },
+  {
+    path: '/acceptable-use',
+    kind: 'legal',
+    label: 'Acceptable use',
+    h1: 'Acceptable use policy',
+    title: 'Acceptable use policy | QRfinity',
+    description:
+      'What QRfinity codes may and may not be used for: no phishing, malware or scams. How we check destinations, handle reports and appeals.',
+    intro: 'What codes may not be used for, and how we enforce it.',
+    updated: U,
+  },
+]
+
 export const ALL_PAGES: ContentPage[] = [
   HOME,
   ...HUBS,
@@ -528,6 +577,8 @@ export const ALL_PAGES: ContentPage[] = [
   ...GUIDES,
   ...ALTERNATIVES,
   PRICING,
+  ABOUT,
+  ...LEGAL,
 ]
 
 const byPath = new Map(ALL_PAGES.map((p) => [p.path, p]))

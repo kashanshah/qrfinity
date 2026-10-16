@@ -67,10 +67,11 @@ test('new codes cannot point at other shorteners or blocklisted domains', async 
   await expect(page.getByRole('alert').filter({ hasText: 'acceptable use policy' })).toBeVisible()
 })
 
-test('legal drafts are reachable from the footer and marked as drafts', async ({ page }) => {
+test('legal pages are reachable from the footer and in effect', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('navigation', { name: 'Legal' }).getByRole('link', { name: 'Terms' }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Terms of service')
-  await expect(page.getByText('Draft for legal review. Not yet in effect.')).toBeVisible()
+  await expect(page.getByText('Effective October 16, 2026')).toBeVisible()
+  await expect(page.getByText('Draft for legal review')).toHaveCount(0)
   await expect(page.getByText('Codes never expire.').first()).toBeVisible()
 })

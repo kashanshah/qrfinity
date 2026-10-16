@@ -27,10 +27,10 @@ test.describe('content pages', () => {
       expect(html).toContain('/opengraph-image')
       const blocks = [
         ...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g),
-      ].map((m) => JSON.parse(m[1]!))
+      ].flatMap((m) => JSON.parse(m[1]!))
       const types = blocks.map((b) => b['@type'])
       expect(types).toContain('Organization')
-      if (p.kind !== 'home') expect(types).toContain('BreadcrumbList')
+      if (p.kind !== 'home' && p.kind !== 'legal') expect(types).toContain('BreadcrumbList')
       if (p.kind === 'guide' || p.kind === 'alternative') expect(types).toContain('Article')
       if (p.kind === 'use-case' || p.kind === 'home' || p.kind === 'pricing')
         expect(types).toContain('SoftwareApplication')

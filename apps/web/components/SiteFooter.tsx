@@ -28,6 +28,7 @@ const COLUMNS = [
 ] as const
 
 const LEGAL = [
+  ['/about', 'About and contact'],
   ['/report', 'Report a QR code'],
   ['/terms', 'Terms'],
   ['/acceptable-use', 'Acceptable use'],

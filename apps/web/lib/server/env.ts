@@ -72,6 +72,11 @@ export const env = {
   get cronSecret() {
     return read('CRON_SECRET')
   },
+  /** IndexNow key (8–128 letters, digits or dashes). Served at /indexnow-key.txt. */
+  get indexNowKey() {
+    const k = read('INDEXNOW_KEY')
+    return k && /^[A-Za-z0-9-]{8,128}$/.test(k) ? k : null
+  },
   get webRiskApiKey() {
     return read('WEB_RISK_API_KEY')
   },

@@ -21,7 +21,31 @@ export const organization = (): Json => ({
   url: SITE_URL,
   logo: `${SITE_URL}/brand/qrfinity-mark.svg`,
   description: FACT_BLOCK,
+  email: 'hello@qrfinity.com',
+  foundingDate: '2026',
+  address: { '@type': 'PostalAddress', addressRegion: 'ON', addressCountry: 'CA' },
+  contactPoint: [
+    {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      email: 'hello@qrfinity.com',
+      availableLanguage: 'en',
+    },
+    { '@type': 'ContactPoint', contactType: 'abuse reports', email: 'abuse@qrfinity.com' },
+    { '@type': 'ContactPoint', contactType: 'legal', email: 'legal@qrfinity.com' },
+  ],
   parentOrganization: { '@type': 'Organization', name: 'Teknoffice Technologies Inc.' },
+})
+
+/** Sitewide site entity, on the home page. */
+export const website = (): Json => ({
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': `${SITE_URL}/#website`,
+  name: SITE_NAME,
+  url: SITE_URL,
+  inLanguage: 'en',
+  publisher: { '@id': `${SITE_URL}/#organization` },
 })
 
 export const softwareApplication = (page: ContentPage): Json => ({
