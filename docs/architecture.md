@@ -292,3 +292,9 @@ What was built differs from the plan above only in these details:
 - **Sessions store no IP** (`advanced.ipAddress.disableIpTracking`); sign-in limits use keyed hashes in Postgres instead of Better Auth's IP limiter.
 - **`proxy.ts`** (Next.js 16's middleware) sends signed-out visitors to `/login?next=…`; every page still verifies the session.
 - **Testing**: Worker logic lives in binding-free handlers tested in Node; the end-to-end suite runs the app and both Workers under wrangler against a real Postgres database.
+
+## 14. Implementation notes (Phase 4)
+
+- **Re-checks use the Web Risk Lookup API with a daily budget** rather than the Update API. See `docs/decisions.md` for the schedule, the budget and when to switch.
+- **Abuse state lives on the code row**: `risk_status` (unchecked, clean, flagged), `risk_detail`, `next_risk_check_at`. Disabling goes through the same versioned outbox as every other change, so the edge shows the warning page within about a minute.
+- **Admin routes** return 404 to non-admins; every action writes `audit_log` (actor is a user id or `system`).

@@ -72,6 +72,23 @@ export const env = {
   get cronSecret() {
     return read('CRON_SECRET')
   },
+  get webRiskApiKey() {
+    return read('WEB_RISK_API_KEY')
+  },
+  /** Comma-separated emails that are admins even without the admin role in the database. */
+  get adminEmails(): string[] {
+    return (read('ADMIN_EMAILS') ?? '')
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean)
+  },
+  /** Lookups the scheduled re-check may spend per run (one run a day by default). */
+  get recheckBudget() {
+    return Number(read('RECHECK_DAILY_BUDGET') ?? 3000) || 3000
+  },
+  get abuseEmail() {
+    return read('ABUSE_EMAIL') ?? 'abuse@qrfinity.com'
+  },
   get rateLimitSecret() {
     return read('RATE_LIMIT_SECRET') ?? read('BETTER_AUTH_SECRET') ?? 'dev-only-rate-limit-secret'
   },

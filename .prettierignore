@@ -3,3 +3,5 @@ brand/
 docs/
 *.md
 .next/
+packages/db/migrations/
+*.mdx

@@ -1,4 +1,5 @@
 import path from 'node:path'
+import createMDX from '@next/mdx'
 import type { NextConfig } from 'next'
 
 // Static generation runs entirely in the browser; the scan check needs WebAssembly and a worker.
@@ -20,6 +21,7 @@ const csp = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
   transpilePackages: ['@qrfinity/core'],
   // The app imports brand/tokens.css from the repository root.
   turbopack: { root: path.resolve(process.cwd(), '../..') },
@@ -39,4 +41,5 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+// Content pages (legal now, SEO pages in Phase 5) are MDX.
+export default createMDX({})(nextConfig)

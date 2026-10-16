@@ -4,6 +4,7 @@
  */
 import type { ReportScope, ScanReport } from './analytics/report'
 import type { LinkRecord } from './links/record'
+import type { ReputationResult } from './links/screening'
 
 /** Pushes link records to the edge (Cloudflare KV via the edge-api Worker today). */
 export interface EdgeSync {
@@ -29,4 +30,10 @@ export type RateLimitResult = { ok: true } | { ok: false; retryAfterSeconds: num
 
 export interface RateLimiter {
   hit(key: string, limit: number, windowSeconds: number): Promise<RateLimitResult>
+}
+
+/** URL reputation (Google Web Risk today). */
+export interface UrlReputation {
+  check(url: string): Promise<ReputationResult>
+  readonly configured: boolean
 }

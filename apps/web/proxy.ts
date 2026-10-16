@@ -12,4 +12,4 @@ export function proxy(request: NextRequest) {
   return NextResponse.redirect(url)
 }
 
-export const config = { matcher: ['/dashboard/:path*', '/dashboard'] }
+export const config = { matcher: ['/dashboard/:path*', '/dashboard', '/admin/:path*', '/admin'] }

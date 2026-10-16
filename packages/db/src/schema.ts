@@ -34,6 +34,8 @@ export const user = pgTable('user', {
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').notNull().default(false),
   image: text('image'),
+  /** 'admin' can open /admin. Admins can also be granted by email with ADMIN_EMAILS. */
+  role: text('role').$type<'user' | 'admin'>().notNull().default('user'),
   /** Set by an admin (Phase 4). A suspended user can't sign in or edit; their codes keep working unless disabled one by one. */
   suspendedAt: timestamp('suspended_at', { withTimezone: true }),
   createdAt: createdAt(),
@@ -131,6 +133,15 @@ export const codes = pgTable(
     status: text('status').$type<LinkStatus>().notNull().default('active'),
     /** Why an admin disabled the code (Phase 4). Never set by the system on its own. */
     disabledReason: text('disabled_reason'),
+    /** URL-reputation state of the destination: checked on create/edit and re-checked on a schedule. */
+    riskStatus: text('risk_status')
+      .$type<'unchecked' | 'clean' | 'flagged'>()
+      .notNull()
+      .default('unchecked'),
+    riskDetail: text('risk_detail'),
+    riskCheckedAt: timestamp('risk_checked_at', { withTimezone: true }),
+    riskChecks: integer('risk_checks').notNull().default(0),
+    nextRiskCheckAt: timestamp('next_risk_check_at', { withTimezone: true }).defaultNow(),
     folderId: uuid('folder_id').references(() => folders.id, { onDelete: 'set null' }),
     /** Increases with every change pushed to the edge. */
     version: integer('version').notNull().default(1),
@@ -141,6 +152,7 @@ export const codes = pgTable(
   (t) => [
     uniqueIndex('codes_domain_slug_idx').on(t.domain, t.slug),
     index('codes_user_idx').on(t.userId, t.createdAt),
+    index('codes_risk_due_idx').on(t.nextRiskCheckAt),
   ],
 )
 
@@ -182,6 +194,66 @@ export const destinationHistory = pgTable(
     changedAt: timestamp('changed_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('destination_history_code_idx').on(t.codeId, t.changedAt)],
+)
+
+// ---- Abuse and admin
+
+export type BlocklistKind = 'domain' | 'tld' | 'contains'
+
+/** Destinations we refuse, managed in /admin/blocklist. */
+export const blocklist = pgTable(
+  'blocklist',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    kind: text('kind').$type<BlocklistKind>().notNull(),
+    value: text('value').notNull(),
+    reason: text('reason'),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex('blocklist_kind_value_idx').on(t.kind, t.value)],
+)
+
+export type ReportStatus = 'open' | 'dismissed' | 'actioned'
+
+/** "Report this QR code" submissions. The reporter's email is optional. */
+export const reports = pgTable(
+  'reports',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    codeId: uuid('code_id').references(() => codes.id, { onDelete: 'set null' }),
+    /** What the reporter entered: a short link, slug or address. */
+    reported: text('reported').notNull(),
+    reason: text('reason').notNull(),
+    details: text('details'),
+    reporterEmail: text('reporter_email'),
+    status: text('status').$type<ReportStatus>().notNull().default('open'),
+    resolvedBy: text('resolved_by'),
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('reports_status_idx').on(t.status, t.createdAt),
+    index('reports_code_idx').on(t.codeId),
+  ],
+)
+
+/** Every admin and automated abuse action. `actor` is a user id or 'system'. */
+export const auditLog = pgTable(
+  'audit_log',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    actor: text('actor').notNull(),
+    action: text('action').notNull(),
+    targetType: text('target_type').notNull(),
+    targetId: text('target_id').notNull(),
+    details: jsonb('details').$type<Record<string, unknown>>(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('audit_log_created_idx').on(t.createdAt),
+    index('audit_log_target_idx').on(t.targetType, t.targetId),
+  ],
 )
 
 // ---- Infrastructure

@@ -14,6 +14,7 @@ import {
   type LinkRecord,
   type LinkStatus,
   type RateLimiter,
+  type UrlReputation,
 } from '@qrfinity/core'
 import {
   codeTags,
@@ -36,24 +37,20 @@ import {
   sql,
 } from '@qrfinity/db'
 
+import { ServiceError } from './errors'
 import { LIMITS, rateKey, retryMessage } from './rate-limit'
+import { screenForCode } from './screening'
+
+export { ServiceError }
 
 export type ServiceContext = {
   db: Database
   edge: EdgeSync
   limiter: RateLimiter
+  reputation: UrlReputation
   userId: string
   shortDomain: string
   rateSecret: string
-}
-
-export class ServiceError extends Error {
-  constructor(
-    message: string,
-    readonly code: 'invalid' | 'not_found' | 'rate_limited' | 'forbidden',
-  ) {
-    super(message)
-  }
 }
 
 type CodeRow = typeof codes.$inferSelect
@@ -276,6 +273,8 @@ export async function createDynamicCode(
   if (input.folderId) await ownedFolder(ctx, input.folderId)
   await limit(ctx, 'create-hour', LIMITS.createPerHour)
   await limit(ctx, 'create-day', LIMITS.createPerDay)
+  // After the rate limits, so spam can't spend the Web Risk quota.
+  const risk = await screenForCode(ctx.db, ctx.reputation, destination)
 
   for (let attempt = 0; attempt < 6; attempt++) {
     const slug = generateSlug()
@@ -293,6 +292,7 @@ export async function createDynamicCode(
             content: cleanContent(input.content),
             design: sanitizeDesign(input.design),
             folderId: input.folderId ?? null,
+            ...risk,
           })
           .returning()
         await tx.insert(destinationHistory).values({
@@ -342,10 +342,12 @@ export async function updateDestination(
     return getCode(ctx, id)
   }
   await limit(ctx, 'edit-hour', LIMITS.editPerHour)
+  const risk = await screenForCode(ctx.db, ctx.reputation, destination)
   await ctx.db.transaction(async (tx) => {
     const [updated] = await tx
       .update(codes)
       .set({
+        ...risk,
         destination,
         content: input.content === undefined ? row.content : cleanContent(input.content),
         version: sql`${codes.version} + 1`,

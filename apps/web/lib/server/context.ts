@@ -1,12 +1,15 @@
 import 'server-only'
 import { headers } from 'next/headers'
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
+import { isAdmin, type AdminContext } from './admin'
 import { getAuth } from './auth'
+import { getMailer } from './mailer'
 import type { ServiceContext } from './codes'
 import { getDb } from './db'
 import { getEdgeSync } from './edge-sync'
 import { env } from './env'
 import { PostgresRateLimiter } from './rate-limit'
+import { getReputation } from './reputation'
 
 export async function getSessionUser() {
   const session = await getAuth().api.getSession({ headers: await headers() })
@@ -30,6 +33,7 @@ export async function serviceContext(
     db,
     edge: getEdgeSync(),
     limiter: new PostgresRateLimiter(db),
+    reputation: getReputation(),
     userId: user.id,
     shortDomain: env.shortDomain,
     rateSecret: env.rateLimitSecret,
@@ -38,4 +42,18 @@ export async function serviceContext(
 
 export function shortLinkOrigin() {
   return env.shortLinkOrigin
+}
+
+/** Admin pages and actions: anyone else gets a plain 404, so /admin isn't discoverable. */
+export async function adminContext(): Promise<AdminContext> {
+  const user = await requireUser('/admin')
+  if (!isAdmin(user as { email: string; role?: string }, env.adminEmails)) notFound()
+  return {
+    db: getDb(),
+    edge: getEdgeSync(),
+    mailer: getMailer(),
+    actor: user.id,
+    abuseEmail: env.abuseEmail,
+    siteUrl: env.appUrl,
+  }
 }

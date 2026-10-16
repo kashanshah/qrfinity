@@ -1,4 +1,11 @@
-import { DEFAULT_DESIGN, type EdgeSync, type LinkRecord, type RateLimiter } from '@qrfinity/core'
+import {
+  DEFAULT_DESIGN,
+  type EdgeSync,
+  type LinkRecord,
+  type RateLimiter,
+  type ReputationResult,
+  type UrlReputation,
+} from '@qrfinity/core'
 import { createDb, runMigrations, sql, user, type Database } from '@qrfinity/db'
 import type { ServiceContext } from '@/lib/server/codes'
 import { PostgresRateLimiter } from '@/lib/server/rate-limit'
@@ -33,6 +40,20 @@ export class FakeEdge implements EdgeSync {
   }
 }
 
+/** Web Risk stand-in: flags any URL containing a listed fragment. */
+export class FakeReputation implements UrlReputation {
+  configured = true
+  flagged = new Map<string, ReputationResult>()
+  calls: string[] = []
+  down = false
+  async check(url: string): Promise<ReputationResult> {
+    this.calls.push(url)
+    if (this.down) return { status: 'unknown', reason: 'down' }
+    for (const [fragment, r] of this.flagged) if (url.includes(fragment)) return r
+    return { status: 'clean' }
+  }
+}
+
 export async function makeUser(db: Database, id: string) {
   await db
     .insert(user)
@@ -45,8 +66,9 @@ export function ctxFor(
   userId: string,
   edge = new FakeEdge(),
   limiter: RateLimiter = new PostgresRateLimiter(db),
-): ServiceContext & { edge: FakeEdge } {
-  return { db, edge, limiter, userId, shortDomain: 'qrfinity.link', rateSecret: 'test' }
+  reputation = new FakeReputation(),
+): ServiceContext & { edge: FakeEdge; reputation: FakeReputation } {
+  return { db, edge, limiter, reputation, userId, shortDomain: 'qrfinity.link', rateSecret: 'test' }
 }
 
 export const design = DEFAULT_DESIGN
