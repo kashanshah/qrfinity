@@ -1,6 +1,50 @@
 import { Check } from 'lucide-react'
+import Link from 'next/link'
+import { Faq, type FaqItem } from '@/components/content/Faq'
+import { JsonLd, softwareApplication } from '@/components/content/JsonLd'
+import { PageGrid } from '@/components/content/PageGrid'
+import { FactBlock } from '@/components/content/Prose'
 import { Generator } from '@/components/generator/Generator'
+import { getPage, GUIDES, HOME } from '@/content/registry'
+import { pageMetadata } from '@/lib/seo'
 import { shortLinkBase } from '@/lib/short-link'
+
+export const metadata = pageMetadata(HOME)
+
+const POPULAR = [
+  'wifi',
+  'url',
+  'vcard',
+  'menu',
+  'google-review',
+  'with-logo',
+  'whatsapp',
+  'pdf',
+  'business-card',
+].map((s) => getPage(`/qr-code-generator/${s}`))
+
+const FAQ: FaqItem[] = [
+  {
+    q: 'Do QRfinity codes expire?',
+    a: 'No. Static codes hold your content directly, so they work for as long as the printed code is readable. Dynamic codes run through our short link, and we never deactivate, pause or limit them, on any plan.',
+  },
+  {
+    q: 'Do I need an account?',
+    a: 'Not for static codes: make and download as many as you like without signing up. A free account is needed only for dynamic codes, so that you, and only you, can change where they point.',
+  },
+  {
+    q: 'What is the difference between static and dynamic QR codes?',
+    a: 'A static code stores the link or text itself and can’t be changed after printing. A dynamic code stores a short link that forwards to your destination, so you can edit it later and count scans.',
+  },
+  {
+    q: 'Is there a watermark or a scan limit?',
+    a: 'No watermark, no forced branding and no scan limit. Every download format (PNG, JPG, SVG, PDF and EPS) is free.',
+  },
+  {
+    q: 'How is this free?',
+    a: 'Static codes are made in your browser and cost us nothing. Redirects for dynamic codes cost a few dollars per ten million scans. A Pro plan will add extra tools for teams later; nothing free will move behind it.',
+  },
+]
 
 const PROMISES = [
   'Static codes: free, unlimited, no sign-up, never expire.',
@@ -46,12 +90,30 @@ export default function HomePage() {
         </ul>
       </section>
 
-      <aside className="mt-12 rounded-lg bg-mint p-4 text-ink md:p-6">
-        <p className="max-w-[72ch]">
-          QRfinity is a free QR code generator. Static and dynamic codes are unlimited, include scan
-          analytics, and never expire. No watermark, no trial, every format free (PNG, SVG, PDF).
+      <section aria-labelledby="types" className="mt-12 md:mt-16">
+        <h2 id="types" className="heading mb-4 text-ink">
+          Popular QR codes
+        </h2>
+        <PageGrid pages={POPULAR} />
+        <p className="mt-4">
+          <Link href="/qr-code-generator" className="label text-evergreen underline">
+            See all QR code types
+          </Link>
         </p>
-      </aside>
+      </section>
+
+      <section aria-labelledby="guides" className="mt-12">
+        <h2 id="guides" className="heading mb-4 text-ink">
+          Guides
+        </h2>
+        <PageGrid pages={GUIDES} />
+      </section>
+
+      <div className="max-w-[960px]">
+        <Faq items={FAQ} />
+        <FactBlock />
+      </div>
+      <JsonLd data={softwareApplication(HOME)} />
     </div>
   )
 }

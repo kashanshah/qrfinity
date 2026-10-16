@@ -20,6 +20,15 @@ export const CONTENT_TYPES = [
 
 export type ContentType = (typeof CONTENT_TYPES)[number]
 
+/** Content types a dynamic code can hold: they all resolve to an http(s) address. */
+export const DYNAMIC_TYPES: readonly ContentType[] = [
+  'url',
+  'whatsapp',
+  'location',
+  'app',
+  'social',
+]
+
 export type UrlFields = { url: string }
 export type TextFields = { text: string }
 export type WifiFields = {

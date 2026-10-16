@@ -48,6 +48,18 @@
     font-size: 16px;
     line-height: 26px;
   }
+  /* Tailwind v4 no longer gives buttons a pointer cursor; restore it for everything clickable. */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  summary,
+  select:not(:disabled),
+  input[type='checkbox']:not(:disabled),
+  input[type='radio']:not(:disabled),
+  input[type='color']:not(:disabled),
+  input[type='range']:not(:disabled),
+  input[type='file']:not(:disabled) {
+    cursor: pointer;
+  }
   :focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: 2px;
@@ -79,4 +91,20 @@
   display: block;
   width: 100%;
   height: auto;
+}
+
+/* Page H1: display-l from tablet up, a step smaller on phones so long titles don't run to four lines. */
+.page-title {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 40px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+}
+@media (min-width: 768px) {
+  .page-title {
+    font-size: 44px;
+    line-height: 48px;
+    letter-spacing: -1px;
+  }
 }

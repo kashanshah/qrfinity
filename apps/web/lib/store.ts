@@ -3,6 +3,7 @@
 import {
   DEFAULT_DESIGN,
   DEFAULT_FIELDS,
+  DYNAMIC_TYPES,
   type ContentFields,
   type ContentType,
   type Design,
@@ -13,14 +14,7 @@ export const DEFAULT_PRINT_WIDTH_MM = 40
 
 export type CodeKind = 'static' | 'dynamic'
 
-/** Content types a dynamic code can hold: they all resolve to an http(s) address. */
-export const DYNAMIC_TYPES: readonly ContentType[] = [
-  'url',
-  'whatsapp',
-  'location',
-  'app',
-  'social',
-]
+export { DYNAMIC_TYPES }
 
 export type GeneratorInit = {
   kind?: CodeKind

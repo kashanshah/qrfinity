@@ -1,0 +1,547 @@
+/**
+ * Every public content page: path, title, meta description, H1 and internal links.
+ * The sitemap, metadata, breadcrumbs, related links and footer all read from here.
+ * Titles stay ≤ 60 characters and descriptions ≤ 155 (enforced by test/registry.test.ts).
+ */
+import type { ContentFields, ContentType } from '@qrfinity/core'
+
+export const SITE_URL = 'https://qrfinity.com'
+export const SITE_NAME = 'QRfinity'
+
+export type PageKind = 'home' | 'use-case' | 'landing' | 'guide' | 'alternative' | 'hub' | 'pricing'
+
+export type GeneratorPreset = {
+  type: ContentType
+  fields?: Partial<ContentFields>
+  kind?: 'static' | 'dynamic'
+}
+
+export type ContentPage = {
+  path: string
+  kind: PageKind
+  /** Full <title>, brand included where it fits. */
+  title: string
+  description: string
+  h1: string
+  /** The one-line promise under the H1. */
+  intro: string
+  /** Short label for breadcrumbs, link lists and the footer. */
+  label: string
+  /** ISO date the content was last reviewed. */
+  updated: string
+  generator?: GeneratorPreset
+  /** Use-case paths shown as "Related" (3 on use-case pages). */
+  related?: string[]
+  /** Guide paths linked from the page (2 on use-case pages). */
+  guides?: string[]
+}
+
+const U = '2026-10-16'
+
+const makeUseCase = (
+  slug: string,
+  label: string,
+  h1: string,
+  title: string,
+  description: string,
+  intro: string,
+  generator: GeneratorPreset | undefined,
+  related: string[],
+  guides: string[],
+): ContentPage => ({
+  path: `/qr-code-generator/${slug}`,
+  kind: 'use-case',
+  label,
+  h1,
+  title,
+  description,
+  intro,
+  updated: U,
+  generator,
+  related: related.map((r) => `/qr-code-generator/${r}`),
+  guides: guides.map((g) => `/guides/${g}`),
+})
+
+export const USE_CASES: ContentPage[] = [
+  makeUseCase(
+    'url',
+    'Link (URL)',
+    'Free URL QR code generator',
+    'Free URL QR code generator: links that never expire',
+    'Turn any link into a QR code in seconds. Free, no sign-up, no watermark. Static links work forever; dynamic ones you can edit later.',
+    'Paste a link, download your code. It works forever.',
+    { type: 'url' },
+    ['with-logo', 'pdf', 'menu'],
+    ['static-vs-dynamic-qr-codes', 'qr-code-size-for-print'],
+  ),
+  makeUseCase(
+    'wifi',
+    'Wi-Fi',
+    'Free Wi-Fi QR code generator',
+    'Free Wi-Fi QR code generator: join without a password',
+    'Let guests join your Wi-Fi by scanning instead of typing. Works on iPhone and Android, made in your browser, free and never expires.',
+    'Guests scan once and they’re online. No typing, no spelling out passwords.',
+    { type: 'wifi' },
+    ['menu', 'location', 'business-card'],
+    ['qr-code-design-best-practices', 'qr-code-size-for-print'],
+  ),
+  makeUseCase(
+    'vcard',
+    'Contact card (vCard)',
+    'Free vCard QR code generator',
+    'Free vCard QR code generator for contact details',
+    'Share your phone, email and address in one scan: phones save it straight to contacts. Free vCard QR codes with no app and no expiry.',
+    'One scan saves your details to their contacts. No app, no typing.',
+    { type: 'vcard' },
+    ['business-card', 'email', 'whatsapp'],
+    ['qr-code-size-for-print', 'static-vs-dynamic-qr-codes'],
+  ),
+  makeUseCase(
+    'with-logo',
+    'With your logo',
+    'Free QR code generator with logo',
+    'Free QR code generator with logo, no watermark',
+    'Add your logo to a QR code for free. We clear space behind it, raise error correction and check it still scans. No watermark, ever.',
+    'Your logo in the middle, checked to make sure it still scans.',
+    { type: 'url' },
+    ['url', 'instagram', 'business-card'],
+    ['qr-code-design-best-practices', 'how-to-print-qr-codes-on-packaging'],
+  ),
+  makeUseCase(
+    'google-review',
+    'Google reviews',
+    'Free Google review QR code generator',
+    'Free Google review QR code: get more reviews',
+    'Send customers straight to your Google review form with one scan. Find your review link, make the code, print it at the counter.',
+    'Happy customers scan and land on your review form, ready to write.',
+    { type: 'url' },
+    ['menu', 'location', 'instagram'],
+    ['qr-code-design-best-practices', 'how-to-track-qr-code-scans'],
+  ),
+  makeUseCase(
+    'instagram',
+    'Instagram',
+    'Free Instagram QR code generator',
+    'Free Instagram QR code generator for your profile',
+    'Turn your Instagram handle into a QR code that opens your profile in the app. Add your logo, pick colours, download free.',
+    'Scan to follow: your profile opens straight in the Instagram app.',
+    { type: 'social', fields: { social: { platform: 'instagram', handle: '' } } },
+    ['youtube', 'with-logo', 'google-review'],
+    ['qr-code-design-best-practices', 'how-to-track-qr-code-scans'],
+  ),
+  makeUseCase(
+    'whatsapp',
+    'WhatsApp',
+    'Free WhatsApp QR code generator',
+    'Free WhatsApp QR code: start a chat in one scan',
+    'Make a QR code that opens a WhatsApp chat with you, with an optional pre-filled message. Free, works on every phone, never expires.',
+    'Customers scan and a chat with you opens, message ready to send.',
+    { type: 'whatsapp' },
+    ['sms', 'vcard', 'payment-link'],
+    ['static-vs-dynamic-qr-codes', 'qr-code-size-for-print'],
+  ),
+  makeUseCase(
+    'pdf',
+    'PDF',
+    'Free PDF QR code generator',
+    'Free PDF QR code generator: link to any PDF',
+    'Point a QR code at a PDF you’ve uploaded to your website, Google Drive or Dropbox. Use a dynamic code to swap the file later.',
+    'Link a code to your brochure, manual or price list.',
+    { type: 'url' },
+    ['menu', 'url', 'amazon-review'],
+    ['static-vs-dynamic-qr-codes', 'how-to-print-qr-codes-on-packaging'],
+  ),
+  makeUseCase(
+    'menu',
+    'Restaurant menu',
+    'Free menu QR code generator',
+    'Free menu QR code generator for restaurants and cafés',
+    'Put your menu on every table with a QR code. Use a dynamic code to change the menu link without reprinting. Free, no expiry.',
+    'Table tents, windows and receipts that open your menu in one scan.',
+    { type: 'url' },
+    ['wifi', 'google-review', 'pdf'],
+    ['static-vs-dynamic-qr-codes', 'qr-code-size-for-print'],
+  ),
+  makeUseCase(
+    'business-card',
+    'Business cards',
+    'QR codes for business cards',
+    'Free QR code for business cards: size and setup',
+    'Add a QR code to your business card that saves your contact or opens your site. Sizes, placement and what to put in it.',
+    'Make your card do more than sit in a drawer.',
+    { type: 'vcard' },
+    ['vcard', 'with-logo', 'url'],
+    ['qr-code-size-for-print', 'qr-code-design-best-practices'],
+  ),
+  makeUseCase(
+    'email',
+    'Email',
+    'Free email QR code generator',
+    'Free email QR code generator with subject and message',
+    'Make a QR code that opens a new email to you, with the subject and message already filled in. Free, no sign-up, never expires.',
+    'Scan to email: the address, subject and message are already there.',
+    { type: 'email' },
+    ['sms', 'vcard', 'event'],
+    ['static-vs-dynamic-qr-codes', 'qr-code-design-best-practices'],
+  ),
+  makeUseCase(
+    'sms',
+    'SMS',
+    'Free SMS QR code generator',
+    'Free SMS QR code generator: pre-filled text messages',
+    'Scan to text: a QR code that opens a new SMS to your number with a message ready to send. Good for opt-ins, entries and support.',
+    'A text message to you, written and ready to send.',
+    { type: 'sms' },
+    ['whatsapp', 'email', 'event'],
+    ['static-vs-dynamic-qr-codes', 'qr-code-size-for-print'],
+  ),
+  makeUseCase(
+    'location',
+    'Location',
+    'Free location QR code generator',
+    'Free location QR code: open your address in Maps',
+    'Make a QR code that opens your address or exact coordinates in Google Maps on iPhone and Android. Free, no account, never expires.',
+    'Scan for directions: your address opens in Maps, ready to navigate.',
+    { type: 'location' },
+    ['event', 'google-review', 'wifi'],
+    ['qr-code-size-for-print', 'static-vs-dynamic-qr-codes'],
+  ),
+  makeUseCase(
+    'event',
+    'Calendar event',
+    'Free event QR code generator',
+    'Free event QR code: add to calendar in one scan',
+    'Make a QR code that adds your event to the scanner’s calendar with the date, time and place. For invitations, posters and tickets.',
+    'One scan puts the date, time and place in their calendar.',
+    { type: 'event' },
+    ['location', 'email', 'spotify'],
+    ['qr-code-design-best-practices', 'static-vs-dynamic-qr-codes'],
+  ),
+  makeUseCase(
+    'app-store',
+    'App Store and Google Play',
+    'Free app store QR code generator',
+    'Free App Store and Google Play QR code generator',
+    'Link your app’s App Store or Google Play page to a QR code for packaging, posters and ads. Free, with tips for both stores.',
+    'From poster to install page in one scan.',
+    { type: 'app' },
+    ['youtube', 'url', 'with-logo'],
+    ['how-to-track-qr-code-scans', 'how-to-print-qr-codes-on-packaging'],
+  ),
+  makeUseCase(
+    'youtube',
+    'YouTube',
+    'Free YouTube QR code generator',
+    'Free YouTube QR code generator for videos and channels',
+    'Make a QR code that opens a YouTube video or channel. Ideal for packaging, manuals and print ads. Free, no watermark, never expires.',
+    'Point printed things at your videos: manuals, packaging, posters.',
+    { type: 'social', fields: { social: { platform: 'youtube', handle: '' } } },
+    ['spotify', 'instagram', 'app-store'],
+    ['how-to-print-qr-codes-on-packaging', 'how-to-track-qr-code-scans'],
+  ),
+  makeUseCase(
+    'spotify',
+    'Spotify',
+    'Free Spotify QR code generator',
+    'Free Spotify QR code generator for songs and playlists',
+    'Share a song, album, playlist or podcast with a QR code that opens Spotify. For gig posters, merch and wedding tables.',
+    'A song, album or playlist, one scan away.',
+    { type: 'url' },
+    ['youtube', 'event', 'instagram'],
+    ['qr-code-design-best-practices', 'static-vs-dynamic-qr-codes'],
+  ),
+  makeUseCase(
+    'payment-link',
+    'Payment links',
+    'Free payment link QR code generator',
+    'Free payment QR code generator for payment links',
+    'Turn a PayPal, Stripe or Square payment link into a QR code customers scan to pay. Free to make; your payment provider handles the money.',
+    'Customers scan and pay through the provider you already use.',
+    { type: 'url' },
+    ['menu', 'url', 'whatsapp'],
+    ['static-vs-dynamic-qr-codes', 'qr-code-design-best-practices'],
+  ),
+  makeUseCase(
+    'amazon-review',
+    'Amazon product inserts',
+    'QR codes for Amazon product inserts',
+    'Amazon review QR code for product insert cards',
+    'Make QR codes for Amazon product insert cards that follow Amazon’s rules: neutral wording, no incentives. Free, with sizes for print.',
+    'Insert cards that help buyers, and stay within Amazon’s rules.',
+    { type: 'url' },
+    ['google-review', 'pdf', 'youtube'],
+    ['how-to-print-qr-codes-on-packaging', 'qr-code-size-for-print'],
+  ),
+  makeUseCase(
+    'bulk',
+    'Bulk from a spreadsheet',
+    'Bulk QR code generator',
+    'Bulk QR code generator from CSV (coming to Pro)',
+    'Create hundreds of QR codes from a spreadsheet in one go. Bulk creation is coming to QRfinity Pro; join the waitlist for early access.',
+    'Hundreds of codes from one spreadsheet. Coming to Pro.',
+    undefined,
+    ['url', 'vcard', 'with-logo'],
+    ['how-to-print-qr-codes-on-packaging', 'static-vs-dynamic-qr-codes'],
+  ),
+]
+
+export const LANDINGS: ContentPage[] = [
+  {
+    path: '/dynamic-qr-code-generator',
+    kind: 'landing',
+    label: 'Dynamic QR codes',
+    h1: 'Free dynamic QR codes that never expire',
+    title: 'Free dynamic QR code generator that never expires',
+    description:
+      'Edit where your QR code goes after printing and see who scans it. Free dynamic codes with analytics, unlimited, never deactivated.',
+    intro: 'Change the destination after printing. See every scan. Free, and never switched off.',
+    updated: U,
+    generator: { type: 'url', kind: 'dynamic' },
+    related: [
+      '/qr-code-generator/menu',
+      '/qr-code-generator/pdf',
+      '/qr-code-generator/google-review',
+    ],
+    guides: ['/guides/static-vs-dynamic-qr-codes', '/guides/how-to-track-qr-code-scans'],
+  },
+  {
+    path: '/qr-code-no-expiration',
+    kind: 'landing',
+    label: 'QR codes with no expiration',
+    h1: 'QR codes with no expiration date',
+    title: 'QR code generator with no expiration, free forever',
+    description:
+      'Many free QR codes stop working after a trial. Ours don’t: static and dynamic codes are free and never expire. Here’s how that works.',
+    intro: 'Print it once. It works forever, and that promise is in our terms.',
+    updated: U,
+    generator: { type: 'url' },
+    related: ['/qr-code-generator/url', '/qr-code-generator/menu', '/qr-code-generator/wifi'],
+    guides: ['/guides/do-qr-codes-expire', '/guides/static-vs-dynamic-qr-codes'],
+  },
+  {
+    path: '/qr-code-stopped-working',
+    kind: 'landing',
+    label: 'QR code stopped working?',
+    h1: 'QR code stopped working? Here’s why and how to fix it',
+    title: 'QR code stopped working? Causes and how to fix it',
+    description:
+      'Most QR codes that suddenly stop working were dynamic codes from an expired trial. Find the cause, recover your scans and stop it happening again.',
+    intro: 'Find out why, fix what you can today, and make sure it never happens again.',
+    updated: U,
+    related: ['/qr-code-generator/url', '/qr-code-generator/menu', '/qr-code-generator/pdf'],
+    guides: ['/guides/do-qr-codes-expire', '/guides/static-vs-dynamic-qr-codes'],
+  },
+]
+
+const guide = (
+  slug: string,
+  label: string,
+  h1: string,
+  title: string,
+  description: string,
+  intro: string,
+  related: string[],
+): ContentPage => ({
+  path: `/guides/${slug}`,
+  kind: 'guide',
+  label,
+  h1,
+  title,
+  description,
+  intro,
+  updated: U,
+  related: related.map((r) => `/qr-code-generator/${r}`),
+})
+
+export const GUIDES: ContentPage[] = [
+  guide(
+    'static-vs-dynamic-qr-codes',
+    'Static vs dynamic QR codes',
+    'Static vs dynamic QR codes: what’s the difference?',
+    'Static vs dynamic QR codes: which should you use?',
+    'Static QR codes hold your content directly and never change; dynamic codes use a short link you can edit and track. When to use each.',
+    'The one decision to make before you print.',
+    ['url', 'menu', 'pdf'],
+  ),
+  guide(
+    'do-qr-codes-expire',
+    'Do QR codes expire?',
+    'Do QR codes expire?',
+    'Do QR codes expire? The honest answer',
+    'QR codes themselves never expire. Dynamic codes can stop working if the service behind them ends or a trial runs out. How to tell and stay safe.',
+    'The pattern never expires. What it points to might.',
+    ['url', 'menu', 'wifi'],
+  ),
+  guide(
+    'qr-code-size-for-print',
+    'QR code size for print',
+    'What size should a QR code be when printed?',
+    'QR code size for print: minimums and a simple rule',
+    'The smallest QR code that scans reliably is about 2 cm wide. Bigger for distance: about one tenth of the scanning distance. Sizes for common uses.',
+    'A simple rule, a minimum, and sizes for the things people print most.',
+    ['business-card', 'menu', 'with-logo'],
+  ),
+  guide(
+    'how-to-track-qr-code-scans',
+    'Tracking QR code scans',
+    'How to track QR code scans',
+    'How to track QR code scans for free',
+    'To count scans you need a dynamic QR code. What you can measure, what stays private, and how to read scan analytics without paying.',
+    'What you can measure, what you can’t, and what stays private.',
+    ['google-review', 'menu', 'app-store'],
+  ),
+  guide(
+    'qr-code-design-best-practices',
+    'QR code design best practices',
+    'QR code design best practices',
+    'QR code design best practices that still scan',
+    'Colours, contrast, logos, margins and frames: how to design a branded QR code that every phone camera can still read.',
+    'Make it yours without making it unreadable.',
+    ['with-logo', 'instagram', 'business-card'],
+  ),
+  guide(
+    'how-to-print-qr-codes-on-packaging',
+    'QR codes on packaging',
+    'How to print QR codes on packaging',
+    'How to print QR codes on packaging and labels',
+    'Size, quiet zone, curved surfaces, finishes and file formats for QR codes on boxes, bottles and labels, plus a pre-print checklist.',
+    'Get it right before the print run, not after.',
+    ['amazon-review', 'youtube', 'app-store'],
+  ),
+]
+
+const alt = (
+  slug: string,
+  competitor: string,
+  title: string,
+  description: string,
+): ContentPage => ({
+  path: `/alternatives/${slug}`,
+  kind: 'alternative',
+  label: `QRfinity vs ${competitor}`,
+  h1: `QRfinity vs ${competitor}`,
+  title,
+  description,
+  intro: `A fair comparison, with sources. Including when ${competitor} is the better choice.`,
+  updated: U,
+  related: ['/dynamic-qr-code-generator', '/qr-code-no-expiration', '/qr-code-stopped-working'],
+})
+
+export const ALTERNATIVES: ContentPage[] = [
+  alt(
+    'qr-code-generator-pro',
+    'QR Code Generator PRO',
+    'QR Code Generator PRO alternative that never expires',
+    'A fair comparison of QRfinity and QR Code Generator PRO: free plans, what happens after the trial, dynamic code prices and export formats.',
+  ),
+  alt(
+    'qr-tiger',
+    'QR TIGER',
+    'QR TIGER alternative with free dynamic codes',
+    'QRfinity vs QR TIGER compared fairly: free limits, trial terms, dynamic code pricing, formats, and when QR TIGER is the better choice.',
+  ),
+  alt(
+    'qrfy',
+    'QRFY',
+    'QRFY alternative: QR codes that don’t expire',
+    'QRfinity vs QRFY: how free trials, dynamic codes, pricing and exports compare, with sources, and when QRFY may suit you better.',
+  ),
+  alt(
+    'uniqode',
+    'Uniqode',
+    'Uniqode alternative for free dynamic QR codes',
+    'QRfinity vs Uniqode (formerly Beaconstac): free plans, dynamic code limits, pricing and enterprise features compared with sources.',
+  ),
+  alt(
+    'qrcode-monkey',
+    'QRCode Monkey',
+    'QRCode Monkey alternative with free dynamic codes',
+    'QRfinity vs QRCode Monkey: both make free static codes. How they differ on dynamic codes, analytics, scan checks and file formats.',
+  ),
+]
+
+export const HUBS: ContentPage[] = [
+  {
+    path: '/qr-code-generator',
+    kind: 'hub',
+    label: 'All QR code types',
+    h1: 'Free QR code generators for every use',
+    title: 'Free QR code generators for every use | QRfinity',
+    description:
+      'Wi-Fi, menus, business cards, reviews, WhatsApp, PDFs and more. Pick what your QR code should do; every code is free and never expires.',
+    intro: 'Pick what your code should do. Every one is free and never expires.',
+    updated: U,
+  },
+  {
+    path: '/guides',
+    kind: 'hub',
+    label: 'Guides',
+    h1: 'QR code guides',
+    title: 'QR code guides: sizes, design, tracking | QRfinity',
+    description:
+      'Plain answers about QR codes: static or dynamic, whether they expire, print sizes, design that scans, tracking scans and printing on packaging.',
+    intro: 'Plain answers, no jargon, written by the people who make QRfinity.',
+    updated: U,
+  },
+  {
+    path: '/alternatives',
+    kind: 'hub',
+    label: 'Compare',
+    h1: 'How QRfinity compares',
+    title: 'QR code generator comparisons | QRfinity',
+    description:
+      'Fair, sourced comparisons of QRfinity with QR Code Generator PRO, QR TIGER, QRFY, Uniqode and QRCode Monkey, including when each is better.',
+    intro: 'Fair comparisons with sources, including when another tool suits you better.',
+    updated: U,
+  },
+]
+
+export const HOME: ContentPage = {
+  path: '/',
+  kind: 'home',
+  label: 'QR code generator',
+  h1: 'Free QR codes that never expire.',
+  title: 'Free QR code generator: codes that never expire | QRfinity',
+  description:
+    'Make free QR codes that never expire. Static and dynamic codes, scan analytics, no watermark, no trial. Download PNG, SVG, PDF or EPS.',
+  intro: 'Print it once. It works forever. No sign-up, no trial, no watermark.',
+  updated: U,
+}
+
+export const PRICING: ContentPage = {
+  path: '/pricing',
+  kind: 'pricing',
+  label: 'Pricing',
+  h1: 'Free forever. Pro is coming.',
+  title: 'Pricing: QRfinity is free, Pro is coming soon',
+  description:
+    'Everything you need is free forever: unlimited static and dynamic codes, analytics and every format. Pro will add new tools for teams.',
+  intro: 'Everything you need today is free, and stays free. Pro will only add new things.',
+  updated: U,
+}
+
+export const ALL_PAGES: ContentPage[] = [
+  HOME,
+  ...HUBS,
+  ...USE_CASES,
+  ...LANDINGS,
+  ...GUIDES,
+  ...ALTERNATIVES,
+  PRICING,
+]
+
+const byPath = new Map(ALL_PAGES.map((p) => [p.path, p]))
+
+export function getPage(path: string): ContentPage {
+  const p = byPath.get(path)
+  if (!p) throw new Error(`No content page registered for ${path}`)
+  return p
+}
+
+export function findPage(path: string): ContentPage | undefined {
+  return byPath.get(path)
+}
+
+/** The one-paragraph fact block, reused word for word (brand/BRAND.md). */
+export const FACT_BLOCK =
+  'QRfinity is a free QR code generator. Static and dynamic codes are unlimited, include scan analytics, and never expire. No watermark, no trial, every format free (PNG, SVG, PDF).'

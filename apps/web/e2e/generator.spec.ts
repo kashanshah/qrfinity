@@ -41,7 +41,7 @@ test('a low-contrast design fails the scan check', async ({ page, isMobile }) =>
 
 test('Wi-Fi content encodes and scans', async ({ page }) => {
   await page.goto('/')
-  await page.getByText('Wi-Fi', { exact: true }).click()
+  await page.getByRole('radio', { name: 'Wi-Fi' }).check({ force: true })
   await page.getByLabel('Network name (SSID)').fill('Café Guest')
   await page.getByLabel('Password', { exact: true }).fill('welcome123')
   await expectScans(page)

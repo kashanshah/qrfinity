@@ -60,6 +60,17 @@ Full detail in `docs/architecture.md`.
 - **Account deletion**: removes email and sign-in, deletes the codes (printed dynamic codes show "not active"), keeps the code rows as tombstones so slugs are never reissued.
 - **Legal**: terms, acceptable use and privacy drafts at `/terms`, `/acceptable-use`, `/privacy`, marked as drafts and `noindex`. Open items are in MDX comments marked "TO CONFIRM".
 
+## SEO pages (Phase 5, October 2026)
+
+- **One registry** (`apps/web/content/registry.ts`) holds every public page: path, title (≤ 60), description (90–155), H1, promise line, generator preset and internal links. Metadata, the sitemap, breadcrumbs, related links, hubs and the footer all read from it; `test/registry.test.ts` enforces the limits and link rules.
+- **Content is MDX** in `apps/web/content/{use-cases,guides,alternatives,landings}`, rendered by one template (`components/content/ContentPage.tsx`) and statically generated. Each file exports its FAQ, which feeds both the page and the FAQPage structured data.
+- **Hub pages** were added beyond the plan's list: `/qr-code-generator`, `/guides`, `/alternatives`, so every page sits two clicks from home and breadcrumbs have a parent.
+- **Competitor facts** come from the vendors' own pricing and help pages, each with its source URL and date in an MDX comment and a visible sources list. Research on 2026-10-16 could only read search snippets of those pages (direct fetches failed), so prices and policies must be checked on the live sites before launch. Where a vendor's own pages disagree, the page says so.
+- **Structured data**: Organization sitewide; SoftwareApplication (price 0) on the home, use-case, landing and pricing pages; Article on guides and comparisons; FAQPage and BreadcrumbList where present.
+- **Share images** are rendered at build time with `next/og`, using TTF copies of the brand fonts and a real QR code (our renderer) that opens the page.
+- **Crawlers**: `robots.txt` allows everyone, AI crawlers included, and blocks only private paths. Before launch, pages carry `noindex` instead of a robots block, because a blocked page can't see its `noindex`.
+- **Pricing**: Pro shows "coming soon" with a waitlist (`pro_waitlist` table, Turnstile, 10 sign-ups an hour per visitor). No price is published yet.
+
 ## Monetization (later)
 
 - Competitors gate by number of dynamic codes (Uniqode $5/mo for 3 codes up to $99; QR TIGER from $7/mo; QR Code Generator PRO Professional: 250 codes). We give codes away and charge for professional features.

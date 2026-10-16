@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p .",
     "test": "vitest run --passWithNoTests",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:migrate": "pnpm --dir ../.. db:migrate"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
@@ -27,6 +28,7 @@
     "next": "16.4.2",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "remark-gfm": "^4.0.1",
     "server-only": "^0.0.1",
     "svg2pdf.js": "^2.8.1",
     "zustand": "^5.0.15",

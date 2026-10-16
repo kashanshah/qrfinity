@@ -41,5 +41,5 @@ const nextConfig: NextConfig = {
   },
 }
 
-// Content pages (legal now, SEO pages in Phase 5) are MDX.
-export default createMDX({})(nextConfig)
+// Content pages (legal and SEO pages) are MDX. Plugins are named by string so Turbopack can load them.
+export default createMDX({ options: { remarkPlugins: ['remark-gfm'] } })(nextConfig)

@@ -1,0 +1,101 @@
+export const faq = [
+  {
+    q: 'Can I put a QR code next to the barcode?',
+    a: 'Yes, but leave clear space between them so neither scanner confuses the two. Keep the QR code’s quiet zone, at least 4 modules on every side, free of the barcode, its numbers and any trim lines.',
+  },
+  {
+    q: 'Will a QR code on packaging still work in five years?',
+    a: 'A static code will, as long as the print survives and the destination exists. A dynamic code depends on the service behind it. On QRfinity, dynamic codes never expire, so you can also update the destination years after the packaging ships.',
+  },
+  {
+    q: 'Can a QR code be printed in one spot colour?',
+    a: 'Yes, and it often scans better than a process mix, because one solid ink gives crisp edges with no registration problems. Choose a dark spot colour and print it on a light, uncoated or matte area. Download an SVG, PDF or EPS so your printer can assign the colour.',
+  },
+  {
+    q: 'What should a packaging QR code link to?',
+    a: 'Something worth the scan: setup videos, manuals, ingredients and allergens, recipes, recycling instructions, warranty registration or a reorder page. Say what it is next to the code, for example “Scan for setup video”.',
+  },
+  {
+    q: 'How many different codes do I need for a product range?',
+    a: 'Usually one per product or per variant, so each scan leads to the right page and you can see which products get scanned. Dynamic codes on QRfinity are unlimited and free, so the number isn’t a cost question.',
+  },
+]
+
+To print a QR code on packaging, make it at least 2 cm wide, keep a blank margin of 4 modules around it, place it on a flat, matte, light-coloured area away from folds and seams, and send your printer a vector file (SVG, PDF or EPS). Use a dynamic code if the destination might change during the product’s life, because packaging can stay on shelves and in homes for years. Then print a proof on the real material and scan it before the full run.
+
+## Why is packaging harder than paper?
+
+Because the surface fights you. A flyer is flat, white and matte. Packaging is often curved, glossy, coloured, folded, shrink-wrapped or textured, and it’s printed in huge quantities where a mistake can’t be fixed with a reprint at the office printer. A code that scanned perfectly on your monitor can fail on a foil pouch under supermarket lights.
+
+The good news is that a handful of rules cover almost every case.
+
+## How big should a QR code be on a box, bottle or label?
+
+At least 2 cm wide for anything scanned in the hand, and 2.5 to 3 cm if you can spare the space. The scanning distance on packaging is short, usually 20 to 40 cm, so you don’t need more unless the code is meant to be read from a shelf.
+
+Two things push the size up:
+
+- **Dense data.** A long web address makes many small modules. A dynamic code always holds a short link, so it stays simple however long the real destination is.
+- **A logo.** Logos raise the error correction level, which adds modules.
+
+Our generator tells you the smallest width to print each code at, based on 0.4 mm per module and never under 2 cm. The [print size guide](/guides/qr-code-size-for-print) covers other uses.
+
+## Where should a QR code go on packaging?
+
+Put it on the flattest, plainest panel you have, and away from anything that distorts it:
+
+- **Not across a fold, seam, crease or edge.** A bent code is a broken code.
+- **Not on a tight curve.** On bottles and cans, a code wider than about a third of the container’s diameter starts to wrap out of view. Make it narrower, or place it on a flatter part such as the shoulder or a flat label panel.
+- **Not under a heat seal, strap or closure** that will be torn or covered when the pack is opened or stacked.
+- **Where people look after buying.** For instructions or setup, put the code on the inside flap or the back panel near the text it relates to.
+
+## What colours and finishes work best?
+
+Dark ink on a light, matte background. Black or a dark spot colour on white or kraft is ideal. Metallic inks, foils, holographic films and clear windows reflect light and confuse cameras, so keep the code and its margin off them. If the whole pack is glossy, ask your printer for a matte varnish patch behind the code.
+
+Our scan check fails designs with contrast under 3:1 and warns below 4.5:1. Remember it can’t see your substrate: a code with a transparent background relies entirely on what it’s printed on, so the check warns about that too. The [design guide](/guides/qr-code-design-best-practices) has more on colour.
+
+## Which file should you send to the printer?
+
+A vector file: SVG, PDF or EPS. Vectors keep perfect edges at any size, let the printer assign a spot colour, and avoid the soft, blurry edges that raster images get when scaled. If a workflow demands a raster file, export a PNG at the final printed size at 300 dpi or more, and never let it be scaled up afterwards.
+
+All five formats are free on QRfinity, with no watermark. Frame text is set in Helvetica or Arial, so it renders the same in every format and in your printer’s software.
+
+## Should a packaging QR code be static or dynamic?
+
+<Recommendation pick="dynamic">
+Packaging lasts. Product pages move, manuals get new versions and campaigns end. A dynamic code lets you change the destination long after the boxes ship, and shows how many people scan. On QRfinity, dynamic codes are free, unlimited and never expire.
+</Recommendation>
+
+Choose a dynamic code from a service that won’t switch it off. Many generators that offer a free trial deactivate dynamic codes when the trial ends, which on packaging means thousands of printed codes failing at once. {/* source: https://support.qrfy.com/en/articles/6998440-what-happens-to-my-account-and-qr-codes-when-the-trial-expires, seen 2026-10-16; https://www.uniqode.com/pricing, seen 2026-10-16 */} Our guide [do QR codes expire?](/guides/do-qr-codes-expire) explains what to look for. If you’d rather depend on nobody, a static code pointing at a page you control is the zero-dependency choice. The [static vs dynamic guide](/guides/static-vs-dynamic-qr-codes) compares both.
+
+## What should you check before the print run?
+
+| Check | What good looks like |
+| --- | --- |
+| Size | At least 2 cm wide, or the minimum our scan check gives for that code |
+| Quiet zone | At least 4 modules of plain background on every side |
+| Contrast | Dark code on a light background, 4.5:1 or better |
+| Surface | Flat panel, not across a fold, seam or tight curve |
+| Finish | Matte; no foil, metallic ink or clear window behind the code |
+| File | SVG, PDF or EPS, not scaled after export |
+| Destination | Loads on a phone, on mobile data, in under 3 seconds |
+| Label | A short line saying what the scan gives, such as “Scan for setup video” |
+| Code type | Dynamic if the link might change; from a service that never deactivates codes |
+| Proof | Printed on the real material and scanned by 3 different phones |
+
+## How do you test a printed proof?
+
+Ask your printer for a hard proof on the real substrate, not just a PDF proof. Then:
+
+1. Scan it with at least three phones, including an older Android.
+2. Scan it under the light it will live in: shop lighting, a kitchen, a warehouse.
+3. Scan it on the finished shape, wrapped around the bottle or folded into the box.
+4. Scan at an angle, the way someone would hold a product without turning it.
+5. Check that the page it opens is right for someone holding the product.
+
+If you’re using dynamic codes, the scans from your tests will show up in your dashboard, which is a quick way to confirm the short link works end to end.
+
+## What should you do next?
+
+Make your packaging code with the [dynamic QR code generator](/dynamic-qr-code-generator), save it with a free account, and download an SVG or PDF for your printer. If you’re making codes for Amazon insert cards, our [Amazon product insert page](/qr-code-generator/amazon-review) covers the wording rules too.

@@ -1,0 +1,97 @@
+export const faq = [
+  {
+    q: 'Can I see who scanned my QR code?',
+    a: 'No, and no honest service can tell you. Scan analytics show counts and rough context, such as the country, city and kind of phone, not names, phone numbers or email addresses. On QRfinity we don’t store IP addresses either.',
+  },
+  {
+    q: 'Can I track scans on a code I already printed?',
+    a: 'Only if it’s a dynamic code that you, or the service you used, can see analytics for. A static code sends people straight to the destination, so nothing in between can count them. Your website’s own analytics may still show visits from it.',
+  },
+  {
+    q: 'How quickly do scans show up?',
+    a: 'Usually within a few minutes. Scans are recorded at the moment of the redirect and appear in your dashboard once our analytics store has processed them.',
+  },
+  {
+    q: 'Do scans by the same person count twice?',
+    a: 'They count twice in total scans and once in unique scans for that day. Unique scans use a fingerprint built from a salt that changes every day and is then deleted, so we can’t link one person’s scans across days.',
+  },
+  {
+    q: 'Is QR code scan tracking legal under GDPR?',
+    a: 'Counting scans without storing personal data is generally the low-risk end of analytics, which is why we avoid raw IPs and cross-day identifiers. If you add your own tracking pixels or cookies on the destination page, those are your responsibility under the rules that apply to you.',
+  },
+]
+
+To track QR code scans you need a dynamic QR code: it holds a short link that records each scan before forwarding the visitor to your destination. A static code sends people straight to your content, so nothing in between can count them. On QRfinity, dynamic codes are free, and every one comes with scan counts, devices, countries and 90 days of history.
+
+## Why can’t you track a static QR code?
+
+A static code contains your destination itself. When someone scans a static web address code, their phone reads the address from the pattern and opens it directly. No QR service is involved, so there’s nothing to record the scan.
+
+You can still see some of that traffic in your own website analytics, if you add a tracking parameter to the address before you make the code, such as `?utm_source=qr&utm_medium=flyer`. That tells you how many visits came from the code, though not every scan. It also makes the address longer, which makes a static code denser and harder to scan small. The [static vs dynamic guide](/guides/static-vs-dynamic-qr-codes) explains the trade-off.
+
+## How does dynamic QR code tracking work?
+
+A dynamic code stores a short link, on QRfinity something like `qrfinity.link/` plus a few characters. The scan goes like this:
+
+1. The phone reads the short link from the code and opens it.
+2. Our redirect service looks up the code’s current destination.
+3. It records the scan: the time, the rough location from the network, and the kind of device from the browser’s user agent.
+4. It forwards the phone to your destination, usually in a fraction of a second.
+
+Because step 3 happens on our side, you get numbers without adding anything to your website.
+
+## What can you measure with QR code analytics?
+
+| Measured on QRfinity | Not measured |
+| --- | --- |
+| Total scans | Names, emails or phone numbers |
+| Unique scans per day | The same person across different days |
+| Scans over time, day by day | Raw IP addresses (we never store them) |
+| Scans by hour of day (UTC) | Exact GPS location |
+| Countries and cities | What people do after they land |
+| Device type: phone, tablet, desktop | Scans of static codes |
+| Operating system and browser | Bots and link previewers (excluded) |
+| Referrer, when one is sent | |
+
+Two notes on accuracy. Locations come from the network the phone is using, so they’re usually right at country level and approximate at city level. And referrers are mostly empty for QR scans, because a camera app doesn’t send one; they show up when someone shares and opens the short link from another app.
+
+## What counts as a scan?
+
+Every time a phone opens the short link counts once in total scans. If the same phone opens it again the same day, it counts again in the total but not in unique scans.
+
+We leave out visits that aren’t people. Link previewers (the services that fetch a page to show a preview when a link is pasted into a chat app), search engine crawlers and other bots are recognised from their user agent and excluded from your numbers. Without that filter, sharing your short link in a group chat could add several fake scans before anyone tapped it.
+
+## How do we keep scan tracking private?
+
+We designed our analytics so we don’t hold data we’d have to protect:
+
+- **No raw IP addresses.** To count unique scans we combine the visitor’s IP with a random salt and keep only a short fingerprint. The salt changes every day and is then deleted, so the fingerprint can’t be reversed or linked across days.
+- **No cookies on the redirect.** Scanners pass through without anything being stored on their phone.
+- **No ads, ever.** We don’t sell scan data or show ads on redirects.
+
+If you need more detail about what people do on your site, use your own website analytics on the destination page. That keeps the choice, and the responsibility, with you.
+
+## How long is scan history kept?
+
+Free accounts see the last 90 days of scans for every code, on the analytics page and on each code’s own page. The Pro plan, coming soon, will add longer history and CSV export for people who report on campaigns over months. Free analytics stay free: paid plans only add new things. See [pricing](/pricing).
+
+## How do you start tracking QR code scans for free?
+
+1. Open the [dynamic QR code generator](/dynamic-qr-code-generator). Dynamic is already selected.
+2. Enter the link you want people to reach.
+3. Design the code, and check that the live scan check passes.
+4. Choose “Save your dynamic code” and sign in with an email link or Google. It’s free, and there’s no trial.
+5. Download it and print it. Scans appear in your dashboard as they happen.
+
+You can change the destination later without reprinting, and your scan history stays with the code.
+
+## How can you get more useful numbers from scans?
+
+- **Use one code per placement.** A separate code for the window poster, the table tent and the flyer tells you which one works. Dynamic codes are unlimited, so this costs nothing.
+- **Name codes clearly.** “Spring flyer, Main St” beats “Code 7” when you look back in three months.
+- **Look at the hour of day.** It shows when people actually scan, which helps you time staff, offers or posts.
+- **Compare like with like.** A billboard and a business card reach very different numbers of people, so judge each against its own past, not against each other.
+
+## What should you do next?
+
+Make a dynamic code with the [dynamic QR code generator](/dynamic-qr-code-generator), save it with a free account and print it. Your first scans will show up in your dashboard within minutes, and the code will never expire.
