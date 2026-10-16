@@ -1,40 +1,59 @@
 /**
- * Plans and what each one includes. No billing exists yet: a user's plan is set by an admin,
- * and unreleased features are switched on with feature flags (see apps/web/lib/server/entitlements.ts).
+ * Plans and features (pricing model decided 2026-10-16, see docs/decisions.md).
  *
- * The rule this file enforces: free features never move behind a paywall. FREE_FEATURES is a
- * public promise; test/plans.test.ts fails if anything is removed from it or from a higher plan.
+ * Every feature is free to use. Plain dynamic codes are unlimited. Advanced features (custom short
+ * links, redirect rules and password protection) can be used on a limited
+ * number of codes: 1 free, more on paid plans. Stopping paying never breaks a code; it only stops
+ * adding advanced features to more codes. No billing exists yet: an admin sets a user's plan.
+ *
+ * The rule this file enforces: free features never move behind a paywall. FREE_FEATURES is a public
+ * promise; test/plans.test.ts fails if anything is removed from it.
  */
 
-export const PLANS = ['free', 'pro', 'business'] as const
+export const PLANS = ['free', 'plus', 'pro', 'unlimited'] as const
 export type Plan = (typeof PLANS)[number]
 
-/** Everything QRfinity offers or plans to offer, free or paid. */
+export type PlanDetails = {
+  name: string
+  /** Codes that may use advanced features. Free comes from the admin setting (default 1). */
+  advancedCodes: number
+  /** USD; null for free. Shown on the pricing page; no checkout until billing exists. */
+  monthlyUsd: number | null
+  yearlyUsd: number | null
+}
+
+export const PLAN_DETAILS: Record<Plan, PlanDetails> = {
+  free: { name: 'Free', advancedCodes: 1, monthlyUsd: null, yearlyUsd: null },
+  plus: { name: 'Plus', advancedCodes: 10, monthlyUsd: 5, yearlyUsd: 50 },
+  pro: { name: 'Pro', advancedCodes: 100, monthlyUsd: 20, yearlyUsd: 200 },
+  unlimited: {
+    name: 'Unlimited',
+    advancedCodes: Number.POSITIVE_INFINITY,
+    monthlyUsd: 50,
+    yearlyUsd: 500,
+  },
+}
+
+/** Everything QRfinity offers or plans to offer. */
 export const FEATURES = {
-  // Free forever
+  // Free for everyone, without limits
   staticCodes: 'Unlimited static codes, no sign-up',
   dynamicCodes: 'Unlimited dynamic codes that never expire',
   editDestination: 'Edit where a dynamic code points',
   fullDesign: 'Every design option: colours, shapes, logo, frames',
   allFormats: 'Every format: PNG, JPG, SVG, PDF and EPS',
-  analytics90: 'Scan analytics for the last 90 days, with CSV download',
+  analytics90: 'Scan analytics with CSV download',
+  analyticsHistory: 'Full analytics history (1 and 2 years)',
   dataExport: 'Export every code and its history',
-  customSlugs: 'Custom short links, like qrfinity.link/joes-menu (a free allowance per account)',
-  // Pro (planned)
-  analyticsHistory: 'Full analytics history',
-  moreCustomSlugs: 'More custom short links than the free allowance',
-  customDomain: 'Your own branded short domain',
-  bulkCreate: 'Bulk creation from a spreadsheet',
-  redirectRules: 'Redirect rules by country, device or time',
+  // Advanced features: free on a limited number of codes, more with a plan
+  customSlugs: 'Custom short links, like qrfinity.link/joes-menu',
+  redirectRules: 'Redirect rules by device, country or time',
   passwordProtection: 'Password-protected codes',
-  utmBuilder: 'UTM link builder',
-  retargetingPixels: 'Retargeting pixels',
-  // Business (planned)
+  // Planned or later, scope not decided (custom domains: only if customers ask)
+  customDomain: 'Your own short domain, like go.joescafe.com',
+  bulkCreate: 'Bulk creation from a spreadsheet',
   teamSeats: 'Team seats',
-  clientWorkspaces: 'Client workspaces',
   api: 'API access',
-  whiteLabel: 'White label',
-  landingPages: 'Hosted landing pages: menu, vCard, PDF, link in bio',
 } as const
 
 export type Feature = keyof typeof FEATURES
@@ -46,35 +65,20 @@ export const FREE_FEATURES = [
   'fullDesign',
   'allFormats',
   'analytics90',
+  'analyticsHistory',
   'dataExport',
-  'customSlugs',
 ] as const satisfies readonly Feature[]
 
-const PRO_ONLY = [
-  'analyticsHistory',
-  'moreCustomSlugs',
-  'customDomain',
-  'bulkCreate',
+/** Count against the advanced-code allowance. */
+export const ADVANCED_FEATURES = [
+  'customSlugs',
   'redirectRules',
   'passwordProtection',
-  'utmBuilder',
-  'retargetingPixels',
 ] as const satisfies readonly Feature[]
+export type AdvancedFeature = (typeof ADVANCED_FEATURES)[number]
 
-const BUSINESS_ONLY = [
-  'teamSeats',
-  'clientWorkspaces',
-  'api',
-  'whiteLabel',
-  'landingPages',
-] as const satisfies readonly Feature[]
-
-/** Each plan includes everything in the plans below it. */
-export const PLAN_FEATURES: Record<Plan, readonly Feature[]> = {
-  free: FREE_FEATURES,
-  pro: [...FREE_FEATURES, ...PRO_ONLY],
-  business: [...FREE_FEATURES, ...PRO_ONLY, ...BUSINESS_ONLY],
-}
+/** Built and available to everyone (within the allowance where it applies). Others need a feature flag. */
+export const RELEASED_FEATURES: readonly Feature[] = [...FREE_FEATURES, 'customSlugs']
 
 export function isPlan(v: unknown): v is Plan {
   return typeof v === 'string' && (PLANS as readonly string[]).includes(v)
@@ -88,29 +92,28 @@ export function isFeature(v: unknown): v is Feature {
 export type FeatureFlag = { key: Feature; enabled: boolean; userIds: readonly string[] }
 
 /**
- * What one user can use: their plan's features plus any flag switched on for them.
- * Flags can only add features. Free features are always included, whatever the plan or flags say.
+ * What one user can use: every released feature, plus unreleased ones whose flag is on for them.
+ * The plan doesn't gate features; it sets how many codes may use advanced ones.
  */
 export function entitlements(
-  plan: Plan,
+  _plan: Plan,
   flags: readonly FeatureFlag[],
   userId: string,
 ): Set<Feature> {
-  const set = new Set<Feature>([...FREE_FEATURES, ...PLAN_FEATURES[plan]])
+  const set = new Set<Feature>(RELEASED_FEATURES)
   for (const f of flags) if (f.enabled || f.userIds.includes(userId)) set.add(f.key)
   return set
 }
 
-/** Days of analytics a user can see in the dashboard. History beyond 90 days comes from daily roll-ups. */
-export function analyticsRanges(features: ReadonlySet<Feature>): number[] {
-  return features.has('analyticsHistory') ? [7, 30, 90, 365, 730] : [7, 30, 90]
+/** Default free allowance of codes with advanced features. Admins can raise it (never below what exists). */
+export const DEFAULT_FREE_ADVANCED_CODES = 1
+
+/** How many codes may use advanced features on this plan. */
+export function advancedCodeAllowance(plan: Plan, freeAllowance: number): number {
+  return plan === 'free' ? freeAllowance : Math.max(PLAN_DETAILS[plan].advancedCodes, freeAllowance)
 }
 
-/** Default free allowance of custom short links per account. Admins can raise it (never below what exists). */
-export const DEFAULT_FREE_CUSTOM_SLUGS = 1
-/** Custom short links per account with moreCustomSlugs. */
-export const PRO_CUSTOM_SLUGS = 100
-
-export function customSlugAllowance(features: ReadonlySet<Feature>, freeAllowance: number): number {
-  return features.has('moreCustomSlugs') ? Math.max(PRO_CUSTOM_SLUGS, freeAllowance) : freeAllowance
+/** Days of analytics a user can choose. History beyond 90 days comes from daily roll-ups. */
+export function analyticsRanges(features: ReadonlySet<Feature>): number[] {
+  return features.has('analyticsHistory') ? [7, 30, 90, 365, 730] : [7, 30, 90]
 }

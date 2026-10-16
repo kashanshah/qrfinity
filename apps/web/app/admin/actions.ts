@@ -16,7 +16,7 @@ import {
 import { adminContext } from '@/lib/server/context'
 import { pagesToSubmit, submitToIndexNow } from '@/lib/server/indexnow'
 import { setFlag, setUserPlan } from '@/lib/server/entitlements'
-import { setCloudflarePlan, setFreeCustomSlugAllowance } from '@/lib/server/settings'
+import { setCloudflarePlan, setFreeAdvancedCodeAllowance } from '@/lib/server/settings'
 import { ServiceError } from '@/lib/server/errors'
 import { removeFromWaitlist } from '@/lib/server/waitlist'
 
@@ -54,7 +54,7 @@ export const setUserPlanAction = async (id: string, plan: string) =>
 export const setFlagAction = async (key: string, enabled: boolean, emails: string[]) =>
   run((c) => setFlag(c, key, { enabled, emails }))
 export const setFreeCustomSlugsAction = async (value: number) =>
-  run((c) => setFreeCustomSlugAllowance(c, value))
+  run((c) => setFreeAdvancedCodeAllowance(c, value))
 
 /** Admin → Settings: send pages to IndexNow now. Returns a sentence for the page. */
 export async function submitIndexNowAction(

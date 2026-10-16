@@ -16,7 +16,7 @@ A free QR code generator whose codes never expire, built as an organic traffic m
 - Phase 4 (abuse protection, reports, admin) approved and merged. Legal pages finalized 2026-10-16 (Ontario law, 12-month shutdown notice, 2-year retention of reports and audit log); contact mailboxes: hello@, info@, abuse@, legal@ qrfinity.com.
 - Phase 5 (SEO pages) approved and merged; pages stay `noindex` until `NEXT_PUBLIC_INDEXABLE=true`. Competitor facts on `/alternatives/*` must be re-checked on the live sites before launch.
 - Phase 6 (plans, feature flags, analytics roll-ups, partner links; no billing) approved and merged. All phases in the plan are done.
-- Custom short links (free allowance per account, admin setting, more with Pro). Pricing model: every paid capability gets a free allowance; see docs/decisions.md.
+- Pricing model (2026-10-16): every feature free; advanced features (custom short links now; redirect rules and passwords planned) on 1 code free, 10/100/unlimited codes on Plus $5, Pro $20, Unlimited $50 a month. Billing: Stripe (not built yet). See docs/decisions.md.
 - Launch readiness: IndexNow, llms.txt/llms-full.txt, AI crawler rules, security.txt, search console verification tags, About page.
 - Domains qrfinity.com, qrfinity.link and qrfinity.ca are registered. Exact-name trademark searches (USPTO, CIPO) came back clear.
 
@@ -40,5 +40,5 @@ A free QR code generator whose codes never expire, built as an organic traffic m
 - Dynamic codes: Postgres is the source of truth; every change that affects redirects bumps `codes.version`, queues `edge_sync_outbox` in the same transaction and pushes via the edge-api Worker (`apps/web/lib/server/codes.ts`). Services take a `ServiceContext` and are scoped to one user.
 - Web app imports drizzle helpers from `@qrfinity/db` (never `drizzle-orm` directly; Better Auth pulls a second copy).
 - Commands: `pnpm dev`, `pnpm dev:workers`, `pnpm db:migrate`, `pnpm test` (needs local Postgres), `pnpm test:e2e` (after `pnpm build`), `pnpm lint`, `pnpm typecheck`, `pnpm format:check`.
-- Paid features: check `getEntitlements(db, userId)` (`apps/web/lib/server/entitlements.ts`), never the plan directly. New features go in `FEATURES` in `packages/core/src/plans`; nothing ever leaves `FREE_FEATURES`.
+- Features: everything released is on for everyone; unreleased features sit behind flags (`getEntitlements`). Plans only set the advanced-code allowance (`advancedCodeUsage` in `apps/web/lib/server/codes.ts`). New features go in `FEATURES` in `packages/core/src/plans`; nothing ever leaves `FREE_FEATURES`.
 - SEO pages are statically rendered, content in MDX (`apps/web/content/`), each with unique copy. Add a page by adding it to `content/registry.ts` (the sitemap, footer, hubs and metadata follow) and writing its MDX. Every competitor claim carries `{/* source: URL, seen DATE */}`.

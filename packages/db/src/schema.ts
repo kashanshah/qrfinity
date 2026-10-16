@@ -2,7 +2,7 @@
  * Database schema (Postgres). Postgres is the source of truth; the edge KV store holds
  * a disposable copy of each dynamic code's destination for fast redirects.
  */
-import type { ContentFields, ContentType, Design, LinkStatus } from '@qrfinity/core'
+import type { ContentFields, ContentType, Design, LinkStatus, Plan } from '@qrfinity/core'
 import { sql } from 'drizzle-orm'
 import {
   bigserial,
@@ -39,8 +39,8 @@ export const user = pgTable('user', {
   role: text('role').$type<'user' | 'admin'>().notNull().default('user'),
   /** Set by an admin (Phase 4). A suspended user can't sign in or edit; their codes keep working unless disabled one by one. */
   suspendedAt: timestamp('suspended_at', { withTimezone: true }),
-  /** 'free', 'pro' or 'business' (Phase 6). No billing yet: set by an admin. */
-  plan: text('plan').$type<'free' | 'pro' | 'business'>().notNull().default('free'),
+  /** Free, plus, pro or unlimited: how many codes may use advanced features. Set by an admin until billing exists. */
+  plan: text('plan').$type<Plan>().notNull().default('free'),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 })

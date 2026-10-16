@@ -277,9 +277,9 @@ export const USE_CASES: ContentPage[] = [
     'bulk',
     'Bulk from a spreadsheet',
     'Bulk QR code generator',
-    'Bulk QR code generator from CSV (coming to Pro)',
-    'Create hundreds of QR codes from a spreadsheet in one go. Bulk creation is coming to QRfinity Pro; join the waitlist for early access.',
-    'Hundreds of codes from one spreadsheet. Coming to Pro.',
+    'Bulk QR code generator from a CSV (coming soon)',
+    'Create hundreds of QR codes from a spreadsheet in one go. Bulk creation is coming to QRfinity; join the list to hear when it’s ready.',
+    'Hundreds of codes from one spreadsheet. Coming soon.',
     undefined,
     ['url', 'vcard', 'with-logo'],
     ['how-to-print-qr-codes-on-packaging', 'static-vs-dynamic-qr-codes'],
@@ -513,11 +513,11 @@ export const PRICING: ContentPage = {
   path: '/pricing',
   kind: 'pricing',
   label: 'Pricing',
-  h1: 'Free forever. Pro is coming.',
-  title: 'Pricing: QRfinity is free, Pro is coming soon',
+  h1: 'Everything free. Pay only for more.',
+  title: 'Pricing: every feature free, plans from $5/month',
   description:
-    'Everything you need is free forever: unlimited static and dynamic codes, analytics and every format. Pro will add new tools for teams.',
-  intro: 'Everything you need today is free, and stays free. Pro will only add new things.',
+    'Unlimited static and dynamic codes, analytics and every format, free forever. Use advanced features on one code free, or more from $5/month.',
+  intro: 'Every feature is free. Paid plans let you use advanced features on more codes.',
   updated: U,
 }
 

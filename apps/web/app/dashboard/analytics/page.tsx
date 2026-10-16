@@ -18,7 +18,7 @@ export default async function AnalyticsPage({
       <div>
         <h1 className="heading text-ink">Analytics</h1>
         <p className="mt-1 text-ink-muted">
-          Scans across all your dynamic codes. Free for the last 90 days.
+          Scans across all your dynamic codes, with up to 2 years of history. Free.
         </p>
       </div>
       <AnalyticsView {...r} basePath="/dashboard/analytics" />

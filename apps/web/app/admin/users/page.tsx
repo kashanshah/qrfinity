@@ -32,8 +32,8 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
       />
       <p className="body-small text-ink-muted">
         Suspending signs the person out and blocks sign-in. Their codes keep working; disable
-        abusive codes one by one. Plans are set by hand until billing exists; free features never
-        depend on the plan.
+        abusive codes one by one. Plans are set by hand until billing exists; a plan only sets how
+        many codes can use advanced features.
       </p>
       <ListBar path={PATH} params={params} noun={noun} {...list} />
       {list.rows.length === 0 ? (

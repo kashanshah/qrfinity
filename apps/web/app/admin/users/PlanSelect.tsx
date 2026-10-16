@@ -1,6 +1,6 @@
 'use client'
 
-import { PLANS } from '@qrfinity/core'
+import { PLANS, PLAN_DETAILS } from '@qrfinity/core'
 import { useState, useTransition } from 'react'
 import { setUserPlanAction } from '../actions'
 
@@ -36,7 +36,7 @@ export function PlanSelect({
       >
         {PLANS.map((p) => (
           <option key={p} value={p}>
-            {p === 'free' ? 'Free' : p === 'pro' ? 'Pro' : 'Business'}
+            {PLAN_DETAILS[p].name}
           </option>
         ))}
       </select>
