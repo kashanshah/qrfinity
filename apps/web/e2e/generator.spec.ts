@@ -151,3 +151,26 @@ test('saves a design in this browser and applies it later', async ({ page, isMob
   await page.getByRole('button', { name: 'Use' }).click()
   await expect(page.getByRole('radio', { name: 'Dots' })).toBeChecked()
 })
+
+test('frame text in any language is drawn as outlines and still scans', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, 'covered on desktop')
+  await page.goto('/')
+  await page.locator('summary', { hasText: /^Frame/ }).click()
+  await page.getByRole('radio', { name: /Label below/ }).check({ force: true })
+  const field = page.getByRole('textbox', { name: 'Frame text' })
+  const preview = page.getByRole('complementary', { name: 'Your QR code' }).getByRole('img', {
+    name: 'QR code preview',
+  })
+  for (const text of ['扫码加我微信', 'امسح الرمز']) {
+    await field.fill(text)
+    // Outlines replace the text element once the fonts have loaded.
+    await expect(preview.locator('text')).toHaveCount(0)
+    await expect(field).not.toHaveAttribute('aria-invalid', 'true')
+    await expectScans(page)
+  }
+  await field.fill('Hi 😀')
+  await expect(page.getByText('We can’t draw 😀 yet, so it’s left out.')).toBeVisible()
+})
