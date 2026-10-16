@@ -87,6 +87,21 @@ Full detail in `docs/architecture.md`.
 - **Analytics history**: a nightly Vercel Cron (`/api/cron/rollup`, 02:40 UTC) rolls yesterday and the day before into `scan_daily` (one row per code per day: scans, uniques, 24 hourly counts, top 25 keys per breakdown). It runs for every code, free or paid, so history already exists when someone upgrades; it's tiny (a few hundred bytes per active code per day). Postgres instead of D1/R2, because Postgres is our database (Phase 1). Ranges over 90 days (1 and 2 years) read the roll-ups and are offered only with `analyticsHistory`. `?days=90` on the cron backfills once after the first deploy. To confirm on real Analytics Engine: `toDateTime()` in the roll-up queries (same caveat as `COUNT(DISTINCT …)`).
 - **Partner links**: "Print your QR code as stickers or magnets" after a download (`NEXT_PUBLIC_PRINT_PARTNER_URL`, intended for Craftigure) and "Need a QR campaign or landing page built?" in the footer (`NEXT_PUBLIC_AGENCY_URL`, Teknoffice). Hidden when unset; UTM tags added automatically. No ads anywhere.
 
+### Free taste of paid features (decided 2026-10-16)
+
+Kashan's model: every paid capability comes with a free allowance (usually 1), and Pro buys more. People see exactly what they'd pay for before paying. Rules that keep it consistent with our promise:
+
+- **A free allowance, once offered, never shrinks for anything that exists.** Admins can lower a default for new use; what people already made keeps working and stays theirs.
+- **Stopping paying never breaks anything.** Paid extras created while subscribed keep working (codes keep redirecting, custom links stay); you just can't add more.
+- **Only countable features get a "1 free".** Custom short links, redirect rules, password-protected codes, landing pages, pixels: yes. Features that are all-or-nothing (a custom domain, white label, team workspaces) or time-based (full analytics history) need another taste, such as a limited preview, decided per feature.
+
+### Custom short links (2026-10-16)
+
+- `qrfinity.link/joes-menu`: 4–40 lowercase letters, digits and single hyphens, chosen at creation and fixed (the link is printed in the code). Never reused, even after deletion.
+- Free allowance per account is an admin setting (Admin → Settings, default 1). `moreCustomSlugs` (Pro, or a flag) raises it to 100.
+- Refused: reserved paths (admin, login, report…), offensive words, and bank, payment and big-brand names, so our domain can't lend credibility to look-alike scams. Destinations go through the usual screening.
+- The redirect and edge-api Workers accept both random and custom slugs, so both must be redeployed with this change.
+
 ## Name and domains
 
 - Chosen: **QRfinity** (QR + infinity). Rejected: QRLasts (sounds like "QR Last"; qrlast.com belongs to someone else), QRVow (sounds like "QR Wow"), QRLasting (clear but forgettable), InfiniQR (spelling risk).

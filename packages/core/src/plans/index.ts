@@ -19,8 +19,10 @@ export const FEATURES = {
   allFormats: 'Every format: PNG, JPG, SVG, PDF and EPS',
   analytics90: 'Scan analytics for the last 90 days, with CSV download',
   dataExport: 'Export every code and its history',
+  customSlugs: 'Custom short links, like qrfinity.link/joes-menu (a free allowance per account)',
   // Pro (planned)
   analyticsHistory: 'Full analytics history',
+  moreCustomSlugs: 'More custom short links than the free allowance',
   customDomain: 'Your own branded short domain',
   bulkCreate: 'Bulk creation from a spreadsheet',
   redirectRules: 'Redirect rules by country, device or time',
@@ -45,10 +47,12 @@ export const FREE_FEATURES = [
   'allFormats',
   'analytics90',
   'dataExport',
+  'customSlugs',
 ] as const satisfies readonly Feature[]
 
 const PRO_ONLY = [
   'analyticsHistory',
+  'moreCustomSlugs',
   'customDomain',
   'bulkCreate',
   'redirectRules',
@@ -100,4 +104,13 @@ export function entitlements(
 /** Days of analytics a user can see in the dashboard. History beyond 90 days comes from daily roll-ups. */
 export function analyticsRanges(features: ReadonlySet<Feature>): number[] {
   return features.has('analyticsHistory') ? [7, 30, 90, 365, 730] : [7, 30, 90]
+}
+
+/** Default free allowance of custom short links per account. Admins can raise it (never below what exists). */
+export const DEFAULT_FREE_CUSTOM_SLUGS = 1
+/** Custom short links per account with moreCustomSlugs. */
+export const PRO_CUSTOM_SLUGS = 100
+
+export function customSlugAllowance(features: ReadonlySet<Feature>, freeAllowance: number): number {
+  return features.has('moreCustomSlugs') ? Math.max(PRO_CUSTOM_SLUGS, freeAllowance) : freeAllowance
 }

@@ -38,10 +38,13 @@ describe('slugs', () => {
     )
   })
   it('validate format', () => {
-    expect(isValidSlug('abc12')).toBe(false)
+    expect(isValidSlug('abc')).toBe(false)
     expect(isValidSlug('abc123')).toBe(true)
-    expect(isValidSlug('abc-123')).toBe(false)
-    expect(isValidSlug('abcdefghi')).toBe(false)
+    expect(isValidSlug('AbCdEfGhI')).toBe(false) // too long for a random slug, uppercase for a custom one
+    expect(isValidSlug('Abc-123')).toBe(false)
+    // Custom slugs: lowercase with hyphens.
+    expect(isValidSlug('abc-123')).toBe(true)
+    expect(isValidSlug('abcdefghi')).toBe(true)
   })
   it('are distinct across many draws', () => {
     const seen = new Set(Array.from({ length: 5000 }, () => generateSlug()))
@@ -118,5 +121,37 @@ describe('request signing', () => {
         signature: h['x-qrf-signature']!,
       }),
     ).toBe(true)
+  })
+})
+
+describe('custom slugs', () => {
+  it('accepts plain lowercase names and normalises input', async () => {
+    const { checkCustomSlug, isValidSlug } = await import('../src/links/slug')
+    expect(checkCustomSlug(' Joes Menu ')).toEqual({ ok: true, slug: 'joes-menu' })
+    expect(checkCustomSlug('cafe2026')).toEqual({ ok: true, slug: 'cafe2026' })
+    expect(isValidSlug('joes-menu')).toBe(true)
+    expect(isValidSlug('aB3xK9q')).toBe(true)
+  })
+
+  it('refuses bad shapes, reserved words, offensive words and look-alike brands', async () => {
+    const { checkCustomSlug, isValidSlug } = await import('../src/links/slug')
+    for (const bad of ['abc', '-menu', 'menu-', 'me--nu', 'a'.repeat(41), 'menu_1', 'menu.pdf'])
+      expect(checkCustomSlug(bad).ok, bad).toBe(false)
+    for (const bad of [
+      'admin',
+      'login',
+      'report',
+      'paypal-login',
+      'apple-id',
+      'td-bank',
+      'my-wallet',
+      'irs-refund',
+      'mypaypal',
+    ])
+      expect(checkCustomSlug(bad).ok, bad).toBe(false)
+    // Short brand names match whole words only.
+    for (const ok of ['studio-menu', 'citizen-cafe', 'upstairs-bar'])
+      expect(checkCustomSlug(ok).ok, ok).toBe(true)
+    expect(isValidSlug('../etc')).toBe(false)
   })
 })

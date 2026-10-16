@@ -10,6 +10,7 @@ import { SelectField, TextField } from '@/components/ui/Field'
 import { clearDraft, readDraft } from '@/lib/draft'
 
 export type Folder = { id: string; name: string }
+export type SlugUsage = { used: number; allowance: number }
 
 function suggestName(destination: string) {
   try {
@@ -20,10 +21,23 @@ function suggestName(destination: string) {
   }
 }
 
-function CreateStep({ props, folders }: { props: FinalStepProps; folders: Folder[] }) {
+function CreateStep({
+  props,
+  folders,
+  slugs,
+  shortLinkBase,
+}: {
+  props: FinalStepProps
+  folders: Folder[]
+  slugs: SlugUsage
+  shortLinkBase: string
+}) {
   const router = useRouter()
   const [name, setName] = useState('')
   const [folderId, setFolderId] = useState('')
+  const [slug, setSlug] = useState('')
+  const slugsLeft = Math.max(0, slugs.allowance - slugs.used)
+  const linkHost = shortLinkBase.replace(/^https?:\/\//, '')
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
   const destination = props.content.ok ? props.content.payload : null
@@ -45,6 +59,7 @@ function CreateStep({ props, folders }: { props: FinalStepProps; folders: Folder
               content,
               design: props.design,
               folderId: folderId || null,
+              slug: slug.trim() || null,
             })
             if (r.ok) {
               clearDraft()
@@ -60,6 +75,35 @@ function CreateStep({ props, folders }: { props: FinalStepProps; folders: Folder
           placeholder={destination ? suggestName(destination) : 'Café menu'}
           onChange={(e) => setName(e.target.value)}
         />
+        {slugs.allowance > 0 ? (
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="custom-slug" className="label text-ink">
+              Custom short link (optional)
+            </label>
+            <div className="flex min-h-11 items-stretch overflow-hidden rounded-md border-[1.5px] border-control-border bg-surface focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus">
+              <span className="mono flex items-center border-r border-hairline bg-surface-sunk px-3 text-ink-muted">
+                {linkHost}/
+              </span>
+              <input
+                id="custom-slug"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                disabled={slugsLeft === 0}
+                maxLength={40}
+                placeholder={slugsLeft === 0 ? 'random' : 'joes-menu'}
+                autoComplete="off"
+                spellCheck={false}
+                aria-describedby="custom-slug-hint"
+                className="mono min-w-0 flex-1 bg-transparent px-3 text-ink outline-none disabled:opacity-60"
+              />
+            </div>
+            <p id="custom-slug-hint" className="body-small text-ink-muted">
+              {slugsLeft === 0
+                ? `You’ve used your ${slugs.allowance} custom short ${slugs.allowance === 1 ? 'link' : 'links'}. This code gets a random one. More are coming with Pro.`
+                : `${slugsLeft} of ${slugs.allowance} free custom ${slugs.allowance === 1 ? 'link' : 'links'} left. Leave empty for a random one. It can’t be changed after you create the code.`}
+            </p>
+          </div>
+        ) : null}
         {folders.length ? (
           <SelectField
             label="Folder"
@@ -90,9 +134,11 @@ function CreateStep({ props, folders }: { props: FinalStepProps; folders: Folder
 export function CreateCode({
   shortLinkBase,
   folders,
+  slugs,
 }: {
   shortLinkBase: string
   folders: Folder[]
+  slugs: SlugUsage
 }) {
   // Read once on mount: a draft carried over from the homepage, if any.
   const [draft] = useState(() => readDraft())
@@ -101,7 +147,9 @@ export function CreateCode({
       init={{ ...draft, kind: 'dynamic' }}
       shortLinkBase={shortLinkBase}
       contentTitle="1. Where should the code send people?"
-      finalStep={(p) => <CreateStep props={p} folders={folders} />}
+      finalStep={(p) => (
+        <CreateStep props={p} folders={folders} slugs={slugs} shortLinkBase={shortLinkBase} />
+      )}
     />
   )
 }

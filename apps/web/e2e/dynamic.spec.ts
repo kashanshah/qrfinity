@@ -105,3 +105,27 @@ test('the dashboard requires sign-in and export works', async ({ page, request }
   ])
   expect(download.suggestedFilename()).toMatch(/^qrfinity-codes-\d{4}-\d{2}-\d{2}\.csv$/)
 })
+
+test('a custom short link redirects, and the free allowance is shown', async ({
+  page,
+  request,
+}) => {
+  const email = `e2e-slug-${Date.now()}@example.com`
+  const slug = `menu-${Date.now().toString(36)}`
+  await signIn(page, request, email)
+  await page.goto('/dashboard/new')
+  await page.getByLabel('Website address').fill('example.com/custom')
+  await expect(page.getByText('1 of 1 free custom link left.', { exact: false })).toBeVisible()
+  await page.getByLabel('Custom short link (optional)').fill(slug)
+  await page.getByRole('button', { name: 'Create dynamic code' }).click()
+  await expect(page).toHaveURL(/\/dashboard\/codes\/[0-9a-f-]{36}\?created=1/)
+  await expect(page.locator('header .mono').first()).toHaveText(`localhost:8787/${slug}`)
+  expect(await scan(request, `http://localhost:8787/${slug}`)).toMatchObject({
+    status: 302,
+    location: 'https://example.com/custom',
+  })
+  await page.goto('/dashboard/new')
+  await expect(
+    page.getByText('You’ve used your 1 custom short link.', { exact: false }),
+  ).toBeVisible()
+})
