@@ -3,6 +3,7 @@
 import {
   PayloadTooLongError,
   buildScene,
+  canBeDynamic,
   checkDesign,
   encodeContent,
   formatPrintSize,
@@ -80,6 +81,7 @@ const PRIMARY_FIELD: Partial<Record<ContentType, string>> = {
   social: 'handle',
   whatsapp: 'phone',
   location: 'address',
+  payment: 'account',
 }
 
 type Render =
@@ -129,6 +131,15 @@ function GeneratorBody({
     if (kind === 'static' || !r.ok) return r
     // A dynamic contact card is a page on the short domain: its encoded card is the content.
     if (isPageType(type)) return r
+    if (!canBeDynamic(type, fields[type])) {
+      return {
+        ok: false,
+        reason: 'invalid',
+        errors: {
+          account: 'This code can only be static. Choose Static above, or another method.',
+        },
+      }
+    }
     // Other dynamic codes redirect, so the content must be a safe web address.
     const d = validateDestination(r.payload, [new URL(shortLinkBase).hostname, 'qrfinity.link'])
     return d.ok
@@ -309,7 +320,13 @@ function GeneratorBody({
                 hideLabel
                 value={type}
                 onChange={setType}
-                columns="grid-cols-3 sm:grid-cols-4 xl:grid-cols-6"
+                columns={
+                  // Full rows where possible: 13 types as 7 + 6, the 7 dynamic ones as 4 + 3.
+                  // On phones a last tile left alone spans its row.
+                  typeOptions.length > 8
+                    ? 'grid-cols-3 sm:grid-cols-5 xl:grid-cols-7 max-sm:[&>*:last-child:nth-child(3n+1)]:col-span-3'
+                    : 'grid-cols-4'
+                }
                 options={typeOptions}
               />
               <ContentForm result={content} />

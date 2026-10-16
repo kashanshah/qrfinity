@@ -3,6 +3,8 @@
  * string stored in a static QR code. Validation messages are user-facing copy.
  */
 
+import { DEFAULT_PAYMENT, encodePayment, isLinkPayment, type PaymentFields } from './payment'
+
 export const CONTENT_TYPES = [
   'url',
   'text',
@@ -16,6 +18,7 @@ export const CONTENT_TYPES = [
   'event',
   'app',
   'social',
+  'payment',
 ] as const
 
 export type ContentType = (typeof CONTENT_TYPES)[number]
@@ -31,7 +34,14 @@ export const DYNAMIC_TYPES: readonly ContentType[] = [
   'location',
   'app',
   'social',
+  'payment',
 ]
+
+/** Whether this content can go in a dynamic code (UPI and Pix codes must be read by the app). */
+export function canBeDynamic(type: ContentType, fields?: ContentFields[ContentType]): boolean {
+  if (!DYNAMIC_TYPES.includes(type)) return false
+  return type !== 'payment' || !fields || isLinkPayment((fields as PaymentFields).method)
+}
 
 export type UrlFields = { url: string }
 export type TextFields = { text: string }
@@ -115,6 +125,7 @@ export type ContentFields = {
   event: EventFields
   app: AppFields
   social: SocialFields
+  payment: PaymentFields
 }
 
 export type FieldErrors = Record<string, string>
@@ -154,6 +165,7 @@ export const DEFAULT_FIELDS: ContentFields = {
   event: { title: '', allDay: false, start: '', end: '', location: '', description: '' },
   app: { store: 'ios', url: '' },
   social: { platform: 'instagram', handle: '' },
+  payment: DEFAULT_PAYMENT,
 }
 
 const ok = (payload: string): EncodeResult => ({ ok: true, payload })
@@ -477,6 +489,7 @@ const ENCODERS: { [K in ContentType]: (f: ContentFields[K]) => EncodeResult } = 
   event: encodeEvent,
   app: encodeApp,
   social: encodeSocial,
+  payment: encodePayment,
 }
 
 export function encodeContent<K extends ContentType>(

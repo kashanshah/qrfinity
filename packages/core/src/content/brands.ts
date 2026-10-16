@@ -24,6 +24,10 @@ export const BRAND_ICONS = {
   xiaohongshu: 'Xiaohongshu',
   wechat: 'WeChat',
   alipay: 'Alipay',
+  paypal: 'PayPal',
+  venmo: 'Venmo',
+  cashapp: 'Cash App',
+  pix: 'Pix',
   spotify: 'Spotify',
   appstore: 'App Store',
   googleplay: 'Google Play',
@@ -39,6 +43,7 @@ export const BRAND_ICONS = {
   location: 'Location',
   event: 'Event',
   text: 'Text',
+  payment: 'Payment',
 } as const
 
 export type BrandIcon = keyof typeof BRAND_ICONS
@@ -54,6 +59,7 @@ export const TYPE_ICONS = [
   'location',
   'event',
   'text',
+  'payment',
 ] as const satisfies readonly BrandIcon[]
 
 export function isTypeIcon(icon: BrandIcon): boolean {
@@ -98,6 +104,9 @@ const HOSTS: [BrandIcon, string[]][] = [
   ['xiaohongshu', ['xiaohongshu.com', 'xhslink.com']],
   ['wechat', ['weixin.qq.com', 'wechat.com']],
   ['alipay', ['alipay.com']],
+  ['paypal', ['paypal.me', 'paypal.com']],
+  ['venmo', ['venmo.com']],
+  ['cashapp', ['cash.app', 'cash.me']],
   ['spotify', ['spotify.com', 'spotify.link']],
   ['appstore', ['apps.apple.com', 'itunes.apple.com']],
   ['googleplay', ['play.google.com']],
@@ -147,6 +156,11 @@ export function brandFor<K extends ContentType>(
       return 'location'
     case 'event':
       return 'event'
+    case 'payment': {
+      // UPI has no single brand (people pay from many apps): it gets the payment icon.
+      const method = (fields as ContentFields['payment']).method
+      return method === 'upi' ? 'payment' : method
+    }
     default:
       return null
   }

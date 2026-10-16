@@ -1,4 +1,4 @@
-import { DYNAMIC_TYPES } from '@qrfinity/core'
+import { canBeDynamic, DEFAULT_FIELDS } from '@qrfinity/core'
 import type { MDXComponents } from 'mdx/types'
 import type { ReactNode } from 'react'
 import { Generator } from '@/components/generator/Generator'
@@ -81,7 +81,7 @@ export function ContentPage({
         <section aria-label="QR code generator" className="mb-12">
           <Generator
             init={{ type: g.type, fields: g.fields, kind: g.kind }}
-            kindChoice={DYNAMIC_TYPES.includes(g.type)}
+            kindChoice={canBeDynamic(g.type, { ...DEFAULT_FIELDS[g.type], ...g.fields?.[g.type] })}
             shortLinkBase={shortLinkBase()}
           />
         </section>

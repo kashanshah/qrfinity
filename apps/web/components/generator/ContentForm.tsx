@@ -1,14 +1,19 @@
 'use client'
 
 import {
+  isLinkPayment,
+  PAYMENT_FIELDS,
+  PAYMENT_METHODS,
   SOCIAL_PLATFORMS,
   type ContentFields,
   type ContentType,
   type EncodeResult,
+  type PaymentMethod,
   type SocialPlatform,
 } from '@qrfinity/core'
 import {
   AppWindow,
+  Banknote,
   CalendarDays,
   Contact,
   Link2,
@@ -47,6 +52,7 @@ export const CONTENT_TYPE_OPTIONS: ReadonlyArray<{
   { value: 'event', label: 'Event', icon: icon(CalendarDays) },
   { value: 'app', label: 'App store', icon: icon(AppWindow) },
   { value: 'social', label: 'Social', icon: icon(Share2) },
+  { value: 'payment', label: 'Payment', icon: icon(Banknote) },
 ]
 
 const SOCIAL_LABELS: Record<SocialPlatform, string> = {
@@ -75,6 +81,39 @@ const SOCIAL_INPUT: Partial<Record<SocialPlatform, { label: string; placeholder:
   bilibili: { label: 'UID or space link', placeholder: 'space.bilibili.com/…' },
   douyin: { label: 'Share link', placeholder: 'v.douyin.com/…' },
   xiaohongshu: { label: 'Share link', placeholder: 'xhslink.com/…' },
+}
+
+export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
+  paypal: 'PayPal',
+  venmo: 'Venmo',
+  cashapp: 'Cash App',
+  upi: 'UPI (India)',
+  pix: 'Pix (Brazil)',
+}
+
+/** The account field, and the currency an amount is in, per method. */
+const PAYMENT_INPUT: Record<
+  PaymentMethod,
+  { label: string; placeholder: string; hint?: string; currency?: string }
+> = {
+  paypal: {
+    label: 'PayPal.Me name or link',
+    placeholder: 'paypal.me/yourname',
+    currency: 'In your PayPal account’s currency.',
+  },
+  venmo: { label: 'Venmo username or link', placeholder: '@your-username' },
+  cashapp: {
+    label: '$Cashtag or link',
+    placeholder: '$yourname',
+    currency: 'In your Cash App currency.',
+  },
+  upi: { label: 'UPI ID', placeholder: 'yourname@okhdfcbank', currency: 'In rupees.' },
+  pix: {
+    label: 'Pix key',
+    placeholder: 'CPF, CNPJ, email, phone or random key',
+    hint: 'Write a phone key with +55, like +55 11 91234 5678.',
+    currency: 'In reais.',
+  },
 }
 
 /** Errors show once a field has been left, so nobody is told off mid-typing. */
@@ -378,6 +417,63 @@ export function ContentForm({ result }: { result: EncodeResult }) {
             placeholder={SOCIAL_INPUT[f.platform]?.placeholder ?? '@yourname'}
             {...bind('social', 'handle')}
           />
+        </div>
+      )
+    }
+    case 'payment': {
+      const f = fields.payment
+      const show = PAYMENT_FIELDS[f.method]
+      const input = PAYMENT_INPUT[f.method]
+      // UPI and Pix codes are read by the payer's app itself, so they can't be dynamic.
+      const methods =
+        kind === 'dynamic'
+          ? PAYMENT_METHODS.filter((m) => isLinkPayment(m) || m === f.method)
+          : PAYMENT_METHODS
+      return (
+        <div className="grid gap-4">
+          <SelectField
+            label="Pay with"
+            value={f.method}
+            onChange={(method) => setFields('payment', { method })}
+            options={methods.map((m) => ({ value: m, label: PAYMENT_LABELS[m] }))}
+            hint={
+              kind === 'dynamic'
+                ? 'UPI and Pix codes are static only: the payer’s app reads the code itself.'
+                : undefined
+            }
+          />
+          <TextField
+            label={input.label}
+            autoCapitalize="none"
+            spellCheck={false}
+            placeholder={input.placeholder}
+            hint={input.hint}
+            {...bind('payment', 'account')}
+          />
+          {show.name ? (
+            <TextField
+              label={f.method === 'pix' ? 'Name on the account' : 'Name people see'}
+              autoComplete="name"
+              {...bind('payment', 'name')}
+            />
+          ) : null}
+          {show.city ? <TextField label="City" {...bind('payment', 'city')} /> : null}
+          {show.amount ? (
+            <TextField
+              label="Amount (optional)"
+              inputMode="decimal"
+              placeholder="0.00"
+              hint={`${input.currency ?? ''} Leave it empty to let people type the amount.`.trim()}
+              {...bind('payment', 'amount')}
+            />
+          ) : null}
+          {show.note ? (
+            <TextField label="Note (optional)" maxLength={50} {...bind('payment', 'note')} />
+          ) : null}
+          <p className="body-small text-ink-muted">
+            The code opens {PAYMENT_LABELS[f.method].replace(/ \(.*\)$/, '')} with your details
+            filled in. The money goes straight to you; we never handle it.
+          </p>
         </div>
       )
     }
