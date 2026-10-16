@@ -56,3 +56,13 @@ export async function setPlan(email: string, plan: 'free' | 'plus' | 'pro' | 'un
     await db.$client.end()
   }
 }
+
+/**
+ * The home page with a link filled in. The website field starts empty, so there's no code until
+ * something is typed; the typing hint appears once React is up, so typing isn't lost.
+ */
+export async function openGenerator(page: Page, url = 'https://qrfinity.com', path = '/') {
+  await page.goto(path)
+  await expect(page.locator('.typing-caret')).toBeVisible()
+  await page.getByLabel('Website address').fill(url)
+}

@@ -127,7 +127,7 @@ export type EncodeResult =
   { ok: true; payload: string } | { ok: false; reason: 'empty' | 'invalid'; errors: FieldErrors }
 
 export const DEFAULT_FIELDS: ContentFields = {
-  url: { url: 'https://qrfinity.com' },
+  url: { url: '' },
   text: { text: '' },
   wifi: { ssid: '', password: '', encryption: 'WPA', hidden: false },
   vcard: {

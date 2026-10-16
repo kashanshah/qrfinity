@@ -1,6 +1,5 @@
 'use client'
 
-import { DEFAULT_FIELDS } from '@qrfinity/core'
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { TextField } from '../ui/Field'
 
@@ -24,7 +23,7 @@ function subscribeMotion(onChange: () => void) {
 }
 
 /** Types and erases the examples in turn, forever, while mounted. */
-function Typewriter() {
+function Typewriter({ caret }: { caret: boolean }) {
   const [text, setText] = useState('')
   useEffect(() => {
     let i = 0
@@ -55,15 +54,17 @@ function Typewriter() {
   return (
     <>
       {text}
-      <span className="typing-caret" />
+      {/* In the field, the browser's own caret blinks: no second one. */}
+      {caret ? <span className="typing-caret" /> : null}
     </>
   )
 }
 
 /**
- * The website address field. Until someone touches it, it still holds the example address, and
- * an animated hint types sample links over it with a soft highlight, so it's obvious where to
- * start. Clicking in selects the example, so typing replaces it.
+ * The website address field. It starts empty; while it's empty, an animated hint types sample
+ * links into it (also while it has focus), so it's obvious what goes here. The first letter
+ * typed hides the hint; clearing the field brings it back. People who prefer less motion get a
+ * plain placeholder instead.
  */
 export function UrlField(props: {
   value: string
@@ -72,10 +73,10 @@ export function UrlField(props: {
   error?: string
   hint: ReactNode
 }) {
-  const [engaged, setEngaged] = useState(false)
+  const [focused, setFocused] = useState(false)
   const still = useSyncExternalStore(subscribeMotion, reducedMotion, () => false)
-  const isExample = props.value === DEFAULT_FIELDS.url.url
-  const hinting = isExample && !engaged
+  const empty = props.value === ''
+  const animate = empty && !still
 
   return (
     <TextField
@@ -83,25 +84,26 @@ export function UrlField(props: {
       type="url"
       inputMode="url"
       autoComplete="url"
-      placeholder="example.com/menu"
+      placeholder={animate ? undefined : EXAMPLES[0]}
       value={props.value}
       onChange={props.onChange}
-      onBlur={props.onBlur}
+      onBlur={() => {
+        setFocused(false)
+        props.onBlur()
+      }}
       error={props.error}
       hint={props.hint}
-      onFocus={(e) => {
-        setEngaged(true)
-        // The example is there to show what goes here: typing replaces it.
-        if (isExample) e.currentTarget.select()
-      }}
-      inputClassName={hinting ? 'url-hint-ring' : ''}
+      onFocus={() => setFocused(true)}
+      // A soft highlight draws the eye to the empty field; the focus ring takes over once in it.
+      inputClassName={empty && !focused ? 'url-hint-ring' : ''}
       overlay={
-        hinting && !still ? (
+        animate ? (
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-[1.5px] flex items-center overflow-hidden whitespace-nowrap rounded-md bg-surface px-3 text-ink-muted"
+            data-url-hint=""
+            className="pointer-events-none absolute inset-[1.5px] flex items-center overflow-hidden whitespace-nowrap rounded-md px-3 text-ink-muted"
           >
-            <Typewriter />
+            <Typewriter caret={!focused} />
           </span>
         ) : null
       }
