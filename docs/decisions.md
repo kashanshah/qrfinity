@@ -41,6 +41,15 @@ Full detail in `docs/architecture.md`.
 - **Frame text is Helvetica Bold / Arial**, not our brand fonts: it renders the same in PNG, SVG, PDF and EPS, and print shops already have it. Non-Latin-1 characters in frame text become "?" in EPS only.
 - **Location codes link to Google Maps** (`geo:` URIs don't open from the iPhone camera). **App store codes hold one store link**: device-based routing needs a dynamic code.
 
+## Dynamic codes (Phase 3, October 2026)
+
+- **Slugs**: 7 random base62 characters, collision-checked by a unique index; never reused, even after deletion.
+- **Sync**: Postgres first, then KV through the edge-api Worker; an outbox row (with the code version) is queued in the same transaction and a Vercel Cron retries every minute. A delayed write can never replace a newer version.
+- **Redirect Worker**: KV with a 30 s edge cache, then the Postgres view through Hyperdrive with a read-only role; misses are cached for 5 minutes and fallbacks are rate-limited per hashed IP. 302 only. Paused → "paused by its owner" page; disabled → warning page, never the destination. Worker logs are off because they would record visitor IPs.
+- **No raw IPs anywhere**: Better Auth's IP tracking is off (sessions store none), rate-limit keys are keyed hashes, unique visitors use a daily salt that expires after 36 hours.
+- **Analytics**: Analytics Engine in production; the same report built from a Postgres `scan_events` table locally (the Worker posts signed events to the app). Bots and link previewers are excluded. Unique scans = distinct visitors per code per day. Still to confirm on real Analytics Engine: `COUNT(DISTINCT …)` support.
+- **Dynamic content types**: link, WhatsApp, location, app store and social (they resolve to web addresses). Text, Wi-Fi, contact, email, SMS, phone and event stay static.
+
 ## Monetization (later)
 
 - Competitors gate by number of dynamic codes (Uniqode $5/mo for 3 codes up to $99; QR TIGER from $7/mo; QR Code Generator PRO Professional: 250 codes). We give codes away and charge for professional features.

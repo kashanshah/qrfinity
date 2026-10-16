@@ -1,21 +1,25 @@
 'use client'
 
-import type { ContentType } from '@qrfinity/core'
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { useStore } from 'zustand'
-import { createGeneratorStore, type GeneratorState, type GeneratorStore } from './store'
+import {
+  createGeneratorStore,
+  type GeneratorInit,
+  type GeneratorState,
+  type GeneratorStore,
+} from './store'
 
 const Ctx = createContext<GeneratorStore | null>(null)
 
-/** One store per generator, so use-case pages can preload a content type. */
+/** One store per generator, so pages can preload a content type, a draft or a saved code. */
 export function GeneratorProvider({
-  initialType,
+  init,
   children,
 }: {
-  initialType?: ContentType
+  init?: GeneratorInit
   children: ReactNode
 }) {
-  const [store] = useState(() => createGeneratorStore(initialType))
+  const [store] = useState(() => createGeneratorStore(init))
   return <Ctx.Provider value={store}>{children}</Ctx.Provider>
 }
 

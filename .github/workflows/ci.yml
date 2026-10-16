@@ -12,6 +12,18 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: qrfinity
+          POSTGRES_PASSWORD: qrfinity
+          POSTGRES_DB: qrfinity
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U qrfinity" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGPASSWORD: qrfinity
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -20,8 +32,12 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Ghostscript (EPS render test)
-        run: sudo apt-get update -q && sudo apt-get install -y -q ghostscript
+      - name: Ghostscript (EPS render test) and psql
+        run: sudo apt-get update -q && sudo apt-get install -y -q ghostscript postgresql-client
+      - name: Test databases and the redirect Worker's read-only role
+        run: |
+          psql -h localhost -U qrfinity -d qrfinity -c "CREATE DATABASE qrfinity_test" -c "CREATE DATABASE qrfinity_e2e"
+          psql -h localhost -U qrfinity -d qrfinity -c "CREATE ROLE redirect_reader LOGIN PASSWORD 'redirect_reader'"
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck

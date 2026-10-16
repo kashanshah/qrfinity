@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react'
 import { Generator } from '@/components/generator/Generator'
+import { shortLinkBase } from '@/lib/short-link'
 
 const PROMISES = [
   'Static codes: free, unlimited, no sign-up, never expire.',
@@ -17,7 +18,7 @@ export default function HomePage() {
         </p>
       </section>
 
-      <Generator />
+      <Generator kindChoice shortLinkBase={shortLinkBase()} />
 
       <section aria-labelledby="promise" className="mt-12 grid gap-8 md:mt-16 md:grid-cols-2">
         <div>

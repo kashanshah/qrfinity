@@ -13,7 +13,10 @@
     "test": "pnpm -r test",
     "test:e2e": "pnpm --filter @qrfinity/web test:e2e",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:migrate": "pnpm --filter @qrfinity/db exec tsx src/migrate.ts",
+    "db:generate": "pnpm --filter @qrfinity/db generate",
+    "dev:workers": "pnpm --parallel --filter @qrfinity/redirect --filter @qrfinity/edge-api dev"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

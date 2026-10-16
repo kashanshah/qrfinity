@@ -280,3 +280,15 @@ Adding a Cache API layer in front of KV at 50M scans would bring the Cloudflare 
 ## Next
 
 On final sign-off, Phase 2 starts: the monorepo scaffold, design tokens wired into Tailwind, and the client-side static generator.
+
+## 13. Implementation notes (Phase 3)
+
+What was built differs from the plan above only in these details:
+
+- **Read-only role grant** is a migration (`0001_grant_redirect_reader.sql`) that applies when the `redirect_reader` role exists, so recreating the view never silently breaks the Worker's fallback.
+- **Outbox rows carry the code version.** A push clears rows at or below the version it pushed, so a slow retry can't drop a newer pending change.
+- **Local analytics**: the redirect Worker can also post each scan (signed) to `/api/internal/scans`, which fills `scan_events` in Postgres. The dashboard reads the same report shape from there. Production leaves this off and reads Analytics Engine.
+- **Worker observability is off**: invocation logs would store request headers, including visitor IPs.
+- **Sessions store no IP** (`advanced.ipAddress.disableIpTracking`); sign-in limits use keyed hashes in Postgres instead of Better Auth's IP limiter.
+- **`proxy.ts`** (Next.js 16's middleware) sends signed-out visitors to `/login?next=…`; every page still verifies the session.
+- **Testing**: Worker logic lives in binding-free handlers tested in Node; the end-to-end suite runs the app and both Workers under wrangler against a real Postgres database.

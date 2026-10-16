@@ -1,0 +1,13 @@
+// Private edge-api Worker: the only writer of link records in KV. Accepts HMAC-signed requests from the app.
+// Set the secret with: wrangler secret put EDGE_API_SECRET
+{
+  "name": "qrfinity-edge-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "routes": [{ "pattern": "edge.qrfinity.link", "custom_domain": true }],
+  "workers_dev": false,
+  "kv_namespaces": [{ "binding": "LINKS", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }],
+  // 23:50 UTC daily: create tomorrow's visitor-hash salt ahead of time.
+  "triggers": { "crons": ["50 23 * * *"] },
+  "observability": { "enabled": false },
+}

@@ -7,27 +7,66 @@ import {
   encodeContent,
   formatPrintSize,
   sceneToSvg,
+  validateDestination,
+  type ContentFields,
   type ContentType,
   type Design,
+  type EncodeResult,
   type SceneInfo,
 } from '@qrfinity/core'
-import { useId, useMemo } from 'react'
-import { useGenerator, GeneratorProvider } from '@/lib/generator-context'
+import { useId, useMemo, type ReactNode } from 'react'
 import type { ExportJob } from '@/lib/export'
+import { GeneratorProvider, useGenerator } from '@/lib/generator-context'
 import { useScanCheck } from '@/lib/scan'
+import { DYNAMIC_TYPES, type CodeKind, type GeneratorInit } from '@/lib/store'
 import { OptionGroup } from '../ui/OptionGroup'
 import { CodeTypeBadge, NeverExpiresBadge } from './Badges'
 import { CONTENT_TYPE_OPTIONS, ContentForm } from './ContentForm'
 import { DesignPanel } from './DesignPanel'
-import { ExportPanel } from './ExportPanel'
+import { HomeFinalStep } from './HomeFinalStep'
 import { ScanResult, type ScanSummary } from './ScanResult'
 
-export function Generator({ initialType = 'url' }: { initialType?: ContentType }) {
+export type FinalStepProps = {
+  kind: CodeKind
+  type: ContentType
+  fields: ContentFields
+  design: Design
+  /** Static: the encoded payload. Dynamic: the destination address. */
+  content: EncodeResult
+  job: ExportJob | null
+  scanFailed: boolean
+}
+
+export type GeneratorProps = {
+  init?: GeneratorInit
+  /** Show the static / dynamic choice (homepage). */
+  kindChoice?: boolean
+  /** Origin of dynamic short links, e.g. https://qrfinity.link. */
+  shortLinkBase: string
+  /** The real short link, once the dynamic code exists. */
+  shortLink?: string
+  contentTitle?: string
+  finalStep?: (props: FinalStepProps) => ReactNode
+}
+
+export function Generator(props: GeneratorProps) {
   return (
-    <GeneratorProvider initialType={initialType}>
-      <GeneratorBody />
+    <GeneratorProvider init={props.init}>
+      <GeneratorBody {...props} />
     </GeneratorProvider>
   )
+}
+
+// Same length as a real slug, so the preview is exactly as dense as the final code.
+const PLACEHOLDER_SLUG = 'aB3xK9q'
+
+// Which field shows a dynamic-destination problem, per content type.
+const PRIMARY_FIELD: Partial<Record<ContentType, string>> = {
+  url: 'url',
+  app: 'url',
+  social: 'handle',
+  whatsapp: 'phone',
+  location: 'address',
 }
 
 type Render =
@@ -53,7 +92,15 @@ function failMessage(design: Design, info: SceneInfo): ScanSummary['message'] {
   }
 }
 
-function GeneratorBody() {
+function GeneratorBody({
+  kindChoice = false,
+  shortLinkBase,
+  shortLink,
+  contentTitle,
+  finalStep,
+}: GeneratorProps) {
+  const kind = useGenerator((s) => s.kind)
+  const setKind = useGenerator((s) => s.setKind)
   const type = useGenerator((s) => s.type)
   const setType = useGenerator((s) => s.setType)
   const fields = useGenerator((s) => s.fields)
@@ -61,24 +108,43 @@ function GeneratorBody() {
   const printWidthMm = useGenerator((s) => s.printWidthMm)
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '')
 
-  const result = useMemo(() => encodeContent(type, fields[type]), [type, fields])
+  const content = useMemo<EncodeResult>(() => {
+    const r = encodeContent(type, fields[type])
+    if (kind === 'static' || !r.ok) return r
+    // Dynamic codes redirect, so the content must be a safe web address.
+    const d = validateDestination(r.payload, [new URL(shortLinkBase).hostname, 'qrfinity.link'])
+    return d.ok
+      ? { ok: true, payload: d.url }
+      : { ok: false, reason: 'invalid', errors: { [PRIMARY_FIELD[type] ?? 'url']: d.message } }
+  }, [kind, type, fields, shortLinkBase])
+
+  const payload =
+    kind === 'dynamic'
+      ? (shortLink ?? `${shortLinkBase}/${PLACEHOLDER_SLUG}`)
+      : content.ok
+        ? content.payload
+        : null
 
   const render = useMemo<Render>(() => {
-    if (!result.ok) return { kind: result.reason }
+    if (!payload) return { kind: content.ok ? 'empty' : content.reason }
     try {
-      const { scene, info } = buildScene(result.payload, design)
+      const { scene, info } = buildScene(payload, design)
       return {
         kind: 'ok',
-        payload: result.payload,
+        payload,
         svg: sceneToSvg(scene, { width: 600 }),
         info,
-        job: { scene, design, baseName: `qr-code-${type}` },
+        job: {
+          scene,
+          design,
+          baseName: kind === 'dynamic' ? 'qr-code-dynamic' : `qr-code-${type}`,
+        },
       }
     } catch (e) {
       if (e instanceof PayloadTooLongError) return { kind: 'too-long' }
       throw e
     }
-  }, [result, design, type])
+  }, [payload, content, design, type, kind])
 
   const ok = render.kind === 'ok' ? render : null
   const scan = useScanCheck(
@@ -123,6 +189,14 @@ function GeneratorBody() {
     [ok, uid],
   )
 
+  const typeOptions =
+    kind === 'dynamic'
+      ? CONTENT_TYPE_OPTIONS.filter((o) => DYNAMIC_TYPES.includes(o.value))
+      : CONTENT_TYPE_OPTIONS
+  const linkLabel = shortLink
+    ? shortLink.replace(/^https?:\/\//, '')
+    : `${new URL(shortLinkBase).host}/·······`
+
   const preview = (compact: boolean) => (
     <div className={`rounded-xl bg-surface-sunk ${compact ? 'p-3' : 'p-6'}`}>
       {ok ? (
@@ -149,6 +223,16 @@ function GeneratorBody() {
     </div>
   )
 
+  const badges = (
+    <div className="flex flex-wrap items-center gap-2">
+      <CodeTypeBadge type={kind} />
+      <NeverExpiresBadge />
+      {kind === 'dynamic' ? <span className="mono text-evergreen">{linkLabel}</span> : null}
+    </div>
+  )
+
+  const stepProps: FinalStepProps = { kind, type, fields, design, content, job, scanFailed }
+
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start xl:grid-cols-[minmax(0,1fr)_440px]">
       {/* Phones: a compact preview stays in view while editing. */}
@@ -157,7 +241,7 @@ function GeneratorBody() {
           {preview(true)}
           <div className="flex min-w-0 flex-col gap-2">
             <div className="flex flex-wrap gap-2">
-              <CodeTypeBadge type="static" />
+              <CodeTypeBadge type={kind} />
               <NeverExpiresBadge />
             </div>
             {summary ? <ScanResult summary={{ ...summary, warnings: [] }} /> : null}
@@ -171,18 +255,30 @@ function GeneratorBody() {
           className="rounded-lg border border-hairline bg-surface p-4 shadow-card md:p-6"
         >
           <h2 id="step-content" className="subheading mb-4 text-ink">
-            1. What should the code open?
+            {contentTitle ?? '1. What should the code open?'}
           </h2>
           <div className="flex flex-col gap-6">
+            {kindChoice ? (
+              <OptionGroup
+                label="Type of code"
+                value={kind}
+                onChange={setKind}
+                columns="grid-cols-1 sm:grid-cols-2"
+                options={[
+                  { value: 'static', label: 'Static: free, no sign-up, can’t be edited' },
+                  { value: 'dynamic', label: 'Dynamic: editable, with scan stats, free account' },
+                ]}
+              />
+            ) : null}
             <OptionGroup
               label="Content type"
               hideLabel
               value={type}
               onChange={setType}
               columns="grid-cols-3 sm:grid-cols-4 xl:grid-cols-6"
-              options={CONTENT_TYPE_OPTIONS}
+              options={typeOptions}
             />
-            <ContentForm result={result} />
+            <ContentForm result={content} />
           </div>
         </section>
 
@@ -210,21 +306,17 @@ function GeneratorBody() {
             </div>
           ) : null}
           <div className="flex flex-col gap-2 border-t border-hairline pt-4">
-            <div className="flex flex-wrap gap-2">
-              <CodeTypeBadge type="static" />
-              <NeverExpiresBadge />
-            </div>
+            {badges}
             <p className="body-small text-ink-muted">
-              The content is stored in the code itself, so it works forever without us. It can’t be
-              edited or tracked after printing. Editable, trackable dynamic codes, also free and
-              never deactivated, arrive with free accounts.
+              {kind === 'static'
+                ? 'The content is stored in the code itself, so it works forever without us. It can’t be edited or tracked after printing.'
+                : shortLink
+                  ? 'The code holds this short link. Change where it goes any time; the printed code keeps working and is never deactivated.'
+                  : 'The code holds a short link that sends people to your destination. Change it any time and see scan stats. Free with an account, never deactivated.'}
             </p>
           </div>
         </div>
-        <div className="rounded-lg border border-hairline bg-surface p-4 shadow-card md:p-6">
-          <h2 className="subheading mb-4 text-ink">3. Download</h2>
-          <ExportPanel job={job} scanFailed={scanFailed} />
-        </div>
+        {(finalStep ?? ((p: FinalStepProps) => <HomeFinalStep {...p} />))(stepProps)}
       </aside>
     </div>
   )

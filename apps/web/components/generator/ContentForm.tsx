@@ -69,6 +69,7 @@ function useTouched() {
 
 export function ContentForm({ result }: { result: EncodeResult }) {
   const type = useGenerator((s) => s.type)
+  const kind = useGenerator((s) => s.kind)
   const fields = useGenerator((s) => s.fields)
   const setFields = useGenerator((s) => s.setFields)
   const { touched, blur } = useTouched()
@@ -94,7 +95,11 @@ export function ContentForm({ result }: { result: EncodeResult }) {
           inputMode="url"
           autoComplete="url"
           placeholder="example.com/menu"
-          hint="The address goes straight into the code. No redirect, no tracking."
+          hint={
+            kind === 'static'
+              ? 'The address goes straight into the code. No redirect, no tracking.'
+              : 'Scans go here. You can change it any time without reprinting.'
+          }
           {...bind('url', 'url')}
         />
       )
@@ -333,8 +338,8 @@ export function ContentForm({ result }: { result: EncodeResult }) {
             {...bind('app', 'url')}
           />
           <p className="body-small text-ink-muted">
-            A static code holds one link. Sending iPhones and Android phones to their own store
-            needs a dynamic code, which arrives with free accounts.
+            One code holds one store link. Make one code per store, or link to a page that lists
+            both.
           </p>
         </div>
       )

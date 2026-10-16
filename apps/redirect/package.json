@@ -1,0 +1,22 @@
+{
+  "name": "@qrfinity/redirect",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787 --inspector-port 9230 --persist-to ../../.wrangler/state --var SCAN_SINK_URL:http://localhost:3000/api/internal/scans --var SCAN_SINK_SECRET:dev-sink-secret --var SITE_ORIGIN:http://localhost:3000",
+    "deploy": "wrangler deploy",
+    "lint": "tsc --noEmit -p .",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@qrfinity/core": "workspace:*",
+    "postgres": "^3.4.9"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261015.1",
+    "vitest": "^4.1.4",
+    "wrangler": "^4.151.0"
+  }
+}

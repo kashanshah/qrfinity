@@ -4,7 +4,9 @@ import type { NextConfig } from 'next'
 // Static generation runs entirely in the browser; the scan check needs WebAssembly and a worker.
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com",
+  // Turnstile renders its check in an iframe.
+  'frame-src https://challenges.cloudflare.com',
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
