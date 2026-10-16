@@ -57,19 +57,21 @@ async function lookupDatabase(
         status: LinkRecord['status']
         version: number
         rules: unknown
+        page: unknown
       }[]
     >`
-      select id, user_id, destination, status, version, rules from redirect_lookup where domain = ${domain} and slug = ${slug} limit 1`
+      select id, user_id, destination, status, version, rules, page from redirect_lookup where domain = ${domain} and slug = ${slug} limit 1`
     const r = rows[0]
-    if (!r || !r.destination) return null
+    if (!r || (!r.destination && !r.page)) return null
     // Same checks as a KV record, so malformed rules are dropped rather than followed.
     return parseLinkRecord({
       id: r.id,
       owner: r.user_id,
-      dest: r.destination,
+      dest: r.destination ?? '',
       status: r.status,
       v: r.version,
       rules: r.rules,
+      page: r.page,
     })
   } finally {
     ctx.waitUntil(sql.end())

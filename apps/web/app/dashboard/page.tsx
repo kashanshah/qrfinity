@@ -7,6 +7,7 @@ import { getAnalytics } from '@/lib/server/analytics'
 import { listCodes, listFolders, listTags } from '@/lib/server/codes'
 import { serviceContext } from '@/lib/server/context'
 import { shortLinkFor } from '@/lib/short-link'
+import { codeTarget } from '@/lib/code-target'
 
 const dateFmt = new Intl.DateTimeFormat('en-CA', {
   year: 'numeric',
@@ -163,9 +164,9 @@ export default async function CodesPage({
                     </div>
                     <p
                       className="body-small truncate text-ink-muted"
-                      title={c.destination ?? undefined}
+                      title={codeTarget(c) || undefined}
                     >
-                      → {displayDestination(c.destination)}
+                      → {displayDestination(codeTarget(c))}
                     </p>
                     {c.tags.length || c.folderName ? (
                       <p className="body-small mt-1 flex flex-wrap gap-1.5 text-ink-muted">

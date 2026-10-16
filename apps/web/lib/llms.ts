@@ -27,7 +27,7 @@ const SECTIONS: { heading: string; pages: ContentPage[]; dir?: ContentDir }[] = 
 
 const FACTS = [
   'Static QR codes: free, unlimited, made in the browser, no sign-up, never expire.',
-  'Dynamic QR codes: free and unlimited with a free account; editable destination; scan analytics (total and unique scans, devices, countries, 90 days of history); never expire and are never paused for not paying.',
+  'Dynamic QR codes: free and unlimited with a free account; editable destination, or a contact card page with a Save contact button whose details can be updated after printing; scan analytics (total and unique scans, devices, countries, up to 2 years of history); never expire and are never paused for not paying.',
   'Downloads: PNG, JPG, SVG, PDF and EPS, all free, no watermark.',
   'Short links for dynamic codes use qrfinity.link. No IP addresses are stored; no cookies on short links.',
   'Promises in the terms of service: codes never expire; free features never move behind a paywall.',

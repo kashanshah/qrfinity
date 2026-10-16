@@ -41,7 +41,8 @@ async function run<T>(
 
 export async function createCodeAction(input: {
   name: string
-  destination: string
+  /** Leave out for a contact card. */
+  destination?: string
   content: CodeContent | null
   design: Design
   folderId: string | null
@@ -55,7 +56,8 @@ export async function saveCodeAction(
   input: { destination?: string; content?: CodeContent | null; design?: Design },
 ) {
   return run(async (ctx) => {
-    if (input.destination !== undefined)
+    // A destination, or contact card details (content with no destination).
+    if (input.destination !== undefined || input.content?.type === 'vcard')
       await updateDestination(ctx, id, { destination: input.destination, content: input.content })
     if (input.design) await updateDetails(ctx, id, { design: input.design })
     return undefined

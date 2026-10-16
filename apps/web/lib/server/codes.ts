@@ -9,11 +9,17 @@ import {
   generateSlug,
   validateDestination,
   validateRules,
+  cleanVcardFields,
+  encodeContent,
+  isPageType,
+  pageSummary,
+  pageWebsite,
   CONTENT_TYPES,
   DEFAULT_FIELDS,
   sanitizeDesign,
   type Design,
   type EdgeSync,
+  type HostedPage,
   type LinkRecord,
   type LinkStatus,
   type RateLimiter,
@@ -46,7 +52,7 @@ import { ServiceError } from './errors'
 import { effectivePlanFor } from './plan'
 import { getFreeAdvancedCodeAllowance } from './settings'
 import { LIMITS, rateKey, retryMessage } from './rate-limit'
-import { screenForCode } from './screening'
+import { nextRiskCheck, screenForCode, type RiskFields } from './screening'
 
 export { ServiceError }
 
@@ -91,6 +97,52 @@ function checkDestination(ctx: ServiceContext, input: string): string {
   return r.url
 }
 
+/** What a dynamic code opens: a destination to redirect to, or a hosted page (a contact card). */
+type Target = { destination: string; page: null } | { destination: null; page: HostedPage }
+
+function resolveTarget(
+  ctx: ServiceContext,
+  input: { destination?: string; content?: CodeContent | null },
+): Target {
+  if (input.content && isPageType(input.content.type)) {
+    const fields = cleanVcardFields(input.content.fields)
+    const r = encodeContent('vcard', fields)
+    if (!r.ok)
+      throw new ServiceError(
+        r.reason === 'empty'
+          ? 'Add a name or an organisation for the contact card.'
+          : (Object.values(r.errors)[0] ?? 'Check the contact details.'),
+        'invalid',
+      )
+    // The website is a link on our domain's page: same checks as a destination.
+    if (fields.website.trim()) checkDestination(ctx, fields.website)
+    return { destination: null, page: { type: 'vcard', fields } }
+  }
+  return { destination: checkDestination(ctx, input.destination ?? ''), page: null }
+}
+
+const targetSummary = (t: Target) => t.destination ?? pageSummary(t.page)
+
+/** Screens what a scan can reach: the destination, or the contact card's website. */
+async function screenTarget(ctx: ServiceContext, t: Target): Promise<RiskFields> {
+  const url = t.destination ?? pageWebsite(t.page)
+  if (url) return screenForCode(ctx.db, ctx.reputation, url)
+  const now = new Date()
+  return {
+    riskStatus: 'clean',
+    riskDetail: null,
+    riskCheckedAt: now,
+    riskChecks: 1,
+    nextRiskCheckAt: nextRiskCheck(1, now),
+  }
+}
+
+/** The hosted page a stored code serves, if it's a contact card code. */
+export function pageOf(row: Pick<CodeRow, 'destination' | 'content'>): HostedPage | null {
+  if (row.destination || !row.content || !isPageType(row.content.type)) return null
+  return { type: 'vcard', fields: cleanVcardFields(row.content.fields) }
+}
+
 async function limit(ctx: ServiceContext, action: string, cfg: { limit: number; window: number }) {
   const r = await ctx.limiter.hit(
     await rateKey(ctx.rateSecret, action, ctx.userId),
@@ -130,17 +182,19 @@ export async function syncCode(db: Database, edge: EdgeSync, codeId: string): Pr
     return true
   }
   try {
-    if (row.deletedAt || !row.destination) {
+    const page = pageOf(row)
+    if (row.deletedAt || (!row.destination && !page)) {
       await edge.remove(row.domain, row.slug)
     } else {
       const record: LinkRecord = {
         id: row.id,
         owner: row.userId,
-        dest: row.destination,
+        dest: row.destination ?? '',
         status: row.status,
         v: row.version,
         // Paused rules (beyond the owner's allowance) aren't sent: scans use the destination.
-        ...(row.rules?.length && !row.advancedPaused ? { rules: row.rules } : {}),
+        ...(row.rules?.length && !row.advancedPaused && !page ? { rules: row.rules } : {}),
+        ...(page ? { page } : {}),
       }
       await edge.put(row.domain, row.slug, record)
     }
@@ -267,7 +321,8 @@ export async function destinationHistoryFor(ctx: ServiceContext, id: string) {
 
 export type CreateDynamicInput = {
   name: string
-  destination: string
+  /** Where scans go. Leave out for a contact card (`content` of type vcard). */
+  destination?: string
   content?: CodeContent | null
   design: Design
   folderId?: string | null
@@ -280,13 +335,13 @@ export async function createDynamicCode(
   input: CreateDynamicInput,
 ): Promise<CodeView> {
   const name = cleanName(input.name)
-  const destination = checkDestination(ctx, input.destination)
+  const target = resolveTarget(ctx, input)
   if (input.folderId) await ownedFolder(ctx, input.folderId)
   await limit(ctx, 'create-hour', LIMITS.createPerHour)
   await limit(ctx, 'create-day', LIMITS.createPerDay)
   // After the rate limits, so spam can't spend the Web Risk quota.
   const custom = input.slug?.trim() ? await claimableCustomSlug(ctx, input.slug) : null
-  const risk = await screenForCode(ctx.db, ctx.reputation, destination)
+  const risk = await screenTarget(ctx, target)
 
   for (let attempt = 0; attempt < 6; attempt++) {
     const slug = custom ?? generateSlug()
@@ -300,8 +355,8 @@ export async function createDynamicCode(
             name,
             domain: ctx.shortDomain,
             slug,
-            destination,
-            content: cleanContent(input.content),
+            destination: target.destination,
+            content: target.page ?? cleanContent(input.content),
             design: sanitizeDesign(input.design),
             folderId: input.folderId ?? null,
             customSlug: custom !== null,
@@ -311,7 +366,7 @@ export async function createDynamicCode(
         await tx.insert(destinationHistory).values({
           codeId: row!.id,
           oldDestination: null,
-          newDestination: destination,
+          newDestination: targetSummary(target),
           changedBy: ctx.userId,
         })
         await enqueue(tx, row!.id, row!.version)
@@ -423,10 +478,14 @@ async function claimableCustomSlug(ctx: ServiceContext, requested: string): Prom
   return check.slug
 }
 
+/**
+ * Changes what a dynamic code opens: a new destination, or new contact card details (or a switch
+ * between the two). The printed code stays the same.
+ */
 export async function updateDestination(
   ctx: ServiceContext,
   id: string,
-  input: { destination: string; content?: CodeContent | null },
+  input: { destination?: string; content?: CodeContent | null },
 ) {
   const row = await ownedCode(ctx, id)
   if (row.kind !== 'dynamic')
@@ -436,32 +495,40 @@ export async function updateDestination(
       'This code was turned off for breaking our rules and can’t be edited.',
       'forbidden',
     )
-  const destination = checkDestination(ctx, input.destination)
-  if (destination === row.destination) {
-    if (input.content !== undefined)
-      await ctx.db
-        .update(codes)
-        .set({ content: cleanContent(input.content) })
-        .where(eq(codes.id, id))
+  const next = resolveTarget(ctx, input)
+  const before = pageOf(row)
+  const content =
+    next.page ?? (input.content === undefined ? row.content : cleanContent(input.content))
+  const unchanged = next.page
+    ? before !== null && JSON.stringify(before.fields) === JSON.stringify(next.page.fields)
+    : next.destination === row.destination
+  if (unchanged) {
+    if (!next.page && input.content !== undefined)
+      await ctx.db.update(codes).set({ content }).where(eq(codes.id, id))
     return getCode(ctx, id)
   }
+  if (next.page && row.rules)
+    throw new ServiceError(
+      'Remove this code’s redirect rules before turning it into a contact card.',
+      'invalid',
+    )
   await limit(ctx, 'edit-hour', LIMITS.editPerHour)
-  const risk = await screenForCode(ctx.db, ctx.reputation, destination)
+  const risk = await screenTarget(ctx, next)
   await ctx.db.transaction(async (tx) => {
     const [updated] = await tx
       .update(codes)
       .set({
         ...risk,
-        destination,
-        content: input.content === undefined ? row.content : cleanContent(input.content),
+        destination: next.destination,
+        content,
         version: sql`${codes.version} + 1`,
       })
       .where(eq(codes.id, id))
       .returning({ version: codes.version })
     await tx.insert(destinationHistory).values({
       codeId: id,
-      oldDestination: row.destination,
-      newDestination: destination,
+      oldDestination: row.destination ?? (before ? pageSummary(before) : null),
+      newDestination: targetSummary(next),
       changedBy: ctx.userId,
     })
     await enqueue(tx, id, updated!.version)
@@ -478,6 +545,11 @@ export async function setRules(ctx: ServiceContext, id: string, input: unknown) 
   const row = await ownedCode(ctx, id)
   if (row.kind !== 'dynamic')
     throw new ServiceError('Only dynamic codes can have redirect rules.', 'invalid')
+  if (!row.destination)
+    throw new ServiceError(
+      'Redirect rules work on codes that open a link. A contact card always shows its page.',
+      'invalid',
+    )
   if (row.status === 'disabled')
     throw new ServiceError(
       'This code was turned off for breaking our rules and can’t be edited.',
@@ -591,11 +663,11 @@ export async function deleteCode(ctx: ServiceContext, id: string) {
 
 export async function duplicateCode(ctx: ServiceContext, id: string) {
   const row = await ownedCode(ctx, id)
-  if (row.kind !== 'dynamic' || !row.destination)
+  if (row.kind !== 'dynamic' || (!row.destination && !pageOf(row)))
     throw new ServiceError('Only dynamic codes can be duplicated here.', 'invalid')
   const copy = await createDynamicCode(ctx, {
     name: `Copy of ${row.name}`.slice(0, NAME_MAX),
-    destination: row.destination,
+    destination: row.destination ?? undefined,
     content: row.content,
     design: row.design,
     folderId: row.folderId,

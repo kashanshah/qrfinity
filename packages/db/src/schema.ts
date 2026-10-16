@@ -348,6 +348,10 @@ export const redirectLookup = pgView('redirect_lookup').as((qb) =>
       rules: sql<
         RedirectRule[] | null
       >`case when ${codes.advancedPaused} then null else ${codes.rules} end`.as('rules'),
+      // A contact card code has no destination; the Worker renders its page from this.
+      page: sql<CodeContent | null>`case when ${codes.destination} is null and ${codes.content}->>'type' = 'vcard' then ${codes.content} end`.as(
+        'page',
+      ),
     })
     .from(codes)
     .where(sql`${codes.kind} = 'dynamic' and ${codes.deletedAt} is null`),

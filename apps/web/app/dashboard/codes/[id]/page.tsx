@@ -98,15 +98,17 @@ export default async function CodePage({
         disabled={code.status === 'disabled'}
       />
 
-      <RulesEditor
-        id={code.id}
-        rules={code.rules ?? []}
-        paused={code.advancedPaused && code.rules !== null}
-        canAdd={isAdvanced ? !code.advancedPaused : usage.used < usage.allowance}
-        used={usage.used}
-        allowance={usage.allowance}
-        disabled={code.status === 'disabled'}
-      />
+      {code.destination ? (
+        <RulesEditor
+          id={code.id}
+          rules={code.rules ?? []}
+          paused={code.advancedPaused && code.rules !== null}
+          canAdd={isAdvanced ? !code.advancedPaused : usage.used < usage.allowance}
+          used={usage.used}
+          allowance={usage.allowance}
+          disabled={code.status === 'disabled'}
+        />
+      ) : null}
 
       <section aria-labelledby="analytics" className="flex flex-col gap-4">
         <h2 id="analytics" className="heading text-ink">

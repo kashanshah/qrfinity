@@ -6,6 +6,7 @@ import {
   checkDesign,
   encodeContent,
   formatPrintSize,
+  isPageType,
   sceneToSvg,
   validateDestination,
   type ContentFields,
@@ -111,7 +112,9 @@ function GeneratorBody({
   const content = useMemo<EncodeResult>(() => {
     const r = encodeContent(type, fields[type])
     if (kind === 'static' || !r.ok) return r
-    // Dynamic codes redirect, so the content must be a safe web address.
+    // A dynamic contact card is a page on the short domain: its encoded card is the content.
+    if (isPageType(type)) return r
+    // Other dynamic codes redirect, so the content must be a safe web address.
     const d = validateDestination(r.payload, [new URL(shortLinkBase).hostname, 'qrfinity.link'])
     return d.ok
       ? { ok: true, payload: d.url }
@@ -310,9 +313,11 @@ function GeneratorBody({
             <p className="body-small text-ink-muted">
               {kind === 'static'
                 ? 'The content is stored in the code itself, so it works forever without us. It can’t be edited or tracked after printing.'
-                : shortLink
-                  ? 'The code holds this short link. Change where it goes any time; the printed code keeps working and is never deactivated.'
-                  : 'The code holds a short link that sends people to your destination. Change it any time and see scan stats. Free with an account, never deactivated.'}
+                : type === 'vcard'
+                  ? 'The code holds a short link to your contact page, with a Save contact button. Update your details any time; the printed code keeps working and is never deactivated.'
+                  : shortLink
+                    ? 'The code holds this short link. Change where it goes any time; the printed code keeps working and is never deactivated.'
+                    : 'The code holds a short link that sends people to your destination. Change it any time and see scan stats. Free with an account, never deactivated.'}
             </p>
           </div>
         </div>
