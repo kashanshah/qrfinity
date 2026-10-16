@@ -174,3 +174,23 @@ test('frame text in any language is drawn as outlines and still scans', async ({
   await field.fill('Hi 😀')
   await expect(page.getByText('We can’t draw 😀 yet, so it’s left out.')).toBeVisible()
 })
+
+test('the website address field shows a typing hint until you click in', async ({ page }) => {
+  await page.goto('/')
+  const field = page.getByLabel('Website address')
+  await expect(page.locator('.typing-caret')).toBeVisible()
+  await expect(field).toHaveClass(/url-hint-ring/)
+  await field.click()
+  await expect(page.locator('.typing-caret')).toHaveCount(0)
+  await expect(field).not.toHaveClass(/url-hint-ring/)
+  // The example is selected on click, so typing replaces it.
+  await page.keyboard.type('example.com/menu')
+  await expect(field).toHaveValue('example.com/menu')
+})
+
+test('the typing hint stays still for people who prefer less motion', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/')
+  await expect(page.getByLabel('Website address')).toHaveClass(/url-hint-ring/)
+  await expect(page.locator('.typing-caret')).toHaveCount(0)
+})

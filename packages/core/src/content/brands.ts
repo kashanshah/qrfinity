@@ -29,9 +29,36 @@ export const BRAND_ICONS = {
   googleplay: 'Google Play',
   discord: 'Discord',
   reddit: 'Reddit',
+  // Code types without a platform.
+  link: 'Link',
+  wifi: 'Wi-Fi',
+  contact: 'Contact',
+  email: 'Email',
+  sms: 'SMS',
+  phone: 'Phone',
+  location: 'Location',
+  event: 'Event',
+  text: 'Text',
 } as const
 
 export type BrandIcon = keyof typeof BRAND_ICONS
+
+/** Icons for a kind of code rather than a platform (Wi-Fi, email, a plain link…). */
+export const TYPE_ICONS = [
+  'link',
+  'wifi',
+  'contact',
+  'email',
+  'sms',
+  'phone',
+  'location',
+  'event',
+  'text',
+] as const satisfies readonly BrandIcon[]
+
+export function isTypeIcon(icon: BrandIcon): boolean {
+  return (TYPE_ICONS as readonly string[]).includes(icon)
+}
 
 // LinkedIn has no icon: it asked Simple Icons, our source, to remove its mark.
 const SOCIAL_BRAND: Record<SocialPlatform, BrandIcon | null> = {
@@ -101,10 +128,25 @@ export function brandFor<K extends ContentType>(
     case 'app':
       return (fields as ContentFields['app']).store === 'ios' ? 'appstore' : 'googleplay'
     case 'url':
-      return brandForUrl((fields as ContentFields['url']).url)
+      // A known platform's own icon, else a link.
+      return brandForUrl((fields as ContentFields['url']).url) ?? 'link'
     case 'text':
       // WeChat Pay codes hold a wxp:// address rather than a web link.
-      return /^\s*wxp:\/\//i.test((fields as ContentFields['text']).text) ? 'wechat' : null
+      return /^\s*wxp:\/\//i.test((fields as ContentFields['text']).text) ? 'wechat' : 'text'
+    case 'wifi':
+      return 'wifi'
+    case 'vcard':
+      return 'contact'
+    case 'email':
+      return 'email'
+    case 'sms':
+      return 'sms'
+    case 'phone':
+      return 'phone'
+    case 'location':
+      return 'location'
+    case 'event':
+      return 'event'
     default:
       return null
   }

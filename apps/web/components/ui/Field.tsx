@@ -58,18 +58,38 @@ export function TextField({
   hint,
   error,
   action,
+  overlay,
+  inputClassName = '',
   ...props
-}: Common & { action?: ReactNode } & InputHTMLAttributes<HTMLInputElement>) {
+}: Common & {
+  action?: ReactNode
+  /** Drawn over the input (e.g. an animated hint; null when hidden); it shouldn't catch clicks. */
+  overlay?: ReactNode
+  /** Extra classes for the input itself. */
+  inputClassName?: string
+} & InputHTMLAttributes<HTMLInputElement>) {
   const id = useId()
+  const input = (
+    <input
+      id={id}
+      aria-invalid={error ? true : undefined}
+      aria-describedby={error || hint ? `${id}-msg` : undefined}
+      className={`${control} ${inputClassName}`}
+      {...props}
+    />
+  )
   return (
     <FieldShell id={id} label={label} hint={hint} error={error} action={action}>
-      <input
-        id={id}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error || hint ? `${id}-msg` : undefined}
-        className={control}
-        {...props}
-      />
+      {/* Keyed on the prop being passed, not its value: the input must not remount when the
+          overlay comes and goes, or it would lose focus and what's being typed. */}
+      {overlay !== undefined ? (
+        <div className="relative">
+          {input}
+          {overlay}
+        </div>
+      ) : (
+        input
+      )}
     </FieldShell>
   )
 }
