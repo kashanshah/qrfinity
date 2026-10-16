@@ -20,9 +20,13 @@ export const CONTENT_TYPES = [
 
 export type ContentType = (typeof CONTENT_TYPES)[number]
 
-/** Content types a dynamic code can hold: they all resolve to an http(s) address. */
+/**
+ * Content types a dynamic code can hold. Most resolve to an http(s) address the short link
+ * redirects to; a contact card (vcard) is shown as a page on the short domain instead.
+ */
 export const DYNAMIC_TYPES: readonly ContentType[] = [
   'url',
+  'vcard',
   'whatsapp',
   'location',
   'app',

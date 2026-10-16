@@ -1,5 +1,6 @@
 'use client'
 
+import { contactName, isPageType } from '@qrfinity/core'
 import type { CodeContent } from '@qrfinity/db'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
@@ -41,7 +42,14 @@ function CreateStep({
   const linkHost = shortLinkBase.replace(/^https?:\/\//, '')
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
-  const destination = props.content.ok ? props.content.payload : null
+  // A contact card has no destination: the card itself is saved and shown as a page.
+  const isCard = isPageType(props.type)
+  const destination = props.content.ok && !isCard ? props.content.payload : null
+  const suggested = isCard
+    ? contactName(props.fields.vcard)
+    : destination
+      ? suggestName(destination)
+      : ''
 
   return (
     <div className="rounded-lg border border-hairline bg-surface p-4 shadow-card md:p-6">
@@ -50,13 +58,13 @@ function CreateStep({
         className="flex flex-col gap-4"
         onSubmit={(e) => {
           e.preventDefault()
-          if (!destination) return
+          if (!props.content.ok) return
           start(async () => {
             setError(null)
             const content = { type: props.type, fields: props.fields[props.type] } as CodeContent
             const r = await createCodeAction({
-              name: name.trim() || suggestName(destination) || 'My QR code',
-              destination,
+              name: name.trim() || suggested || 'My QR code',
+              destination: destination ?? undefined,
               content,
               design: props.design,
               folderId: folderId || null,
@@ -77,7 +85,7 @@ function CreateStep({
           label="Name (only you see it)"
           value={name}
           maxLength={80}
-          placeholder={destination ? suggestName(destination) : 'Café menu'}
+          placeholder={suggested || 'Café menu'}
           onChange={(e) => setName(e.target.value)}
         />
         {slugs.allowance > 0 ? (
@@ -132,16 +140,20 @@ function CreateStep({
             ]}
           />
         ) : null}
-        <Button type="submit" variant="primary" disabled={!destination || pending}>
+        <Button type="submit" variant="primary" disabled={!props.content.ok || pending}>
           {pending ? 'Creating…' : 'Create dynamic code'}
         </Button>
         <p className="body-small text-ink-muted" role={error ? 'alert' : undefined}>
           {error ??
-            (!destination
-              ? 'Add the destination first.'
+            (!props.content.ok
+              ? isCard
+                ? 'Add a name or an organisation first.'
+                : 'Add the destination first.'
               : props.scanFailed
                 ? 'Fix the scan warning before you print. You can change the design after creating the code.'
-                : 'You can change the destination and design at any time. The short link stays the same.')}
+                : isCard
+                  ? 'You can update the contact details and design at any time. The short link stays the same.'
+                  : 'You can change the destination and design at any time. The short link stays the same.')}
         </p>
       </form>
     </div>

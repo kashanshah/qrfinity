@@ -5,12 +5,19 @@ import { CopyButton } from '@/components/dashboard/CopyButton'
 import { StatusPill } from '@/components/dashboard/StatusPill'
 import { CodeTypeBadge, NeverExpiresBadge } from '@/components/generator/Badges'
 import { scanReportFor } from '@/lib/server/scan-report'
-import { ServiceError, destinationHistoryFor, getCode, listFolders } from '@/lib/server/codes'
+import {
+  ServiceError,
+  advancedCodeUsage,
+  destinationHistoryFor,
+  getCode,
+  listFolders,
+} from '@/lib/server/codes'
 import { serviceContext } from '@/lib/server/context'
 import { shortLinkBase, shortLinkFor } from '@/lib/short-link'
 import { CodeSettings } from './CodeSettings'
 import { EditCode } from './EditCode'
 import { RenameCode } from './RenameCode'
+import { RulesEditor } from './RulesEditor'
 
 const dateTime = new Intl.DateTimeFormat('en-CA', { dateStyle: 'medium', timeStyle: 'short' })
 
@@ -31,11 +38,14 @@ export default async function CodePage({
     if (e instanceof ServiceError) notFound()
     throw e
   }
-  const [history, folders, scans] = await Promise.all([
+  const [history, folders, scans, usage] = await Promise.all([
     destinationHistoryFor(ctx, id),
     listFolders(ctx),
     scanReportFor(ctx, { kind: 'code', codeId: id }, d),
+    advancedCodeUsage(ctx),
   ])
+  // A code that already uses an advanced feature can add rules without taking another place.
+  const isAdvanced = code.customSlug || code.rules !== null
   const link = shortLinkFor(code.slug!)
   const content = code.content ?? {
     type: 'url' as ContentType,
@@ -87,6 +97,18 @@ export default async function CodePage({
         destination={code.destination ?? ''}
         disabled={code.status === 'disabled'}
       />
+
+      {code.destination ? (
+        <RulesEditor
+          id={code.id}
+          rules={code.rules ?? []}
+          paused={code.advancedPaused && code.rules !== null}
+          canAdd={isAdvanced ? !code.advancedPaused : usage.used < usage.allowance}
+          used={usage.used}
+          allowance={usage.allowance}
+          disabled={code.status === 'disabled'}
+        />
+      ) : null}
 
       <section aria-labelledby="analytics" className="flex flex-col gap-4">
         <h2 id="analytics" className="heading text-ink">

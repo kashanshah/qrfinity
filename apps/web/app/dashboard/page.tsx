@@ -7,6 +7,7 @@ import { getAnalytics } from '@/lib/server/analytics'
 import { listCodes, listFolders, listTags } from '@/lib/server/codes'
 import { serviceContext } from '@/lib/server/context'
 import { shortLinkFor } from '@/lib/short-link'
+import { codeTarget } from '@/lib/code-target'
 
 const dateFmt = new Intl.DateTimeFormat('en-CA', {
   year: 'numeric',
@@ -148,20 +149,24 @@ export default async function CodesPage({
                         {c.name}
                       </Link>
                       <StatusPill status={c.status} />
-                      {c.customSlug ? (
+                      {c.customSlug || c.rules ? (
                         <span
                           className="label rounded-pill border border-hairline px-2 py-0.5 text-ink-muted"
-                          title="Uses an advanced feature (custom short link). Counts toward your plan’s codes with advanced features."
+                          title={
+                            c.advancedPaused && c.rules
+                              ? 'Redirect rules are paused: your plan covers fewer codes with advanced features.'
+                              : `Uses advanced features (${[c.customSlug ? 'custom short link' : '', c.rules ? 'redirect rules' : ''].filter(Boolean).join(', ')}). Counts toward your plan’s codes with advanced features.`
+                          }
                         >
-                          Advanced
+                          {c.advancedPaused && c.rules ? 'Rules paused' : 'Advanced'}
                         </span>
                       ) : null}
                     </div>
                     <p
                       className="body-small truncate text-ink-muted"
-                      title={c.destination ?? undefined}
+                      title={codeTarget(c) || undefined}
                     >
-                      → {displayDestination(c.destination)}
+                      → {displayDestination(codeTarget(c))}
                     </p>
                     {c.tags.length || c.folderName ? (
                       <p className="body-small mt-1 flex flex-wrap gap-1.5 text-ink-muted">

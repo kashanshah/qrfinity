@@ -50,18 +50,27 @@ export type SubscriptionStatus =
   | 'incomplete_expired'
   | 'paused'
 
-/**
- * Statuses that give the plan. Past due keeps it while the provider retries the card, so a
- * failed renewal doesn't take anything away before the customer has had a chance to fix it.
- */
-export const PLAN_GRANTING_STATUSES: readonly SubscriptionStatus[] = [
-  'active',
-  'trialing',
-  'past_due',
-]
+/** What decides whether a subscription gives its plan. */
+export type GrantInput = {
+  status: string
+  trialEnd?: Date | null
+  currentPeriodStart?: Date | null
+}
 
-export function grantsPlan(status: string): boolean {
-  return (PLAN_GRANTING_STATUSES as readonly string[]).includes(status)
+/**
+ * Active and trialing subscriptions give their plan. Past due (a failed renewal) keeps it while the
+ * provider retries the card, except when the failed payment is the first one after a free trial:
+ * nothing was ever paid, so the plan stops straight away.
+ */
+export function grantsPlan(s: GrantInput | string): boolean {
+  const sub = typeof s === 'string' ? { status: s } : s
+  if (sub.status === 'active' || sub.status === 'trialing') return true
+  if (sub.status !== 'past_due') return false
+  const firstAfterTrial =
+    !!sub.trialEnd &&
+    !!sub.currentPeriodStart &&
+    sub.currentPeriodStart.getTime() <= sub.trialEnd.getTime()
+  return !firstAfterTrial
 }
 
 /** The current state of one subscription, as the app stores it. */
@@ -71,9 +80,15 @@ export type SubscriptionState = {
   plan: PaidPlan
   interval: BillingInterval
   status: SubscriptionStatus
+  currentPeriodStart: Date | null
   currentPeriodEnd: Date | null
   cancelAtPeriodEnd: boolean
+  /** End of the free trial, when the subscription started with one. */
+  trialEnd: Date | null
 }
+
+/** Free trial on a customer's first plan. */
+export const TRIAL_DAYS = 30
 
 export function planRank(plan: Plan): number {
   return PLANS.indexOf(plan)
@@ -82,11 +97,11 @@ export function planRank(plan: Plan): number {
 /** The higher of the admin-set plan and every subscription that grants a plan. */
 export function effectivePlan(
   adminPlan: Plan,
-  subscriptions: readonly Pick<SubscriptionState, 'plan' | 'status'>[],
+  subscriptions: readonly (GrantInput & { plan: PaidPlan })[],
 ): Plan {
   let best = adminPlan
   for (const s of subscriptions)
-    if (grantsPlan(s.status) && planRank(s.plan) > planRank(best)) best = s.plan
+    if (grantsPlan(s) && planRank(s.plan) > planRank(best)) best = s.plan
   return best
 }
 

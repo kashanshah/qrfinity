@@ -78,7 +78,11 @@ export const ADVANCED_FEATURES = [
 export type AdvancedFeature = (typeof ADVANCED_FEATURES)[number]
 
 /** Built and available to everyone (within the allowance where it applies). Others need a feature flag. */
-export const RELEASED_FEATURES: readonly Feature[] = [...FREE_FEATURES, 'customSlugs']
+export const RELEASED_FEATURES: readonly Feature[] = [
+  ...FREE_FEATURES,
+  'customSlugs',
+  'redirectRules',
+]
 
 export function isPlan(v: unknown): v is Plan {
   return typeof v === 'string' && (PLANS as readonly string[]).includes(v)

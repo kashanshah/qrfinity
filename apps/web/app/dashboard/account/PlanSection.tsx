@@ -29,8 +29,10 @@ export function PlanSection({
   justSubscribed: boolean
   portalError: boolean
 }) {
-  const paying = subscription && grantsPlan(subscription.status) ? subscription : null
+  const paying = subscription && grantsPlan(subscription) ? subscription : null
   const end = paying?.currentPeriodEnd ? date(paying.currentPeriodEnd) : null
+  // Trial over and the first charge failed: the plan doesn't apply until it's paid.
+  const firstPaymentFailed = !paying && subscription?.status === 'past_due'
 
   return (
     <section
@@ -54,7 +56,13 @@ export function PlanSection({
               {Number.isFinite(allowance) ? ' used' : ''}. Every other feature is free and
               unlimited.
             </p>
-            {paying ? (
+            {paying?.status === 'trialing' ? (
+              <p className="body-small mt-2 text-ink">
+                {paying.cancelAtPeriodEnd
+                  ? `Free trial until ${end ?? 'the end of the month'}. You won’t be charged.`
+                  : `Free trial until ${end ?? 'the end of the month'}, then $${planPrice(paying.plan, paying.interval)} a ${paying.interval}.`}
+              </p>
+            ) : paying ? (
               <p className="body-small mt-2 text-ink">
                 ${planPrice(paying.plan, paying.interval)} a {paying.interval}
                 {end ? (
@@ -75,7 +83,7 @@ export function PlanSection({
               type="submit"
               className="button inline-flex min-h-11 items-center justify-center rounded-md border-[1.5px] border-control-border bg-surface px-6 py-3 text-ink hover:bg-surface-sunk"
             >
-              {paying ? 'Manage plan and billing' : 'Billing history'}
+              {paying || firstPaymentFailed ? 'Manage plan and billing' : 'Billing history'}
             </button>
           </form>
         ) : billingOn ? (
@@ -94,11 +102,29 @@ export function PlanSection({
 
       {justSubscribed && paying ? (
         <p role="status" className="mt-4 rounded-lg bg-mint px-4 py-3 text-ink">
-          Thanks! You’re on {PLAN_DETAILS[paying.plan].name}. Your receipt is on its way by email.
+          {paying.status === 'trialing'
+            ? `Thanks! Your free month of ${PLAN_DETAILS[paying.plan].name} has started. We’ll email you before it ends.`
+            : `Thanks! You’re on ${PLAN_DETAILS[paying.plan].name}. Your receipt is on its way by email.`}
         </p>
       ) : justSubscribed ? (
         <p role="status" className="mt-4 rounded-lg bg-mint px-4 py-3 text-ink">
           Thanks! Your payment is being confirmed; your plan appears here within a minute.
+        </p>
+      ) : null}
+      {firstPaymentFailed ? (
+        <p className="mt-4 flex gap-3 rounded-md border-[1.5px] border-scan-fail px-4 py-3 text-ink">
+          <TriangleAlert
+            aria-hidden="true"
+            size={20}
+            strokeWidth={1.75}
+            className="mt-[3px] shrink-0"
+          />
+          <span>
+            Your free trial has ended and the first payment didn’t go through, so redirect rules on
+            codes beyond the free one are paused (scans go to each code’s main destination). Update
+            your card under Manage plan and billing to turn them back on. Every code and short link
+            keeps working.
+          </span>
         </p>
       ) : null}
       {paying?.status === 'past_due' ? (

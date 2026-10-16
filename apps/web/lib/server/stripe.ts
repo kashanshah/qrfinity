@@ -65,7 +65,9 @@ export class StripeBilling implements Billing {
     interval: BillingInterval
     successUrl: string
     cancelUrl: string
+    trialDays?: number
   }) {
+    const trial = input.trialDays ?? 0
     const session = await this.stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: input.customerId,
@@ -78,10 +80,22 @@ export class StripeBilling implements Billing {
       customer_update: { address: 'auto', name: 'auto' },
       tax_id_collection: { enabled: true },
       allow_promotion_codes: true,
-      subscription_data: { metadata: { plan: input.plan, interval: input.interval } },
+      // A card is collected even with a trial, so the plan carries on after it unless cancelled.
+      payment_method_collection: 'always',
+      subscription_data: {
+        metadata: { plan: input.plan, interval: input.interval },
+        ...(trial
+          ? {
+              trial_period_days: trial,
+              trial_settings: { end_behavior: { missing_payment_method: 'cancel' } },
+            }
+          : {}),
+      },
       custom_text: {
         submit: {
-          message: `Renews automatically every ${input.interval} until you cancel. Cancel any time from your account; your codes keep working either way.`,
+          message: trial
+            ? `Free for ${trial} days, then renews automatically every ${input.interval} until you cancel. Cancel before the trial ends and you won’t be charged. Your codes keep working either way.`
+            : `Renews automatically every ${input.interval} until you cancel. Cancel any time from your account; your codes keep working either way.`,
         },
       },
     })
@@ -110,7 +124,11 @@ export class StripeBilling implements Billing {
       plan: price.plan,
       interval: price.interval,
       status: sub.status as SubscriptionStatus,
+      currentPeriodStart: item.current_period_start
+        ? new Date(item.current_period_start * 1000)
+        : null,
       currentPeriodEnd: item.current_period_end ? new Date(item.current_period_end * 1000) : null,
+      trialEnd: sub.trial_end ? new Date(sub.trial_end * 1000) : null,
       // Cancelling in the portal can set either a period-end flag or a cancel date.
       cancelAtPeriodEnd: sub.cancel_at_period_end || sub.cancel_at !== null,
     }

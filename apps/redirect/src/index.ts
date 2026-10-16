@@ -1,6 +1,7 @@
 import {
   buildScanEvent,
   linkKey,
+  parseLinkRecord,
   sha256Hex,
   signedHeaders,
   toDataPoint,
@@ -55,12 +56,23 @@ async function lookupDatabase(
         destination: string | null
         status: LinkRecord['status']
         version: number
+        rules: unknown
+        page: unknown
       }[]
     >`
-      select id, user_id, destination, status, version from redirect_lookup where domain = ${domain} and slug = ${slug} limit 1`
+      select id, user_id, destination, status, version, rules, page from redirect_lookup where domain = ${domain} and slug = ${slug} limit 1`
     const r = rows[0]
-    if (!r || !r.destination) return null
-    return { id: r.id, owner: r.user_id, dest: r.destination, status: r.status, v: r.version }
+    if (!r || (!r.destination && !r.page)) return null
+    // Same checks as a KV record, so malformed rules are dropped rather than followed.
+    return parseLinkRecord({
+      id: r.id,
+      owner: r.user_id,
+      dest: r.destination ?? '',
+      status: r.status,
+      v: r.version,
+      rules: r.rules,
+      page: r.page,
+    })
   } finally {
     ctx.waitUntil(sql.end())
   }
@@ -97,7 +109,7 @@ export default {
         const key = (await sha256Hex(req.headers.get('cf-connecting-ip') ?? 'unknown')).slice(0, 16)
         return (await env.MISS_LIMIT.limit({ key })).success
       },
-      recordScan: async (req, record) => {
+      recordScan: async (req, record, rule) => {
         const cf = (req.cf ?? {}) as { country?: string; region?: string; city?: string }
         const event = await buildScanEvent({
           codeId: record.id,
@@ -109,6 +121,7 @@ export default {
           region: cf.region,
           city: cf.city,
           salt: await dailySalt(env),
+          rule,
         })
         env.SCANS.writeDataPoint(toDataPoint(event))
         if (env.SCAN_SINK_URL && env.SCAN_SINK_SECRET) {

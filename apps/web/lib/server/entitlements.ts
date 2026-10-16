@@ -1,7 +1,8 @@
 import { entitlements, isFeature, isPlan, type Feature, type FeatureFlag } from '@qrfinity/core'
 import { eq, featureFlags, inArray, user, type Database } from '@qrfinity/db'
 import { audit, type AdminContext } from './admin'
-import { effectivePlanFor } from './billing'
+import { refreshAdvancedFeatures } from './codes'
+import { effectivePlanFor } from './plan'
 import { ServiceError } from './errors'
 
 let cache: { at: number; flags: FeatureFlag[] } | null = null
@@ -32,6 +33,7 @@ export async function setUserPlan(ctx: AdminContext, userId: string, plan: strin
   if (!isPlan(plan)) throw new ServiceError('Choose free, plus, pro or unlimited.', 'invalid')
   await ctx.db.update(user).set({ plan }).where(eq(user.id, userId))
   await audit(ctx.db, ctx.actor, 'user.plan', 'user', userId, { plan })
+  await refreshAdvancedFeatures(ctx.db, userId, ctx.edge)
 }
 
 /**

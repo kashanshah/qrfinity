@@ -64,6 +64,20 @@
       "when": 1792158633846,
       "tag": "0008_billing",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792161420231,
+      "tag": "0009_redirect_rules_and_trials",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792171783686,
+      "tag": "0010_contact_card_pages",
+      "breakpoints": true
     }
   ]
 }

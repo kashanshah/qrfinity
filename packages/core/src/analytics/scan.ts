@@ -8,7 +8,7 @@ import { parseUserAgent, type DeviceType } from './ua'
 
 export const SCAN_DATASET = 'qrfinity_scans'
 
-/** blob1 … blob9, in order. */
+/** blob1 … blob10, in order. New fields only ever go at the end. */
 export const SCAN_BLOBS = [
   'country',
   'region',
@@ -19,6 +19,8 @@ export const SCAN_BLOBS = [
   'referrer',
   'visitor',
   'owner',
+  /** The redirect rule that sent the scan ('' = the main destination). */
+  'rule',
 ] as const
 export type ScanBlob = (typeof SCAN_BLOBS)[number]
 export const blobColumn = (name: ScanBlob) => `blob${SCAN_BLOBS.indexOf(name) + 1}`
@@ -34,6 +36,7 @@ export type ScanEvent = {
   browser: string
   referrer: string
   visitor: string
+  rule: string
 }
 
 export type ScanRequestInfo = {
@@ -47,6 +50,8 @@ export type ScanRequestInfo = {
   city?: string | null
   /** Today's salt (rotated daily, then deleted). */
   salt: string
+  /** Label of the redirect rule that matched, or '' for the main destination. */
+  rule?: string
 }
 
 export function refererHost(referer: string | null | undefined): string {
@@ -83,6 +88,7 @@ export async function buildScanEvent(info: ScanRequestInfo): Promise<ScanEvent> 
     visitor: info.ip
       ? await visitorHash(info.salt, info.ip, info.userAgent ?? '', info.codeId)
       : '',
+    rule: (info.rule ?? '').slice(0, 60),
   }
 }
 

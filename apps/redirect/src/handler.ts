@@ -2,8 +2,16 @@
  * Redirect logic, kept free of Cloudflare bindings so it can be tested in plain Node.
  * index.ts wires it to KV, the Cache API, Hyperdrive and Analytics Engine.
  */
-import { isValidSlug, parseLinkRecord, type LinkRecord } from '@qrfinity/core/edge'
-import { disabledPage, notFoundPage, pausedPage } from './pages'
+import {
+  isValidSlug,
+  parseLinkRecord,
+  parseUserAgent,
+  pickDestination,
+  vcardFile,
+  vcardFileName,
+  type LinkRecord,
+} from '@qrfinity/core/edge'
+import { contactPage, disabledPage, notFoundPage, pausedPage } from './pages'
 
 export type RedirectDeps = {
   defaultDomain: string
@@ -19,9 +27,11 @@ export type RedirectDeps = {
   lookupDatabase?: (domain: string, slug: string) => Promise<LinkRecord | null>
   /** Throttles database fallbacks per visitor. Returns false when over the limit. */
   allowFallback(request: Request): Promise<boolean>
-  /** Records the scan after the response is sent. */
-  recordScan(request: Request, record: LinkRecord): Promise<void>
+  /** Records the scan after the response is sent, with the redirect rule that matched ('' = none). */
+  recordScan(request: Request, record: LinkRecord, rule: string): Promise<void>
   waitUntil(promise: Promise<unknown>): void
+  /** The clock for time-based rules (tests pass a fixed one). */
+  now?: () => Date
 }
 
 const baseHeaders = {
@@ -82,7 +92,10 @@ export async function handleRequest(request: Request, deps: RedirectDeps): Promi
     })
   }
 
-  const slug = url.pathname.slice(1).replace(/\/$/, '')
+  const path = url.pathname.slice(1).replace(/\/$/, '')
+  // "Save contact" on a contact card downloads /{slug}.vcf.
+  const wantsVcf = path.endsWith('.vcf')
+  const slug = wantsVcf ? path.slice(0, -4) : path
   if (!isValidSlug(slug)) return html(notFoundPage(deps.siteOrigin), 404)
 
   const domain = deps.defaultDomain
@@ -91,8 +104,35 @@ export async function handleRequest(request: Request, deps: RedirectDeps): Promi
   if (record.status === 'disabled') return html(disabledPage(deps.siteOrigin, slug), 403)
   if (record.status === 'paused') return html(pausedPage(deps.siteOrigin, slug), 200)
 
+  if (record.page) {
+    if (wantsVcf) {
+      const file = vcardFile(record.page.fields)
+      if (!file) return html(notFoundPage(deps.siteOrigin, slug), 404)
+      return new Response(file, {
+        headers: {
+          ...baseHeaders,
+          'Content-Type': 'text/vcard; charset=utf-8',
+          'Content-Disposition': `inline; filename="${vcardFileName(record.page.fields)}"`,
+        },
+      })
+    }
+    // The page view is the scan; saving the contact afterwards isn't counted again.
+    if (request.method === 'GET')
+      deps.waitUntil(deps.recordScan(request, record, '').catch(() => undefined))
+    return html(contactPage(deps.siteOrigin, slug, record.page.fields), 200)
+  }
+  if (wantsVcf) return html(notFoundPage(deps.siteOrigin, slug), 404)
+
+  // Redirect rules: the first that matches the phone, country or time picks the destination.
+  const cf = (request as Request & { cf?: { country?: string } }).cf
+  const { dest, rule } = pickDestination(record.dest, record.rules, {
+    os: parseUserAgent(request.headers.get('user-agent')).os,
+    country: cf?.country ?? '',
+    now: deps.now?.() ?? new Date(),
+  })
+
   if (request.method === 'GET')
-    deps.waitUntil(deps.recordScan(request, record).catch(() => undefined))
-  // 302, never 301: destinations are editable, so phones must not cache them.
-  return new Response(null, { status: 302, headers: { ...baseHeaders, Location: record.dest } })
+    deps.waitUntil(deps.recordScan(request, record, rule).catch(() => undefined))
+  // 302, never 301: destinations (and which rule applies) change, so phones must not cache them.
+  return new Response(null, { status: 302, headers: { ...baseHeaders, Location: dest } })
 }

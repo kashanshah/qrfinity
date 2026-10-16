@@ -34,8 +34,11 @@ function setup(
     recordScan: vi.fn(async () => undefined),
     waitUntil: (p) => void pending.push(p),
   }
-  const get = async (path: string, init?: RequestInit) => {
-    const res = await handleRequest(new Request('https://qrfinity.link' + path, init), deps)
+  const get = async (path: string, init?: RequestInit, cf?: { country?: string }) => {
+    const req = new Request('https://qrfinity.link' + path, init)
+    // Cloudflare adds request.cf; plain Node requests don't have it.
+    if (cf) Object.defineProperty(req, 'cf', { value: cf })
+    const res = await handleRequest(req, deps)
     await Promise.all(pending)
     return res
   }
@@ -135,5 +138,130 @@ describe('redirect worker', () => {
       throw new Error('AE down')
     })
     expect((await get('/aB3xK9q')).status).toBe(302)
+  })
+
+  describe('redirect rules', () => {
+    const IPHONE =
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148'
+    const ANDROID =
+      'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 Mobile Safari/537.36'
+    const withRules = rec({
+      rules: [
+        { name: '', when: { type: 'device', devices: ['ios'] }, dest: 'https://apps.apple.com/x' },
+        {
+          name: 'Play',
+          when: { type: 'device', devices: ['android'] },
+          dest: 'https://play.example',
+        },
+        { name: '', when: { type: 'country', countries: ['FR'] }, dest: 'https://fr.example' },
+        {
+          name: 'Lunch',
+          when: { type: 'schedule', timezone: 'UTC', days: [5], from: '11:00', to: '15:00' },
+          dest: 'https://lunch.example',
+        },
+      ],
+    })
+
+    it('sends each phone to its own store and records which rule matched', async () => {
+      const { get, deps } = setup({ kv: { aB3xK9q: withRules } })
+      const ios = await get('/aB3xK9q', { headers: { 'user-agent': IPHONE } })
+      expect(ios.headers.get('location')).toBe('https://apps.apple.com/x')
+      expect(deps.recordScan).toHaveBeenLastCalledWith(
+        expect.any(Request),
+        withRules,
+        'iPhone and iPad',
+      )
+      const android = await get(
+        '/aB3xK9q',
+        { headers: { 'user-agent': ANDROID } },
+        { country: 'FR' },
+      )
+      expect(android.headers.get('location')).toBe('https://play.example')
+      expect(deps.recordScan).toHaveBeenLastCalledWith(expect.any(Request), withRules, 'Play')
+    })
+
+    it('uses the country, then the time, then the main destination', async () => {
+      const { get, deps } = setup({ kv: { aB3xK9q: withRules } })
+      deps.now = () => new Date('2026-10-16T12:00:00Z') // Friday noon UTC
+      expect((await get('/aB3xK9q', undefined, { country: 'FR' })).headers.get('location')).toBe(
+        'https://fr.example',
+      )
+      expect((await get('/aB3xK9q', undefined, { country: 'CA' })).headers.get('location')).toBe(
+        'https://lunch.example',
+      )
+      deps.now = () => new Date('2026-10-16T18:00:00Z')
+      expect((await get('/aB3xK9q', undefined, { country: 'CA' })).headers.get('location')).toBe(
+        'https://example.com/menu',
+      )
+      expect(deps.recordScan).toHaveBeenLastCalledWith(expect.any(Request), withRules, '')
+    })
+
+    it('ignores a malformed rule instead of failing the scan', async () => {
+      const broken = { ...withRules, rules: [{ name: '', when: { type: '?' }, dest: 'https://x' }] }
+      const { get } = setup({ kv: { aB3xK9q: broken as unknown as LinkRecord } })
+      const res = await get('/aB3xK9q', { headers: { 'user-agent': IPHONE } })
+      expect(res.status).toBe(302)
+      expect(res.headers.get('location')).toBe('https://example.com/menu')
+    })
+  })
+
+  describe('contact cards', () => {
+    const card = rec({
+      dest: '',
+      page: {
+        type: 'vcard',
+        fields: {
+          firstName: 'Jane',
+          lastName: 'Doe <b>',
+          organization: 'Acme',
+          title: 'Owner',
+          mobile: '+1 (416) 555-0100',
+          workPhone: '',
+          email: 'jane@acme.example',
+          website: 'acme.example',
+          street: '',
+          city: 'Toronto',
+          region: 'ON',
+          postalCode: '',
+          country: 'Canada',
+          note: 'Call after 9',
+        },
+      },
+    })
+
+    it('shows the contact page, escaped, and counts it as a scan', async () => {
+      const { get, deps } = setup({ kv: { aB3xK9q: card } })
+      const res = await get('/aB3xK9q')
+      expect(res.status).toBe(200)
+      expect(res.headers.get('content-type')).toContain('text/html')
+      const body = await res.text()
+      expect(body).toContain('Jane Doe &lt;b&gt;')
+      expect(body).not.toContain('<b>')
+      expect(body).toContain('href="/aB3xK9q.vcf"')
+      expect(body).toContain('href="tel:+14165550100"')
+      expect(body).toContain('href="mailto:jane@acme.example"')
+      expect(body).toContain('href="https://acme.example/"')
+      expect(body).toContain('Report this page')
+      expect(deps.recordScan).toHaveBeenCalledOnce()
+    })
+
+    it('serves the .vcf without counting another scan', async () => {
+      const { get, deps } = setup({ kv: { aB3xK9q: card } })
+      const res = await get('/aB3xK9q.vcf')
+      expect(res.status).toBe(200)
+      expect(res.headers.get('content-type')).toBe('text/vcard; charset=utf-8')
+      expect(res.headers.get('content-disposition')).toBe('inline; filename="jane-doe-b.vcf"')
+      const vcf = await res.text()
+      expect(vcf).toContain('FN:Jane Doe <b>\r\n')
+      expect(vcf).toContain('TEL;TYPE=CELL:+14165550100')
+      expect(deps.recordScan).not.toHaveBeenCalled()
+    })
+
+    it('gives a .vcf only for contact cards, and respects pause and disable', async () => {
+      const { get } = setup({ kv: { aB3xK9q: rec(), pause01: { ...card, status: 'paused' } } })
+      expect((await get('/aB3xK9q.vcf')).status).toBe(404)
+      const paused = await get('/pause01')
+      expect(await paused.text()).not.toContain('Save contact')
+    })
   })
 })

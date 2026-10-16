@@ -23,17 +23,20 @@ export async function POST(req: Request) {
   })
   if (!ok) return new Response('Unauthorized', { status: 401 })
   const e = JSON.parse(body) as ScanEvent
-  await getDb().insert(scanEvents).values({
-    codeId: e.codeId,
-    owner: e.owner,
-    country: e.country,
-    region: e.region,
-    city: e.city,
-    device: e.device,
-    os: e.os,
-    browser: e.browser,
-    referrer: e.referrer,
-    visitor: e.visitor,
-  })
+  await getDb()
+    .insert(scanEvents)
+    .values({
+      codeId: e.codeId,
+      owner: e.owner,
+      country: e.country,
+      region: e.region,
+      city: e.city,
+      device: e.device,
+      os: e.os,
+      browser: e.browser,
+      referrer: e.referrer,
+      visitor: e.visitor,
+      rule: typeof e.rule === 'string' ? e.rule.slice(0, 60) : '',
+    })
   return Response.json({ ok: true })
 }

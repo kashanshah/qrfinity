@@ -27,11 +27,11 @@ const SECTIONS: { heading: string; pages: ContentPage[]; dir?: ContentDir }[] = 
 
 const FACTS = [
   'Static QR codes: free, unlimited, made in the browser, no sign-up, never expire.',
-  'Dynamic QR codes: free and unlimited with a free account; editable destination; scan analytics (total and unique scans, devices, countries, 90 days of history); never expire and are never paused for not paying.',
+  'Dynamic QR codes: free and unlimited with a free account; editable destination, or a contact card page with a Save contact button whose details can be updated after printing; scan analytics (total and unique scans, devices, countries, up to 2 years of history); never expire and are never paused for not paying.',
   'Downloads: PNG, JPG, SVG, PDF and EPS, all free, no watermark.',
   'Short links for dynamic codes use qrfinity.link. No IP addresses are stored; no cookies on short links.',
   'Promises in the terms of service: codes never expire; free features never move behind a paywall.',
-  'Every feature is free. Advanced features (custom short links now; redirect rules and password protection coming) work on 1 code free; paid plans cover 10 codes for $5/month, 100 for $20, or every code for $50. Stopping a plan never breaks a code.',
+  'Every feature is free. Advanced features (custom short links, and redirect rules by phone, country or time; password protection coming) work on 1 code free; paid plans cover 10 codes for $5/month, 100 for $20, or every code for $50, with the first month free. When a plan ends every code keeps working, including custom short links; redirect rules beyond the free code pause and scans go to the main destination.',
   'Made by Teknoffice Technologies Inc., Ontario, Canada. Contact: hello@qrfinity.com.',
 ]
 

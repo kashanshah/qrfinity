@@ -297,6 +297,7 @@ export function AnalyticsView({
       ['os', report.os],
       ['browser', report.browsers],
       ['referrer', report.referrers],
+      ['redirect_rule', report.rules.filter((r) => r.key)],
     ] as const) {
       lines.push('', `${name},scans`, ...rows.map((r) => `${csvEscape(r.key)},${r.scans}`))
     }
@@ -432,6 +433,10 @@ export function AnalyticsView({
         <BarList title="Operating systems" rows={report.os} />
         <BarList title="Browsers and apps" rows={report.browsers} />
         <BarList title="Referrers" rows={report.referrers} />
+        {/* Scans sent by a redirect rule; the rest went to the main destination. */}
+        {report.rules.some((r) => r.key) ? (
+          <BarList title="Redirect rules" rows={report.rules.filter((r) => r.key)} />
+        ) : null}
       </div>
     </div>
   )
