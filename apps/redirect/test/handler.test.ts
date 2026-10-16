@@ -1,4 +1,5 @@
-import type { LinkRecord } from '@qrfinity/core/edge'
+import { DEFAULT_FIELDS } from '@qrfinity/core'
+import { hashPassword, type LinkRecord } from '@qrfinity/core/edge'
 import { describe, expect, it, vi } from 'vitest'
 import { handleRequest, type RedirectDeps } from '../src/handler'
 
@@ -124,7 +125,9 @@ describe('redirect worker', () => {
     const { get } = setup()
     expect((await get('/')).headers.get('location')).toBe('https://qrfinity.com')
     expect(await (await get('/robots.txt')).text()).toContain('Allow: /')
-    expect((await get('/aB3xK9q', { method: 'POST' })).status).toBe(405)
+    expect((await get('/aB3xK9q', { method: 'PUT' })).status).toBe(405)
+    // POST is only for password forms: an unknown code is simply not found.
+    expect((await get('/aB3xK9q', { method: 'POST' })).status).toBe(404)
   })
 
   it('works without a database configured', async () => {
@@ -262,6 +265,143 @@ describe('redirect worker', () => {
       expect((await get('/aB3xK9q.vcf')).status).toBe(404)
       const paused = await get('/pause01')
       expect(await paused.text()).not.toContain('Save contact')
+    })
+  })
+
+  describe('split traffic and limits', () => {
+    const split = {
+      variants: [{ name: 'New menu', dest: 'https://example.com/new', percent: 40 }],
+    }
+
+    it('shares scans between versions and records which one', async () => {
+      const { get, deps } = setup({ kv: { aB3xK9q: rec({ split }) } })
+      deps.random = () => 0.1
+      expect((await get('/aB3xK9q')).headers.get('location')).toBe('https://example.com/new')
+      expect(deps.recordScan).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.anything(),
+        'New menu',
+      )
+      deps.random = () => 0.9
+      expect((await get('/aB3xK9q')).headers.get('location')).toBe('https://example.com/menu')
+      expect(deps.recordScan).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.anything(),
+        'Version A',
+      )
+    })
+
+    it('lets a matching rule win over the split', async () => {
+      const rules = [
+        {
+          name: 'Apple',
+          when: { type: 'device' as const, devices: ['ios' as const] },
+          dest: 'https://apps.apple.com/x',
+        },
+      ]
+      const { get, deps } = setup({ kv: { aB3xK9q: rec({ split, rules }) } })
+      deps.random = () => 0.1
+      const iphone = {
+        headers: {
+          'user-agent':
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148 Safari/604.1',
+        },
+      }
+      expect((await get('/aB3xK9q', iphone)).headers.get('location')).toBe(
+        'https://apps.apple.com/x',
+      )
+      expect((await get('/aB3xK9q')).headers.get('location')).toBe('https://example.com/new')
+    })
+
+    it('switches every scan once the limit is reached', async () => {
+      const limit = { at: '2026-12-31T05:00:00.000Z', dest: 'https://example.com/ended' }
+      const { get, deps } = setup({ kv: { aB3xK9q: rec({ split, limit }) } })
+      deps.random = () => 0.1
+      deps.now = () => new Date('2026-12-31T04:59:59Z')
+      expect((await get('/aB3xK9q')).headers.get('location')).toBe('https://example.com/new')
+      deps.now = () => new Date('2026-12-31T05:00:00Z')
+      const res = await get('/aB3xK9q')
+      expect(res.status).toBe(302)
+      expect(res.headers.get('location')).toBe('https://example.com/ended')
+      expect(deps.recordScan).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.anything(),
+        'After the limit',
+      )
+    })
+  })
+
+  describe('password protection', () => {
+    const post = (password: string) => ({
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ password }).toString(),
+    })
+
+    it('asks for the password, counts the scan, then redirects on the right one', async () => {
+      const lock = await hashPassword('menu2026')
+      const { get, deps } = setup({ kv: { aB3xK9q: rec({ lock }) } })
+      const ask = await get('/aB3xK9q')
+      expect(ask.status).toBe(200)
+      const html = await ask.text()
+      expect(html).toContain('This QR code is protected')
+      expect(html).toContain('<form method="post" action="/aB3xK9q">')
+      expect(html).not.toContain('example.com/menu')
+      expect(deps.recordScan).toHaveBeenCalledOnce()
+
+      const wrong = await get('/aB3xK9q', post('nope'))
+      expect(wrong.status).toBe(401)
+      expect(await wrong.text()).toContain('That password isn’t right')
+
+      const right = await get('/aB3xK9q', post('menu2026'))
+      expect(right.status).toBe(303)
+      expect(right.headers.get('location')).toBe('https://example.com/menu')
+      expect(right.headers.get('set-cookie')).toBeNull()
+      expect(deps.recordScan).toHaveBeenCalledOnce()
+    })
+
+    it('applies redirect rules after unlocking', async () => {
+      const lock = await hashPassword('menu2026')
+      const record = rec({
+        lock,
+        rules: [
+          { name: '', when: { type: 'country', countries: ['FR'] }, dest: 'https://fr.example' },
+        ],
+      })
+      const { get } = setup({ kv: { aB3xK9q: record } })
+      const res = await get('/aB3xK9q', post('menu2026'), { country: 'FR' })
+      expect(res.headers.get('location')).toBe('https://fr.example')
+    })
+
+    it('shows a protected contact card and lets the visitor save it without asking again', async () => {
+      const lock = await hashPassword('team')
+      const card = rec({
+        dest: '',
+        lock,
+        page: {
+          type: 'vcard',
+          fields: { ...DEFAULT_FIELDS.vcard, firstName: 'Jane', lastName: 'Doe' },
+        },
+      })
+      const { get } = setup({ kv: { aB3xK9q: card } })
+      expect(await (await get('/aB3xK9q.vcf')).text()).toContain('This QR code is protected')
+      const page = await (await get('/aB3xK9q', post('team'))).text()
+      expect(page).toContain('<h1>Jane Doe</h1>')
+      expect(page).toContain(
+        'action="/aB3xK9q.vcf"><input type="hidden" name="password" value="team">',
+      )
+      const vcf = await get('/aB3xK9q.vcf', post('team'))
+      expect(vcf.headers.get('content-type')).toBe('text/vcard; charset=utf-8')
+    })
+
+    it('slows down guessing and refuses POST on open codes', async () => {
+      const lock = await hashPassword('menu2026')
+      const { get, deps } = setup({ kv: { aB3xK9q: rec({ lock }), open123: rec() } })
+      deps.allowUnlock = async () => false
+      const res = await get('/aB3xK9q', post('menu2026'))
+      expect(res.status).toBe(429)
+      expect(await res.text()).toContain('Too many tries')
+      expect((await get('/open123', post('x'))).status).toBe(405)
     })
   })
 })

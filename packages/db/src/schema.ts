@@ -12,6 +12,8 @@ import type {
   PaidPlan,
   Plan,
   RedirectRule,
+  Split,
+  CodeLimits,
   SubscriptionStatus,
 } from '@qrfinity/core'
 import { sql } from 'drizzle-orm'
@@ -180,6 +182,16 @@ export const codes = pgTable(
      * working. Maintained by refreshAdvancedFeatures in apps/web/lib/server/codes.ts.
      */
     advancedPaused: boolean('advanced_paused').notNull().default(false),
+    /**
+     * Password protection (an advanced feature): a salted PBKDF2 hash, never the password. Kept
+     * when the code is beyond its owner's allowance, so nothing protected ever becomes public.
+     * Never sent to a browser (CodeView carries `hasPassword` instead).
+     */
+    passwordHash: text('password_hash'),
+    /** Split traffic (an advanced feature): shares of the scans no rule catches. Paused like rules. */
+    split: jsonb('split').$type<Split>(),
+    /** Date and scan limits (an advanced feature): where scans go after a date or scan count. Paused like rules. */
+    limits: jsonb('limits').$type<CodeLimits>(),
   },
   (t) => [
     uniqueIndex('codes_domain_slug_idx').on(t.domain, t.slug),
@@ -352,6 +364,16 @@ export const redirectLookup = pgView('redirect_lookup').as((qb) =>
       rules: sql<
         RedirectRule[] | null
       >`case when ${codes.advancedPaused} then null else ${codes.rules} end`.as('rules'),
+      split:
+        sql<Split | null>`case when ${codes.advancedPaused} then null else ${codes.split} end`.as(
+          'split',
+        ),
+      limits:
+        sql<CodeLimits | null>`case when ${codes.advancedPaused} then null else ${codes.limits} end`.as(
+          'limits',
+        ),
+      // Password protection is never paused: protected stays protected.
+      passwordHash: codes.passwordHash,
       // A contact card code has no destination; the Worker renders its page from this.
       page: sql<CodeContent | null>`case when ${codes.destination} is null and ${codes.content}->>'type' = 'vcard' then ${codes.content} end`.as(
         'page',

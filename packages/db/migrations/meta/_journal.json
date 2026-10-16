@@ -78,6 +78,20 @@
       "when": 1792171783686,
       "tag": "0010_contact_card_pages",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792178688466,
+      "tag": "0011_password_protection",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792180744697,
+      "tag": "0012_split_traffic_and_limits",
+      "breakpoints": true
     }
   ]
 }

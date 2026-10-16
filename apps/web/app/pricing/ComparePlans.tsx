@@ -5,7 +5,7 @@ import {
   TRIAL_DAYS,
   type Plan,
 } from '@qrfinity/core'
-import { Check, Clock, Minus } from 'lucide-react'
+import { Check, Minus } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 type Cell = ReactNode | ((plan: Plan) => ReactNode)
@@ -17,12 +17,6 @@ const yes = (
     <Check aria-hidden="true" size={20} strokeWidth={2} className="mx-auto text-evergreen" />
     <span className="sr-only">Included</span>
   </>
-)
-const soon = (
-  <span className="inline-flex items-center gap-1 text-ink-muted">
-    <Clock aria-hidden="true" size={16} strokeWidth={1.75} />
-    Soon
-  </span>
 )
 const none = (
   <>
@@ -99,7 +93,8 @@ const GROUPS: Group[] = [
     note: (
       <>
         Extras that change how a dynamic code behaves: your own short link, sending people to
-        different places, and soon a password. Free on 1 code; a plan covers more.{' '}
+        different places, splitting traffic, limits and a password. Free on 1 code; a plan covers
+        more.{' '}
         <a href="#advanced" className="text-evergreen underline">
           What each one does
         </a>
@@ -109,7 +104,9 @@ const GROUPS: Group[] = [
       { label: 'Codes that can use advanced features', cell: codes },
       { label: 'Custom short links', hint: 'qrfinity.link/your-name', cell: yes },
       { label: 'Redirect rules', hint: 'By phone, country, day or time', cell: yes },
-      { label: 'Password protection', cell: soon },
+      { label: 'Password protection', hint: 'Asked on every scan', cell: yes },
+      { label: 'Split traffic', hint: 'Up to 5 versions, A/B test', cell: yes },
+      { label: 'Date and scan limits', hint: 'Then send people elsewhere', cell: yes },
     ],
   },
 ]

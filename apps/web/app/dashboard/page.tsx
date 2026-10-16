@@ -4,7 +4,7 @@ import { CopyButton } from '@/components/dashboard/CopyButton'
 import { FolderManager } from '@/components/dashboard/FolderManager'
 import { StatusPill } from '@/components/dashboard/StatusPill'
 import { getAnalytics } from '@/lib/server/analytics'
-import { listCodes, listFolders, listTags } from '@/lib/server/codes'
+import { listCodes, listFolders, listTags, type CodeView } from '@/lib/server/codes'
 import { serviceContext } from '@/lib/server/context'
 import { shortLinkFor } from '@/lib/short-link'
 import { codeTarget } from '@/lib/code-target'
@@ -19,6 +19,19 @@ function displayDestination(url: string | null) {
   if (!url) return ''
   return url.replace(/^https?:\/\/(www\.)?/, '')
 }
+
+type AdvancedFields = Pick<CodeView, 'customSlug' | 'rules' | 'hasPassword' | 'split' | 'limits'>
+
+const advancedNames = (c: AdvancedFields) =>
+  [
+    c.customSlug && 'custom short link',
+    c.rules && 'redirect rules',
+    c.split && 'split traffic',
+    c.limits && 'date and scan limits',
+    c.hasPassword && 'password',
+  ].filter((x): x is string => Boolean(x))
+
+const redirectsDifferently = (c: AdvancedFields) => Boolean(c.rules || c.split || c.limits)
 
 export default async function CodesPage({
   searchParams,
@@ -149,16 +162,18 @@ export default async function CodesPage({
                         {c.name}
                       </Link>
                       <StatusPill status={c.status} />
-                      {c.customSlug || c.rules ? (
+                      {advancedNames(c).length ? (
                         <span
                           className="label rounded-pill border border-hairline px-2 py-0.5 text-ink-muted"
                           title={
-                            c.advancedPaused && c.rules
-                              ? 'Redirect rules are paused: your plan covers fewer codes with advanced features.'
-                              : `Uses advanced features (${[c.customSlug ? 'custom short link' : '', c.rules ? 'redirect rules' : ''].filter(Boolean).join(', ')}). Counts toward your plan’s codes with advanced features.`
+                            c.advancedPaused && redirectsDifferently(c)
+                              ? 'Paused: your plan covers fewer codes with advanced features. Scans go to the main destination; the short link and password keep working.'
+                              : `Uses advanced features (${advancedNames(c).join(', ')}). Counts toward your plan’s codes with advanced features.`
                           }
                         >
-                          {c.advancedPaused && c.rules ? 'Rules paused' : 'Advanced'}
+                          {c.advancedPaused && redirectsDifferently(c)
+                            ? 'Advanced paused'
+                            : 'Advanced'}
                         </span>
                       ) : null}
                     </div>

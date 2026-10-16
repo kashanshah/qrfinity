@@ -1,6 +1,7 @@
 import { CONTACT_TEMPLATES_BY_PLAN, type ContentType } from '@qrfinity/core'
 import { notFound } from 'next/navigation'
 import { AnalyticsView } from '@/components/analytics/AnalyticsView'
+import { advancedAccess } from '@/components/dashboard/Advanced'
 import { CopyButton } from '@/components/dashboard/CopyButton'
 import { StatusPill } from '@/components/dashboard/StatusPill'
 import { CodeTypeBadge, NeverExpiresBadge } from '@/components/generator/Badges'
@@ -19,6 +20,9 @@ import { CodeSettings } from './CodeSettings'
 import { EditCode } from './EditCode'
 import { RenameCode } from './RenameCode'
 import { PageStyleEditor } from './PageStyleEditor'
+import { LimitsEditor } from './LimitsEditor'
+import { PasswordEditor } from './PasswordEditor'
+import { SplitEditor } from './SplitEditor'
 import { RulesEditor } from './RulesEditor'
 
 const dateTime = new Intl.DateTimeFormat('en-CA', { dateStyle: 'medium', timeStyle: 'short' })
@@ -48,7 +52,14 @@ export default async function CodePage({
   ])
   const page = pageOf(code)
   // A code that already uses an advanced feature can add rules without taking another place.
-  const isAdvanced = code.customSlug || code.rules !== null
+  const isAdvanced =
+    code.customSlug ||
+    code.rules !== null ||
+    code.hasPassword ||
+    code.split !== null ||
+    code.limits !== null
+  const access = advancedAccess(usage)
+  const canAddAdvanced = isAdvanced ? !code.advancedPaused : usage.used < usage.allowance
   const link = shortLinkFor(code.slug!)
   const content = code.content ?? {
     type: 'url' as ContentType,
@@ -122,12 +133,50 @@ export default async function CodePage({
           id={code.id}
           rules={code.rules ?? []}
           paused={code.advancedPaused && code.rules !== null}
-          canAdd={isAdvanced ? !code.advancedPaused : usage.used < usage.allowance}
+          canAdd={canAddAdvanced}
           used={usage.used}
           allowance={usage.allowance}
+          access={access}
           disabled={code.status === 'disabled'}
         />
       ) : null}
+
+      {code.destination ? (
+        <SplitEditor
+          id={code.id}
+          destination={code.destination}
+          split={code.split}
+          paused={code.advancedPaused && code.split !== null}
+          canAdd={canAddAdvanced}
+          used={usage.used}
+          allowance={usage.allowance}
+          access={access}
+          disabled={code.status === 'disabled'}
+        />
+      ) : null}
+
+      {code.destination ? (
+        <LimitsEditor
+          id={code.id}
+          limits={code.limits}
+          paused={code.advancedPaused && code.limits !== null}
+          canAdd={canAddAdvanced}
+          used={usage.used}
+          allowance={usage.allowance}
+          access={access}
+          disabled={code.status === 'disabled'}
+        />
+      ) : null}
+
+      <PasswordEditor
+        id={code.id}
+        hasPassword={code.hasPassword}
+        canAdd={canAddAdvanced}
+        used={usage.used}
+        allowance={usage.allowance}
+        access={access}
+        disabled={code.status === 'disabled'}
+      />
 
       <section aria-labelledby="analytics" className="flex flex-col gap-4">
         <h2 id="analytics" className="heading text-ink">

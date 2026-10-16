@@ -37,11 +37,11 @@ export default async function AdminSettings() {
       <section className="rounded-lg border border-hairline bg-surface p-4 md:p-6">
         <h2 className="subheading text-ink">Free codes with advanced features</h2>
         <p className="mt-1 text-ink-muted">
-          How many codes each free account can use advanced features on (custom short links and
-          redirect rules; passwords later). Paid plans get 10, 100 or unlimited, and never fewer
-          than this. Lowering it pauses redirect rules on each account’s newest codes beyond the new
-          number (scans go to the main destination); custom short links keep working. Raising it
-          resumes them.
+          How many codes each free account can use advanced features on (custom short links,
+          redirect rules, passwords, split traffic and limits). Paid plans get 10, 100 or unlimited,
+          and never fewer than this. Lowering it pauses redirect rules on each account’s newest
+          codes beyond the new number (scans go to the main destination); custom short links keep
+          working. Raising it resumes them.
         </p>
         <p className="body-small mt-2 text-ink-muted">
           In use: {stats?.links ?? 0} codes with advanced features across {stats?.owners ?? 0}{' '}

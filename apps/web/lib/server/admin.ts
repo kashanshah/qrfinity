@@ -33,7 +33,7 @@ import {
   type ReportStatus,
   type SQL,
 } from '@qrfinity/db'
-import { pageOf, syncCode } from './codes'
+import { pageOf, publicCode, syncCode } from './codes'
 import { codeDisabledEmail } from './emails'
 import { ServiceError } from './errors'
 import { likePattern, lower, paged, type ListOptions, type Orderable } from './listing'
@@ -194,7 +194,9 @@ function pagedCodes(
         .where(where)
         .orderBy(...orderBy)
         .limit(limit)
-        .offset(offset),
+        .offset(offset)
+        // The password hash never reaches a page, admin ones included.
+        .then((rows) => rows.map((r) => ({ ...r, code: publicCode(r.code) }))),
   })
 }
 

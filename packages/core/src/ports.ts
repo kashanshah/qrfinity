@@ -17,6 +17,8 @@ export interface EdgeSync {
 export interface ScanAnalytics {
   report(scope: ReportScope, days?: number): Promise<ScanReport>
   codeTotals(ownerId: string, days?: number): Promise<Map<string, number>>
+  /** Scans of one code since a moment (within the store's retention window), for scan limits. */
+  scanCount(codeId: string, since: Date): Promise<number>
   /** Per-code totals for one complete UTC day (YYYY-MM-DD), for the nightly roll-up. */
   dailyRollup(day: string): Promise<DailyRollup[]>
   /** True when real data is available (false for a sample/unconfigured backend). */

@@ -7,12 +7,13 @@ import { useState, useTransition } from 'react'
 import { track } from '@/lib/analytics'
 import { createCodeAction } from '@/app/dashboard/actions'
 import { Generator, type FinalStepProps } from '@/components/generator/Generator'
+import { AdvancedMark, advancedAccess } from '@/components/dashboard/Advanced'
 import { Button } from '@/components/ui/Button'
 import { SelectField, TextField } from '@/components/ui/Field'
 import { clearDraft, readDraft } from '@/lib/draft'
 
 export type Folder = { id: string; name: string }
-export type SlugUsage = { used: number; allowance: number }
+export type SlugUsage = { used: number; allowance: number; plan: string }
 
 function suggestName(destination: string) {
   try {
@@ -90,10 +91,23 @@ function CreateStep({
         />
         {slugs.allowance > 0 ? (
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="custom-slug" className="label text-ink">
-              Custom short link (optional)
-            </label>
-            <div className="flex min-h-11 items-stretch overflow-hidden rounded-md border-[1.5px] border-control-border bg-surface focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus">
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="custom-slug"
+                className={`label text-ink ${slugsLeft === 0 ? 'opacity-50' : ''}`}
+              >
+                Custom short link (optional)
+              </label>
+              <AdvancedMark
+                access={advancedAccess(slugs)}
+                used={slugs.used}
+                allowance={slugs.allowance}
+                size={16}
+              />
+            </div>
+            <div
+              className={`flex min-h-11 items-stretch overflow-hidden rounded-md border-[1.5px] border-control-border bg-surface focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus ${slugsLeft === 0 ? 'opacity-50' : ''}`}
+            >
               <span className="mono flex items-center border-r border-hairline bg-surface-sunk px-3 text-ink-muted">
                 {linkHost}/
               </span>
@@ -107,7 +121,7 @@ function CreateStep({
                 autoComplete="off"
                 spellCheck={false}
                 aria-describedby="custom-slug-hint"
-                className="mono min-w-0 flex-1 bg-transparent px-3 text-ink outline-none disabled:opacity-60"
+                className="mono min-w-0 flex-1 bg-transparent px-3 text-ink outline-none"
               />
             </div>
             <p id="custom-slug-hint" className="body-small text-ink-muted">

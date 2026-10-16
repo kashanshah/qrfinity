@@ -15,6 +15,7 @@ import { useId, useState, useSyncExternalStore, useTransition } from 'react'
 import { setRulesAction } from '@/app/dashboard/actions'
 import { Button } from '@/components/ui/Button'
 import { Checkbox, SelectField, TextField } from '@/components/ui/Field'
+import { AdvancedSection, type AdvancedAccess } from '@/components/dashboard/Advanced'
 
 type Kind = RuleCondition['type']
 
@@ -50,7 +51,7 @@ const DEVICE_LABEL: Record<RuleDevice, { label: string; hint?: string }> = {
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 let nextKey = 1
-const browserZone = () => {
+export const browserZone = () => {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
   } catch {
@@ -125,7 +126,13 @@ function countryNames(codes: string[]): string {
   }
 }
 
-function TimeZoneField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export function TimeZoneField({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (v: string) => void
+}) {
   const hydrated = useHydrated()
   const zones: string[] = (() => {
     if (!hydrated) return [value]
@@ -354,9 +361,11 @@ export function RulesEditor({
   canAdd,
   used,
   allowance,
+  access,
   disabled,
 }: {
   id: string
+  access: AdvancedAccess
   rules: RedirectRule[]
   /** Beyond the plan's allowance: rules are kept but don't apply. */
   paused: boolean
@@ -404,32 +413,17 @@ export function RulesEditor({
   const blocked = !canAdd && rules.length === 0
 
   return (
-    <section
-      aria-labelledby="rules"
-      className="flex flex-col gap-4 rounded-lg border border-hairline bg-surface p-4 md:p-6"
+    <AdvancedSection
+      id="rules"
+      icon={Split}
+      title="Redirect rules"
+      description="Send people somewhere else depending on their phone, country or the time. Rules are checked in order and the first that matches wins; everyone else goes to the main destination."
+      access={access}
+      used={used}
+      allowance={allowance}
+      blocked={blocked}
+      what="add redirect rules to this code too"
     >
-      <div className="flex items-start gap-3">
-        <Split
-          aria-hidden="true"
-          size={20}
-          strokeWidth={1.75}
-          className="mt-1 shrink-0 text-evergreen"
-        />
-        <div>
-          <h2 id="rules" className="subheading text-ink">
-            Redirect rules{' '}
-            <span className="label ml-1 rounded-pill border border-hairline px-2 py-0.5 align-middle font-normal text-ink-muted">
-              Advanced feature
-            </span>
-          </h2>
-          <p className="mt-1 max-w-[65ch] text-ink-muted">
-            Send people somewhere else depending on their phone, country or the time. Rules are
-            checked in order and the first that matches wins; everyone else goes to the main
-            destination.
-          </p>
-        </div>
-      </div>
-
       {paused ? (
         <p role="status" className="rounded-md border-[1.5px] border-scan-fail px-4 py-3 text-ink">
           These rules are paused because your plan covers fewer codes with advanced features. Every
@@ -441,76 +435,65 @@ export function RulesEditor({
         </p>
       ) : null}
 
-      {blocked ? (
-        <p className="rounded-md bg-surface-sunk px-4 py-3 text-ink">
-          You’re using advanced features on {used} of {allowance}{' '}
-          {allowance === 1 ? 'code' : 'codes'}.{' '}
-          <Link href="/pricing#plans" className="text-evergreen underline">
-            Choose a plan
-          </Link>{' '}
-          to add redirect rules to this code too. Your first plan comes with a month free.
-        </p>
-      ) : (
-        <>
-          {drafts.length ? (
-            <ol className="flex flex-col gap-3">
-              {drafts.map((d, i) => (
-                <RuleCard
-                  key={d.key}
-                  draft={d}
-                  index={i}
-                  count={drafts.length}
-                  onChange={(p) => update(d.key, p)}
-                  onMove={(by) => move(i, by)}
-                  onRemove={() => {
-                    setSaved(false)
-                    setDrafts((ds) => ds.filter((x) => x.key !== d.key))
-                  }}
-                  disabled={locked}
-                />
-              ))}
-            </ol>
-          ) : (
-            <div className="flex flex-col gap-2 rounded-md bg-surface-sunk px-4 py-3">
-              <p className="text-ink">No rules yet: every scan goes to the main destination.</p>
-              <p className="body-small text-ink-muted">
-                A common one: send iPhones to the App Store and Android phones to Google Play.
-              </p>
-            </div>
-          )}
-
-          <div className="flex flex-wrap items-center gap-3">
-            {drafts.length === 0 ? (
-              <Button
-                disabled={locked || paused}
-                onClick={() =>
-                  setDrafts([
-                    blank('device', { devices: ['ios'], name: 'App Store' }),
-                    blank('device', { devices: ['android'], name: 'Google Play' }),
-                  ])
-                }
-              >
-                Add App Store and Google Play rules
-              </Button>
-            ) : null}
-            <Button
-              icon={<Plus aria-hidden="true" size={18} strokeWidth={1.75} />}
-              disabled={locked || paused || drafts.length >= MAX_RULES}
-              onClick={() => setDrafts((ds) => [...ds, blank()])}
-            >
-              Add a rule
-            </Button>
-            {dirty || drafts.length ? (
-              <Button variant="primary" disabled={locked || !dirty} onClick={save}>
-                {pending ? 'Saving…' : drafts.length ? 'Save rules' : 'Remove all rules'}
-              </Button>
-            ) : null}
+      <>
+        {drafts.length ? (
+          <ol className="flex flex-col gap-3">
+            {drafts.map((d, i) => (
+              <RuleCard
+                key={d.key}
+                draft={d}
+                index={i}
+                count={drafts.length}
+                onChange={(p) => update(d.key, p)}
+                onMove={(by) => move(i, by)}
+                onRemove={() => {
+                  setSaved(false)
+                  setDrafts((ds) => ds.filter((x) => x.key !== d.key))
+                }}
+                disabled={locked}
+              />
+            ))}
+          </ol>
+        ) : (
+          <div className="flex flex-col gap-2 rounded-md bg-surface-sunk px-4 py-3">
+            <p className="text-ink">No rules yet: every scan goes to the main destination.</p>
+            <p className="body-small text-ink-muted">
+              A common one: send iPhones to the App Store and Android phones to Google Play.
+            </p>
           </div>
-          {drafts.length >= MAX_RULES ? (
-            <p className="body-small text-ink-muted">A code can have up to {MAX_RULES} rules.</p>
+        )}
+
+        <div className="flex flex-wrap items-center gap-3">
+          {drafts.length === 0 ? (
+            <Button
+              disabled={locked || paused}
+              onClick={() =>
+                setDrafts([
+                  blank('device', { devices: ['ios'], name: 'App Store' }),
+                  blank('device', { devices: ['android'], name: 'Google Play' }),
+                ])
+              }
+            >
+              Add App Store and Google Play rules
+            </Button>
           ) : null}
-        </>
-      )}
+          <Button
+            icon={<Plus aria-hidden="true" size={18} strokeWidth={1.75} />}
+            disabled={locked || paused || drafts.length >= MAX_RULES}
+            onClick={() => setDrafts((ds) => [...ds, blank()])}
+          >
+            Add a rule
+          </Button>
+          {dirty || drafts.length ? (
+            <Button variant="primary" disabled={locked || !dirty} onClick={save}>
+              {pending ? 'Saving…' : drafts.length ? 'Save rules' : 'Remove all rules'}
+            </Button>
+          ) : null}
+        </div>
+        {drafts.length >= MAX_RULES ? (
+          <p className="body-small text-ink-muted">A code can have up to {MAX_RULES} rules.</p>
+        ) : null}
+      </>
 
       {error ? (
         <p role="alert" className="text-ink">
@@ -532,6 +515,6 @@ export function RulesEditor({
           destination.
         </p>
       ) : null}
-    </section>
+    </AdvancedSection>
   )
 }

@@ -155,7 +155,8 @@ main{max-width:480px;margin:0 auto;padding:32px 16px}
 .av{width:64px;height:64px;border-radius:50%;background:var(--mint);color:var(--ink);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;letter-spacing:.5px;flex:none}
 h1{font-size:28px;line-height:34px;margin:16px 0 4px;letter-spacing:-.4px;overflow-wrap:anywhere}
 .role{margin:0;color:var(--muted)}
-.save{display:flex;align-items:center;justify-content:center;min-height:48px;margin:24px 0 8px;border-radius:10px;background:var(--accent);color:var(--on-accent);font-weight:700;text-decoration:none}
+.save{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin:24px 0 8px;border:0;border-radius:10px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:700;text-decoration:none;cursor:pointer}
+form.saveform{margin:0}
 a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 ul{list-style:none;margin:16px 0 0;padding:0}
 li{display:flex;flex-direction:column;padding:12px 0;border-top:1px solid var(--hairline)}
@@ -221,6 +222,11 @@ export function renderContactPage(input: {
   siteOrigin: string
   /** Previews only: show one colour scheme instead of following the device. */
   scheme?: 'light' | 'dark'
+  /**
+   * For a password-protected card: the password just typed. Save contact then posts it with the
+   * request for the .vcf instead of linking to it, so the visitor isn't asked again.
+   */
+  unlock?: string
 }): string {
   const f = Object.fromEntries(
     Object.entries(input.fields).map(([k, v]) => [k, String(v ?? '').trim()]),
@@ -268,7 +274,11 @@ export function renderContactPage(input: {
       : `${avatar}
 ${heading}`
   }
-<a class="save" href="/${esc(encodeURIComponent(input.slug))}.vcf">Save contact</a>
+${
+  input.unlock !== undefined
+    ? `<form class="saveform" method="post" action="/${esc(encodeURIComponent(input.slug))}.vcf"><input type="hidden" name="password" value="${esc(input.unlock)}"><button class="save" type="submit">Save contact</button></form>`
+    : `<a class="save" href="/${esc(encodeURIComponent(input.slug))}.vcf">Save contact</a>`
+}
 ${rows.length ? `<ul>${rows.join('')}</ul>` : ''}${f.note ? `<p class="note">${esc(f.note)}</p>` : ''}`
 
   return `<!doctype html>

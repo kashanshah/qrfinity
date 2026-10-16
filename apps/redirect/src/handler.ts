@@ -7,14 +7,18 @@ import {
   parseLinkRecord,
   parseUserAgent,
   pickDestination,
+  pickVersion,
+  limitReached,
+  LIMIT_LABEL,
   renderContactPage,
   resolveAccent,
   vcardFile,
   vcardFileName,
+  verifyPassword,
   DEFAULT_PAGE_STYLE,
   type LinkRecord,
 } from '@qrfinity/core/edge'
-import { disabledPage, notFoundPage, pausedPage } from './pages'
+import { disabledPage, notFoundPage, passwordPage, pausedPage } from './pages'
 
 export type RedirectDeps = {
   defaultDomain: string
@@ -33,8 +37,21 @@ export type RedirectDeps = {
   /** Records the scan after the response is sent, with the redirect rule that matched ('' = none). */
   recordScan(request: Request, record: LinkRecord, rule: string): Promise<void>
   waitUntil(promise: Promise<unknown>): void
-  /** The clock for time-based rules (tests pass a fixed one). */
+  /** The clock for time-based rules and date limits (tests pass a fixed one). */
   now?: () => Date
+  /** Random number in [0, 1) for split traffic (tests pass a fixed one). */
+  random?: () => number
+  /** Throttles password attempts per visitor and code. Returns false when over the limit. */
+  allowUnlock?: (request: Request, record: LinkRecord) => Promise<boolean>
+}
+
+/** The password from a posted form, or null. Bodies are small; anything big is refused. */
+async function postedPassword(request: Request): Promise<string | null> {
+  const type = request.headers.get('content-type') ?? ''
+  if (!type.startsWith('application/x-www-form-urlencoded')) return null
+  const body = await request.text()
+  if (body.length > 2048) return null
+  return new URLSearchParams(body).get('password')
 }
 
 const baseHeaders = {
@@ -76,7 +93,8 @@ export async function resolveRecord(
 
 export async function handleRequest(request: Request, deps: RedirectDeps): Promise<Response> {
   const url = new URL(request.url)
-  if (request.method !== 'GET' && request.method !== 'HEAD') {
+  // POST is only for the password form of a protected code (checked below).
+  if (request.method !== 'GET' && request.method !== 'HEAD' && request.method !== 'POST') {
     return new Response('Method not allowed', {
       status: 405,
       headers: { ...baseHeaders, Allow: 'GET, HEAD' },
@@ -107,6 +125,27 @@ export async function handleRequest(request: Request, deps: RedirectDeps): Promi
   if (record.status === 'disabled') return html(disabledPage(deps.siteOrigin, slug), 403)
   if (record.status === 'paused') return html(pausedPage(deps.siteOrigin, slug), 200)
 
+  // Password protection: ask first (the scan counts here), then check the posted password.
+  let unlocked: string | undefined
+  if (record.lock) {
+    if (request.method !== 'POST') {
+      if (request.method === 'GET')
+        deps.waitUntil(deps.recordScan(request, record, '').catch(() => undefined))
+      return html(passwordPage(deps.siteOrigin, slug, { vcf: wantsVcf }), 200)
+    }
+    if (deps.allowUnlock && !(await deps.allowUnlock(request, record)))
+      return html(passwordPage(deps.siteOrigin, slug, { vcf: wantsVcf, error: 'slow-down' }), 429)
+    const typed = await postedPassword(request)
+    if (typed === null || !(await verifyPassword(typed, record.lock)))
+      return html(passwordPage(deps.siteOrigin, slug, { vcf: wantsVcf, error: 'wrong' }), 401)
+    unlocked = typed
+  } else if (request.method === 'POST') {
+    return new Response('Method not allowed', {
+      status: 405,
+      headers: { ...baseHeaders, Allow: 'GET, HEAD' },
+    })
+  }
+
   if (record.page) {
     if (wantsVcf) {
       const file = vcardFile(record.page.fields)
@@ -130,22 +169,45 @@ export async function handleRequest(request: Request, deps: RedirectDeps): Promi
         accent: resolveAccent(style.accent),
         slug,
         siteOrigin: deps.siteOrigin,
+        ...(unlocked !== undefined ? { unlock: unlocked } : {}),
       }),
       200,
     )
   }
   if (wantsVcf) return html(notFoundPage(deps.siteOrigin, slug), 404)
 
-  // Redirect rules: the first that matches the phone, country or time picks the destination.
-  const cf = (request as Request & { cf?: { country?: string } }).cf
-  const { dest, rule } = pickDestination(record.dest, record.rules, {
-    os: parseUserAgent(request.headers.get('user-agent')).os,
-    country: cf?.country ?? '',
-    now: deps.now?.() ?? new Date(),
-  })
+  const { dest, rule } = chooseDestination(request, record, deps)
 
   if (request.method === 'GET')
     deps.waitUntil(deps.recordScan(request, record, rule).catch(() => undefined))
   // 302, never 301: destinations (and which rule applies) change, so phones must not cache them.
-  return new Response(null, { status: 302, headers: { ...baseHeaders, Location: dest } })
+  // After a password form, 303 so the browser follows with a GET.
+  return new Response(null, {
+    status: request.method === 'POST' ? 303 : 302,
+    headers: { ...baseHeaders, Location: dest },
+  })
+}
+
+/**
+ * Where a scan goes, and the label to record: a reached date or scan limit wins; otherwise the
+ * first redirect rule that matches the phone, country or time; otherwise the split picks a version
+ * of the main destination.
+ */
+function chooseDestination(
+  request: Request,
+  record: LinkRecord,
+  deps: Pick<RedirectDeps, 'now' | 'random'>,
+): { dest: string; rule: string } {
+  const now = deps.now?.() ?? new Date()
+  if (record.limit && limitReached(record.limit, now))
+    return { dest: record.limit.dest, rule: LIMIT_LABEL }
+  const cf = (request as Request & { cf?: { country?: string } }).cf
+  const ruled = pickDestination(record.dest, record.rules, {
+    os: parseUserAgent(request.headers.get('user-agent')).os,
+    country: cf?.country ?? '',
+    now,
+  })
+  if (ruled.rule) return ruled
+  const v = pickVersion(record.dest, record.split, deps.random?.() ?? Math.random())
+  return { dest: v.dest, rule: v.label }
 }

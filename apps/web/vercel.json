@@ -16,6 +16,14 @@
     {
       "path": "/api/cron/indexnow",
       "schedule": "55 3 * * *"
+    },
+    {
+      "path": "/api/cron/usage-alert",
+      "schedule": "7 * * * *"
+    },
+    {
+      "path": "/api/cron/scan-limits",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

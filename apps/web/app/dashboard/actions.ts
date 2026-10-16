@@ -15,6 +15,9 @@ import {
   setPageStyle,
   setPaused,
   setRules,
+  setPassword,
+  setSplit,
+  setLimits,
   updateDestination,
   updateDetails,
 } from '@/lib/server/codes'
@@ -84,6 +87,24 @@ export async function setPageStyleAction(id: string, style: unknown) {
 export async function setRulesAction(id: string, rules: unknown) {
   // Returns the rules as stored (destinations normalized), so the editor shows exactly those.
   return run(async (ctx) => (await setRules(ctx, id, rules)).rules ?? [])
+}
+
+/** `null` removes the password. Returns whether the code is now protected. */
+export async function setPasswordAction(id: string, password: string | null) {
+  return run(async (ctx) => (await setPassword(ctx, id, password)).hasPassword)
+}
+
+/** Returns the split as stored (destinations normalized), so the editor shows exactly that. */
+export async function setSplitAction(id: string, variants: unknown) {
+  return run(async (ctx) => (await setSplit(ctx, id, variants)).split)
+}
+
+/** `null` removes the limits. Returns them as stored. */
+export async function setLimitsAction(
+  id: string,
+  limits: { dest: string; date: string; time: string; timezone: string; scans: string } | null,
+) {
+  return run(async (ctx) => (await setLimits(ctx, id, limits)).limits)
 }
 
 export async function setPausedAction(id: string, paused: boolean) {
