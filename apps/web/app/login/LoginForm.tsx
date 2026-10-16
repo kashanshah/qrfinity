@@ -2,6 +2,7 @@
 
 import { Mail } from 'lucide-react'
 import { useState } from 'react'
+import { track } from '@/lib/analytics'
 import { Turnstile } from '@/components/Turnstile'
 import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/Field'
@@ -47,6 +48,7 @@ export function LoginForm({
       return
     }
     setState('sent')
+    track('sign_in_requested', { method: 'email' })
   }
 
   if (state === 'sent') {
@@ -98,7 +100,10 @@ export function LoginForm({
             <span className="h-px flex-1 bg-hairline" />
           </div>
           <Button
-            onClick={() => authClient.signIn.social({ provider: 'google', callbackURL: next })}
+            onClick={() => {
+              track('sign_in_requested', { method: 'google' })
+              void authClient.signIn.social({ provider: 'google', callbackURL: next })
+            }}
             icon={
               // Google's standard "G", unaltered, as its sign-in branding guidelines require.
               // eslint-disable-next-line @next/next/no-img-element -- static SVG asset

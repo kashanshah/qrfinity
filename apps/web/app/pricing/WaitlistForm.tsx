@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { track } from '@/lib/analytics'
 import { Turnstile } from '@/components/Turnstile'
 import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/Field'
@@ -33,8 +34,10 @@ export function WaitlistForm({ siteKey }: { siteKey?: string }) {
         start(async () => {
           setError(null)
           const r = await joinWaitlistAction({ email, token })
-          if (r.ok) setDone(true)
-          else setError(r.error)
+          if (r.ok) {
+            setDone(true)
+            track('pro_waitlist_joined', {})
+          } else setError(r.error)
         })
       }}
     >

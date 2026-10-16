@@ -3,6 +3,7 @@
 import type { CodeContent } from '@qrfinity/db'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import { track } from '@/lib/analytics'
 import { createCodeAction } from '@/app/dashboard/actions'
 import { Generator, type FinalStepProps } from '@/components/generator/Generator'
 import { Button } from '@/components/ui/Button'
@@ -62,6 +63,10 @@ function CreateStep({
               slug: slug.trim() || null,
             })
             if (r.ok) {
+              track('dynamic_code_created', {
+                content_type: props.type,
+                custom_slug: Boolean(slug.trim()),
+              })
               clearDraft()
               router.push(`/dashboard/codes/${r.data}?created=1`)
             } else setError(r.error)

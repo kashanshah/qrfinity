@@ -102,6 +102,13 @@ Kashan's model: every paid capability comes with a free allowance (usually 1), a
 - Refused: reserved paths (admin, login, report…), offensive words, and bank, payment and big-brand names, so our domain can't lend credibility to look-alike scams. Destinations go through the usual screening.
 - The redirect and edge-api Workers accept both random and custom slugs, so both must be redeployed with this change.
 
+### Site analytics (2026-10-16)
+
+- Google Analytics 4 and PostHog on qrfinity.com, each off unless its key is set. Never on qrfinity.link (scanners are never tracked) or /admin.
+- No cookies until a visitor allows them (banner once, "Cookie settings" in the footer): GA runs in Consent Mode v2 with ads storage always denied and Google signals off; PostHog runs in cookieless mode and is proxied through `/ingest`.
+- Nothing typed into the generator is captured: session recording off, autocapture limited to clicks on links and buttons with text and attributes masked. Events: `qr_downloaded`, `dynamic_code_created`, `sign_in_requested`, `pro_waitlist_joined`, with type and format only.
+- PostHog project must have "Discard client IP data" on (our no-raw-IP rule) and "Cookieless server hash mode" on (otherwise pre-consent events are dropped). The privacy policy describes all of this.
+
 ## Name and domains
 
 - Chosen: **QRfinity** (QR + infinity). Rejected: QRLasts (sounds like "QR Last"; qrlast.com belongs to someone else), QRVow (sounds like "QR Wow"), QRLasting (clear but forgettable), InfiniQR (spelling risk).

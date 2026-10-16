@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { CookieSettingsLink } from './Analytics'
 import { ALTERNATIVES, GUIDES, getPage, PRICING } from '@/content/registry'
 import { AGENCY_URL } from '@/lib/partners'
 
@@ -62,6 +63,7 @@ export function SiteFooter() {
                 {label}
               </Link>
             ))}
+            <CookieSettingsLink className="rounded-sm text-left hover:text-ink" />
           </nav>
           <div className="flex flex-col gap-1 md:items-end">
             {AGENCY_URL ? (
