@@ -1,0 +1,86 @@
+export const faq = [
+  {
+    q: 'Why does my QR code scan on one phone but not another?',
+    a: 'The code is borderline. Newer phones read small, low-contrast or busy codes that older ones can’t. Fix the weakest point: make it larger, darker on a lighter background, or simpler with a shorter link.',
+  },
+  {
+    q: 'Why won’t my QR code scan from a screen?',
+    a: 'Screens add glare, low brightness and sometimes a moiré pattern when the code is shown small. Turn the brightness up, show the code larger, and avoid showing it at an odd size where its squares blur together.',
+  },
+  {
+    q: 'My code scans but nothing happens. Is it broken?',
+    a: 'The code is fine; the problem is what it opens. A broken or mistyped link, a page that’s down, or a dynamic code whose service has stopped all scan correctly and then fail. Scan it and read the address your phone shows.',
+  },
+  {
+    q: 'Do I need an app to scan QR codes?',
+    a: 'Not on most phones from the last few years: the built-in camera reads them. Some older Android phones need Google Lens or a scanner app.',
+  },
+  {
+    q: 'How can I check a code before I print it?',
+    a: 'Upload the final file to our QR code tester. It measures contrast and margin, shrinks and blurs the code like a far-away or unfocused camera, and tells you the smallest size to print.',
+  },
+]
+
+When a QR code won’t scan, the cause is almost always one of a handful of design or print problems: not enough contrast, no blank margin, a logo that covers too much, too much data, or a print that’s too small for the distance. Check them in that order. If the code scans but then fails to open, the problem isn’t the code but the link inside it.
+
+The fastest way to find the cause is to upload the image to our [QR code tester](/qr-code-tester). It runs the checks below and tells you what to fix.
+
+## 1. Low contrast
+
+Cameras look for dark squares on a light background. Pale codes, such as light grey, yellow, pastel or gold on white, or a dark code on a dark photo, don’t stand out enough.
+
+**Fix:** make the code darker or the background lighter. Aim for a contrast ratio of at least 4.5:1; our generator warns you below 3:1.
+
+## 2. Inverted colours
+
+Light squares on a dark background look stylish, and most phone cameras read them, but some scanner apps, payment terminals and older phones don’t.
+
+**Fix:** if the code has to work for everyone, keep it dark on light.
+
+## 3. No blank margin
+
+A QR code needs a clear border, called the quiet zone, so the camera can tell where it starts. Text, a border or a busy background right up against the code confuses it. The standard asks for 4 modules (the small squares) on every side.
+
+**Fix:** move other elements away, or shrink the code a little within its space.
+
+## 4. A logo that’s too big
+
+QR codes carry spare data that lets a phone rebuild a covered part, but only up to a point. A logo covering more than about 10 to 15% of the code, or sitting over the corner squares, can tip it over.
+
+**Fix:** make the logo smaller and use high error correction. Our generator raises error correction automatically when you add a logo and warns you if it covers too much.
+
+## 5. Too small for the distance
+
+Each module needs to be large enough for the camera to see. A rough rule: make the code about one tenth of the scanning distance, and never smaller than 2 cm.
+
+**Fix:** print it larger. See [what size a QR code should be](/guides/qr-code-size-for-print).
+
+## 6. Too much data
+
+A long link or a lot of text makes a dense code with tiny squares, which needs a bigger print and a steadier hand.
+
+**Fix:** shorten the content. A [dynamic code](/dynamic-qr-code-generator) holds a short link however long your destination is, so it stays simple.
+
+## 7. Print and surface problems
+
+Blurry or low-resolution files, ink spreading on uncoated paper, glossy laminates that reflect light, and codes wrapped around a bottle or cup all make reading harder.
+
+**Fix:** use a vector file (SVG, PDF or EPS) or a PNG at 300 dpi at the final size, choose a matte finish where you can, and keep codes on curved surfaces small relative to the curve. Our [packaging guide](/guides/how-to-print-qr-codes-on-packaging) has more.
+
+## 8. Fancy shapes
+
+Round dots, rounded eyes and gradients are fine in moderation, but very thin dots, gaps between modules or corner squares redrawn beyond recognition can stop some cameras.
+
+**Fix:** go back to square modules or plain corners, and check the code still scans after each change.
+
+## It scans, but the page doesn’t open
+
+That isn’t a scanning problem. Read the address your phone shows after scanning:
+
+- **A typo or an old address:** if the code is static, you’ll need a new code. If it’s dynamic, fix the destination in your dashboard.
+- **An “inactive” or “upgrade” page:** the code is a dynamic one from a service whose trial or plan has ended. See [why QR codes stop working](/qr-code-stopped-working).
+- **A warning page:** the link was flagged as unsafe by the service or the phone.
+
+## Test before you print
+
+Scan a printed proof at the real size, with at least two phones, an iPhone and an Android, in the light where it will hang. Our generator runs a scan check on every design as you make it, and the [QR code tester](/qr-code-tester) checks finished files from any generator.
