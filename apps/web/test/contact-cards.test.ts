@@ -2,7 +2,14 @@ import { DEFAULT_FIELDS, type VcardFields } from '@qrfinity/core'
 import { codes, destinationHistory, eq, sql, type Database } from '@qrfinity/db'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { runRiskChecks, type AdminContext } from '@/lib/server/admin'
-import { createDynamicCode, duplicateCode, setRules, updateDestination } from '@/lib/server/codes'
+import {
+  createDynamicCode,
+  duplicateCode,
+  setPageStyle,
+  setRules,
+  updateDestination,
+  updateDetails,
+} from '@/lib/server/codes'
 import { FakeEdge, FakeReputation, ctxFor, design, freshDb, makeUser } from './helpers'
 
 let db: Database
@@ -122,5 +129,41 @@ describe('dynamic contact cards', () => {
     const skipped = rows.find((r) => r.id === without.id)!
     expect(skipped.status).toBe('active')
     expect(skipped.nextRiskCheckAt!.getTime()).toBeGreaterThan(Date.now())
+  })
+
+  it('styles the page: template and accent, kept when the details change', async () => {
+    const c = await makeCard()
+    // No accent chosen and a black code: the brand green.
+    expect(lastPut()?.page?.style).toEqual({ template: 'classic', accent: '#0f5132' })
+    await setPageStyle(ctx(), c.id, { template: 'banner', accent: '#C2410C' })
+    expect(lastPut()?.page?.style).toEqual({ template: 'banner', accent: '#c2410c' })
+    await updateDestination(ctx(), c.id, { content: card({ title: 'Owner' }) })
+    expect(lastPut()?.page?.style).toEqual({ template: 'banner', accent: '#c2410c' })
+    expect(lastPut()?.page?.fields.title).toBe('Owner')
+    await expect(setPageStyle(ctx(), c.id, { template: 'neon' })).resolves.toMatchObject({
+      content: { style: { template: 'classic', accent: null } },
+    })
+  })
+
+  it('follows the code’s colour when no accent is chosen', async () => {
+    const c = await makeCard()
+    const before = edge.calls.length
+    await updateDetails(ctx(), c.id, {
+      design: { ...design, foreground: { type: 'solid', color: '#1d4ed8' } },
+    })
+    expect(edge.calls.length).toBe(before + 1)
+    expect(lastPut()?.page?.style?.accent).toBe('#1d4ed8')
+    // With a chosen accent, a design change doesn't touch the page.
+    await setPageStyle(ctx(), c.id, { template: 'classic', accent: '#c2410c' })
+    const after = edge.calls.length
+    await updateDetails(ctx(), c.id, { design })
+    expect(edge.calls.length).toBe(after)
+  })
+
+  it('only styles contact cards', async () => {
+    const link = await createDynamicCode(ctx(), { name: 'L', destination: 'example.com', design })
+    await expect(setPageStyle(ctx(), link.id, { template: 'banner' })).rejects.toThrow(
+      'Only contact cards',
+    )
   })
 })

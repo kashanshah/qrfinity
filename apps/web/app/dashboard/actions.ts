@@ -12,6 +12,7 @@ import {
   duplicateCode,
   renameFolder,
   setCodeTags,
+  setPageStyle,
   setPaused,
   setRules,
   updateDestination,
@@ -74,6 +75,10 @@ export async function moveCodeAction(id: string, folderId: string | null) {
 
 export async function setTagsAction(id: string, tags: string[]) {
   return run(async (ctx) => (await setCodeTags(ctx, id, tags)).tags)
+}
+
+export async function setPageStyleAction(id: string, style: unknown) {
+  return run(async (ctx) => void (await setPageStyle(ctx, id, style)))
 }
 
 export async function setRulesAction(id: string, rules: unknown) {

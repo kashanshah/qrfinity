@@ -11,12 +11,14 @@ import {
   destinationHistoryFor,
   getCode,
   listFolders,
+  pageOf,
 } from '@/lib/server/codes'
 import { serviceContext } from '@/lib/server/context'
 import { shortLinkBase, shortLinkFor } from '@/lib/short-link'
 import { CodeSettings } from './CodeSettings'
 import { EditCode } from './EditCode'
 import { RenameCode } from './RenameCode'
+import { PageStyleEditor } from './PageStyleEditor'
 import { RulesEditor } from './RulesEditor'
 
 const dateTime = new Intl.DateTimeFormat('en-CA', { dateStyle: 'medium', timeStyle: 'short' })
@@ -44,6 +46,7 @@ export default async function CodePage({
     scanReportFor(ctx, { kind: 'code', codeId: id }, d),
     advancedCodeUsage(ctx),
   ])
+  const page = pageOf(code)
   // A code that already uses an advanced feature can add rules without taking another place.
   const isAdvanced = code.customSlug || code.rules !== null
   const link = shortLinkFor(code.slug!)
@@ -97,6 +100,21 @@ export default async function CodePage({
         destination={code.destination ?? ''}
         disabled={code.status === 'disabled'}
       />
+
+      {page ? (
+        <PageStyleEditor
+          id={code.id}
+          slug={code.slug!}
+          fields={page.fields}
+          style={page.style ?? { template: 'classic', accent: null }}
+          codeColor={
+            code.design.foreground.type === 'solid'
+              ? code.design.foreground.color
+              : code.design.foreground.from
+          }
+          disabled={code.status === 'disabled'}
+        />
+      ) : null}
 
       {code.destination ? (
         <RulesEditor

@@ -7,11 +7,14 @@ import {
   parseLinkRecord,
   parseUserAgent,
   pickDestination,
+  renderContactPage,
+  resolveAccent,
   vcardFile,
   vcardFileName,
+  DEFAULT_PAGE_STYLE,
   type LinkRecord,
 } from '@qrfinity/core/edge'
-import { contactPage, disabledPage, notFoundPage, pausedPage } from './pages'
+import { disabledPage, notFoundPage, pausedPage } from './pages'
 
 export type RedirectDeps = {
   defaultDomain: string
@@ -119,7 +122,17 @@ export async function handleRequest(request: Request, deps: RedirectDeps): Promi
     // The page view is the scan; saving the contact afterwards isn't counted again.
     if (request.method === 'GET')
       deps.waitUntil(deps.recordScan(request, record, '').catch(() => undefined))
-    return html(contactPage(deps.siteOrigin, slug, record.page.fields), 200)
+    const style = record.page.style ?? DEFAULT_PAGE_STYLE
+    return html(
+      renderContactPage({
+        fields: record.page.fields,
+        style,
+        accent: resolveAccent(style.accent),
+        slug,
+        siteOrigin: deps.siteOrigin,
+      }),
+      200,
+    )
   }
   if (wantsVcf) return html(notFoundPage(deps.siteOrigin, slug), 404)
 
