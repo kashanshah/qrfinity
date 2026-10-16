@@ -99,6 +99,11 @@ export function LoginForm({
           </div>
           <Button
             onClick={() => authClient.signIn.social({ provider: 'google', callbackURL: next })}
+            icon={
+              // Google's standard "G", unaltered, as its sign-in branding guidelines require.
+              // eslint-disable-next-line @next/next/no-img-element -- static SVG asset
+              <img src="/third-party/google-g.svg" alt="" width={18} height={18} />
+            }
           >
             Continue with Google
           </Button>

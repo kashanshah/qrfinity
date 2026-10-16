@@ -66,7 +66,6 @@ export function CodeSettings({ id, status, folderId, tags, folders }: Props) {
         hint={folders.length ? undefined : 'Create folders from the codes list.'}
       />
       <form
-        className="grid items-end gap-3 sm:grid-cols-[1fr_auto]"
         onSubmit={(e) => {
           e.preventDefault()
           act(
@@ -80,10 +79,12 @@ export function CodeSettings({ id, status, folderId, tags, folders }: Props) {
           hint="Separate with commas, like: print, lobby"
           value={tagText}
           onChange={(e) => setTagText(e.target.value)}
+          action={
+            <Button type="submit" disabled={pending}>
+              Save tags
+            </Button>
+          }
         />
-        <Button type="submit" disabled={pending}>
-          Save tags
-        </Button>
       </form>
 
       <div className="flex flex-wrap gap-2 border-t border-hairline pt-4">
