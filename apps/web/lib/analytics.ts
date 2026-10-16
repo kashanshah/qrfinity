@@ -72,6 +72,7 @@ export type AnalyticsEvent =
       name: 'link_checked'
       props: { tool: 'scanner' | 'checker'; outcome: string; known_service: boolean }
     }
+  | { name: 'checkout_started'; props: { plan: string; interval: 'month' | 'year' } }
 
 type Gtag = (...args: unknown[]) => void
 type PostHogLike = { capture: (event: string, props?: Record<string, unknown>) => void }

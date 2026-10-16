@@ -1,5 +1,6 @@
-import { codes, eq, sql } from '@qrfinity/db'
+import { codes, eq, inArray, sql, subscriptions } from '@qrfinity/db'
 import { adminContext } from '@/lib/server/context'
+import { env } from '@/lib/server/env'
 import { indexNowStatus } from '@/lib/server/indexnow'
 import { getFreeAdvancedCodeAllowance } from '@/lib/server/settings'
 import { AllowanceForm } from './AllowanceForm'
@@ -8,7 +9,7 @@ import { IndexNowPanel } from './IndexNowPanel'
 export default async function AdminSettings() {
   const { db } = await adminContext()
   const status = indexNowStatus()
-  const [allowance, [stats]] = await Promise.all([
+  const [allowance, [stats], paying] = await Promise.all([
     getFreeAdvancedCodeAllowance(db),
     db
       .select({
@@ -17,7 +18,13 @@ export default async function AdminSettings() {
       })
       .from(codes)
       .where(eq(codes.customSlug, true)),
+    db
+      .select({ plan: subscriptions.plan, n: sql<number>`count(*)::int` })
+      .from(subscriptions)
+      .where(inArray(subscriptions.status, ['active', 'trialing', 'past_due']))
+      .groupBy(subscriptions.plan),
   ])
+  const stripe = env.stripe
   return (
     <div className="flex max-w-[720px] flex-col gap-6">
       <h1 className="heading text-ink">Settings</h1>
@@ -36,6 +43,32 @@ export default async function AdminSettings() {
         <div className="mt-4">
           <AllowanceForm value={allowance} />
         </div>
+      </section>
+
+      <section className="rounded-lg border border-hairline bg-surface p-4 md:p-6">
+        <h2 className="subheading text-ink">Payments (Stripe)</h2>
+        <p className="mt-1 text-ink-muted">
+          Paid plans open once STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are set and the site is
+          redeployed. Setup steps are in docs/billing.md.
+        </p>
+        <ul className="body-small mt-3 flex flex-col gap-1 text-ink">
+          <li>
+            {stripe ? 'Yes' : 'No'}: Stripe keys are set
+            {stripe ? (
+              <span className="text-ink-muted">
+                {' '}
+                ({stripe.secretKey.includes('_live_') ? 'live mode' : 'test mode'})
+              </span>
+            ) : null}
+          </li>
+          <li className="text-ink-muted">
+            Webhook endpoint: <span className="mono">{env.appUrl}/api/billing/webhook</span>
+          </li>
+          <li className="text-ink-muted">
+            Paying now:{' '}
+            {paying.length ? paying.map((p) => `${p.n} on ${p.plan}`).join(', ') : 'nobody yet'}.
+          </li>
+        </ul>
       </section>
 
       <section className="rounded-lg border border-hairline bg-surface p-4 md:p-6">

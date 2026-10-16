@@ -97,3 +97,45 @@ test.describe('content pages', () => {
     await expect(page.getByText('You’re on the list.')).toBeVisible()
   })
 })
+
+test('the theme follows the device, and a choice in the header is remembered', async ({
+  page,
+  isMobile,
+}) => {
+  // Wider screens: a dropdown in the header. Phones: the same choices in the menu.
+  const choose = async (current: string, next: string) => {
+    if (isMobile) await page.getByLabel('Menu').click()
+    else await page.getByLabel(`Theme: ${current}`).click()
+    await page.getByRole('button', { name: next }).click()
+  }
+  await page.emulateMedia({ colorScheme: 'light' })
+  await page.goto('/pricing')
+  const html = page.locator('html')
+  await expect(html).not.toHaveAttribute('data-theme')
+  await expect(page.getByRole('img', { name: 'QRfinity' }).first()).toHaveAttribute(
+    'src',
+    '/brand/qrfinity-logo.svg',
+  )
+
+  await choose('Auto (match device)', 'Dark')
+  await expect(html).toHaveAttribute('data-theme', 'dark')
+  await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute(
+    'content',
+    '#0e1411',
+  )
+
+  // Set before the first paint on the next page, from storage.
+  await page.goto('/')
+  await expect(html).toHaveAttribute('data-theme', 'dark')
+  const logo = page.locator('header img:visible')
+  await expect(logo).toHaveCount(1)
+  await expect(logo).toHaveAttribute('src', '/brand/qrfinity-logo-reversed.svg')
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(
+    'rgb(14, 20, 17)',
+  )
+
+  await choose('Dark', 'Auto (match device)')
+  await expect(html).not.toHaveAttribute('data-theme')
+  await page.reload()
+  await expect(html).not.toHaveAttribute('data-theme')
+})

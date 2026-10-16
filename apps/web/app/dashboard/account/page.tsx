@@ -1,25 +1,42 @@
 import { account, and, codes, eq, isNull, sql } from '@qrfinity/db'
 import { Download, FileJson, FileSpreadsheet, Infinity as InfinityIcon } from 'lucide-react'
+import { grantsPlan } from '@qrfinity/core'
 import type { Metadata } from 'next'
-import { getDb } from '@/lib/server/db'
-import { requireUser } from '@/lib/server/context'
+import { currentSubscription, syncCheckout } from '@/lib/server/billing'
+import { advancedCodeUsage } from '@/lib/server/codes'
+import { serviceContext } from '@/lib/server/context'
+import { getBilling } from '@/lib/server/stripe'
 import { Avatar } from '../DashboardNav'
 import { DeleteAccount } from './DeleteAccount'
+import { PlanSection } from './PlanSection'
 
 export const metadata: Metadata = { title: 'Account' }
 
 const date = (d: Date) =>
   d.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })
 
-export default async function AccountPage() {
-  const user = await requireUser('/dashboard/account')
-  const db = getDb()
-  const [providers, [counts]] = await Promise.all([
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ checkout?: string; billing?: string }>
+}) {
+  const params = await searchParams
+  const ctx = await serviceContext('/dashboard/account')
+  const { user, db } = ctx
+  const billing = getBilling()
+  // Back from Stripe checkout: store the new subscription now rather than waiting for the webhook.
+  const checkout = params.checkout?.startsWith('cs_') ? params.checkout : null
+  if (billing && checkout) {
+    await syncCheckout(db, billing, user.id, checkout).catch((e) => console.error(e))
+  }
+  const [providers, [counts], usage, subscription] = await Promise.all([
     db.select({ providerId: account.providerId }).from(account).where(eq(account.userId, user.id)),
     db
       .select({ total: sql<number>`count(*)::int` })
       .from(codes)
       .where(and(eq(codes.userId, user.id), isNull(codes.deletedAt))),
+    advancedCodeUsage(ctx),
+    currentSubscription(db, user.id),
   ])
   const google = providers.some((p) => p.providerId === 'google')
   const total = counts?.total ?? 0
@@ -65,6 +82,16 @@ export default async function AccountPage() {
         </span>
       </p>
 
+      <PlanSection
+        plan={usage.plan}
+        used={usage.used}
+        allowance={usage.allowance}
+        subscription={subscription}
+        billingOn={billing !== null}
+        justSubscribed={checkout !== null}
+        portalError={params.billing === 'error'}
+      />
+
       <section
         aria-labelledby="export"
         className="rounded-lg border border-hairline bg-surface p-4 md:p-6"
@@ -102,7 +129,10 @@ export default async function AccountPage() {
         </ul>
       </section>
 
-      <DeleteAccount email={user.email} />
+      <DeleteAccount
+        email={user.email}
+        paying={subscription !== null && grantsPlan(subscription.status)}
+      />
     </div>
   )
 }

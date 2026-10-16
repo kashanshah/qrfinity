@@ -1,13 +1,7 @@
-import {
-  entitlements,
-  isFeature,
-  isPlan,
-  type Feature,
-  type FeatureFlag,
-  type Plan,
-} from '@qrfinity/core'
+import { entitlements, isFeature, isPlan, type Feature, type FeatureFlag } from '@qrfinity/core'
 import { eq, featureFlags, inArray, user, type Database } from '@qrfinity/db'
 import { audit, type AdminContext } from './admin'
+import { effectivePlanFor } from './billing'
 import { ServiceError } from './errors'
 
 let cache: { at: number; flags: FeatureFlag[] } | null = null
@@ -30,9 +24,8 @@ export function invalidateFlags() {
 
 /** What a user can use: their plan plus flags. Free features are always included. */
 export async function getEntitlements(db: Database, userId: string): Promise<Set<Feature>> {
-  const [row] = await db.select({ plan: user.plan }).from(user).where(eq(user.id, userId))
-  const plan: Plan = isPlan(row?.plan) ? row.plan : 'free'
-  return entitlements(plan, await loadFlags(db), userId)
+  const [plan, flags] = await Promise.all([effectivePlanFor(db, userId), loadFlags(db)])
+  return entitlements(plan, flags, userId)
 }
 
 export async function setUserPlan(ctx: AdminContext, userId: string, plan: string) {

@@ -41,6 +41,31 @@
     color-scheme: light dark;
     -webkit-text-size-adjust: 100%;
   }
+  /* A theme chosen in the header (lib/theme.ts) also sets form controls and scrollbars. */
+  html[data-theme='light'] {
+    color-scheme: light;
+  }
+  html[data-theme='dark'] {
+    color-scheme: dark;
+  }
+  /* Artwork with a light and a dark version (the logo): show the one for the active theme. */
+  .theme-dark-only {
+    display: none;
+  }
+  html[data-theme='dark'] .theme-dark-only {
+    display: revert;
+  }
+  html[data-theme='dark'] .theme-light-only {
+    display: none;
+  }
+  @media (prefers-color-scheme: dark) {
+    html:not([data-theme='light']) .theme-dark-only {
+      display: revert;
+    }
+    html:not([data-theme='light']) .theme-light-only {
+      display: none;
+    }
+  }
   body {
     background: var(--ground);
     color: var(--ink);
