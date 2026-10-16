@@ -12,6 +12,8 @@ import {
   cleanVcardFields,
   encodeContent,
   isPageType,
+  cleanPageStyle,
+  resolveAccent,
   pageSummary,
   pageWebsite,
   CONTENT_TYPES,
@@ -20,6 +22,7 @@ import {
   type Design,
   type EdgeSync,
   type HostedPage,
+  type PageStyle,
   type LinkRecord,
   type LinkStatus,
   type RateLimiter,
@@ -116,7 +119,9 @@ function resolveTarget(
       )
     // The website is a link on our domain's page: same checks as a destination.
     if (fields.website.trim()) checkDestination(ctx, fields.website)
-    return { destination: null, page: { type: 'vcard', fields } }
+    // A missing style keeps the default; updateDestination carries over the saved one.
+    const style = input.content.style ? cleanPageStyle(input.content.style) : undefined
+    return { destination: null, page: { type: 'vcard', fields, ...(style ? { style } : {}) } }
   }
   return { destination: checkDestination(ctx, input.destination ?? ''), page: null }
 }
@@ -140,7 +145,17 @@ async function screenTarget(ctx: ServiceContext, t: Target): Promise<RiskFields>
 /** The hosted page a stored code serves, if it's a contact card code. */
 export function pageOf(row: Pick<CodeRow, 'destination' | 'content'>): HostedPage | null {
   if (row.destination || !row.content || !isPageType(row.content.type)) return null
-  return { type: 'vcard', fields: cleanVcardFields(row.content.fields) }
+  return {
+    type: 'vcard',
+    fields: cleanVcardFields(row.content.fields),
+    style: cleanPageStyle(row.content.style),
+  }
+}
+
+/** The colour the printed code is drawn in: the default accent for its contact page. */
+function designColor(design: Design): string {
+  const f = design.foreground
+  return f.type === 'solid' ? f.color : f.from
 }
 
 async function limit(ctx: ServiceContext, action: string, cfg: { limit: number; window: number }) {
@@ -194,7 +209,18 @@ export async function syncCode(db: Database, edge: EdgeSync, codeId: string): Pr
         v: row.version,
         // Paused rules (beyond the owner's allowance) aren't sent: scans use the destination.
         ...(row.rules?.length && !row.advancedPaused && !page ? { rules: row.rules } : {}),
-        ...(page ? { page } : {}),
+        ...(page
+          ? {
+              page: {
+                ...page,
+                // The edge gets a concrete colour, so the Worker needs nothing else to render.
+                style: {
+                  template: page.style?.template ?? 'classic',
+                  accent: resolveAccent(page.style?.accent ?? null, designColor(row.design)),
+                },
+              },
+            }
+          : {}),
       }
       await edge.put(row.domain, row.slug, record)
     }
@@ -497,6 +523,8 @@ export async function updateDestination(
     )
   const next = resolveTarget(ctx, input)
   const before = pageOf(row)
+  // Editing the card's details keeps its template and colour.
+  if (next.page && !next.page.style && before?.style) next.page.style = before.style
   const content =
     next.page ?? (input.content === undefined ? row.content : cleanContent(input.content))
   const unchanged = next.page
@@ -611,17 +639,54 @@ export async function updateDetails(
   id: string,
   input: { name?: string; design?: Design; folderId?: string | null },
 ) {
-  await ownedCode(ctx, id)
+  const row = await ownedCode(ctx, id)
   if (input.folderId) await ownedFolder(ctx, input.folderId)
   await limit(ctx, 'edit-hour', LIMITS.editPerHour)
-  await ctx.db
-    .update(codes)
-    .set({
-      ...(input.name !== undefined ? { name: cleanName(input.name) } : {}),
-      ...(input.design !== undefined ? { design: sanitizeDesign(input.design) } : {}),
-      ...(input.folderId !== undefined ? { folderId: input.folderId } : {}),
-    })
-    .where(eq(codes.id, id))
+  // A contact page that matches the code's colour changes with the design, so push it again.
+  const page = pageOf(row)
+  const repaint = input.design !== undefined && page !== null && !page.style?.accent
+  await ctx.db.transaction(async (tx) => {
+    const [u] = await tx
+      .update(codes)
+      .set({
+        ...(input.name !== undefined ? { name: cleanName(input.name) } : {}),
+        ...(input.design !== undefined ? { design: sanitizeDesign(input.design) } : {}),
+        ...(input.folderId !== undefined ? { folderId: input.folderId } : {}),
+        ...(repaint ? { version: sql`${codes.version} + 1` } : {}),
+      })
+      .where(eq(codes.id, id))
+      .returning({ version: codes.version })
+    if (repaint) await enqueue(tx, id, u!.version)
+  })
+  if (repaint) await syncCode(ctx.db, ctx.edge, id)
+  return getCode(ctx, id)
+}
+
+/** Sets a contact card's template and accent colour (null = match the printed code). */
+export async function setPageStyle(ctx: ServiceContext, id: string, input: unknown) {
+  const row = await ownedCode(ctx, id)
+  const page = pageOf(row)
+  if (!page) throw new ServiceError('Only contact cards have a page to style.', 'invalid')
+  if (row.status === 'disabled')
+    throw new ServiceError(
+      'This code was turned off for breaking our rules and can’t be edited.',
+      'forbidden',
+    )
+  const style: PageStyle = cleanPageStyle(input)
+  if (JSON.stringify(style) === JSON.stringify(page.style)) return getCode(ctx, id)
+  await limit(ctx, 'edit-hour', LIMITS.editPerHour)
+  await ctx.db.transaction(async (tx) => {
+    const [u] = await tx
+      .update(codes)
+      .set({
+        content: { type: 'vcard', fields: page.fields, style },
+        version: sql`${codes.version} + 1`,
+      })
+      .where(eq(codes.id, id))
+      .returning({ version: codes.version })
+    await enqueue(tx, id, u!.version)
+  })
+  await syncCode(ctx.db, ctx.edge, id)
   return getCode(ctx, id)
 }
 

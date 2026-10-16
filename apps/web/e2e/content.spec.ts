@@ -106,6 +106,17 @@ test.describe('content pages', () => {
     ).toHaveText('Scans', { timeout: 15_000 })
   })
 
+  test('the pricing page compares every plan', async ({ page }) => {
+    await page.goto('/pricing')
+    const table = page.getByRole('table', { name: 'Features and limits of each QRfinity plan' })
+    await expect(table.getByRole('columnheader', { name: /Unlimited/ })).toBeVisible()
+    const row = table.getByRole('row', { name: /Codes that can use advanced features/ })
+    await expect(row).toContainText('1 code')
+    await expect(row).toContainText('100 codes')
+    await expect(row).toContainText('Every code')
+    await expect(table.getByRole('row', { name: /Free trial/ })).toContainText('30 days')
+  })
+
   test('the pricing waitlist accepts an email', async ({ page }) => {
     await page.goto('/pricing')
     await page.getByLabel('Your email').fill(`waitlist-${Date.now()}@example.com`)

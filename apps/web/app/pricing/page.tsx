@@ -6,6 +6,7 @@ import { FactBlock } from '@/components/content/Prose'
 import { HOME, PRICING } from '@/content/registry'
 import { env } from '@/lib/server/env'
 import { pageMetadata } from '@/lib/seo'
+import { ComparePlans } from './ComparePlans'
 import { PlanPicker } from './PlanPicker'
 import { WaitlistForm } from './WaitlistForm'
 
@@ -15,10 +16,11 @@ const FREE = [
   'Unlimited static QR codes, no sign-up',
   'Unlimited dynamic QR codes with a free account',
   'Edit where a dynamic code points, any time',
+  'Dynamic contact cards with four page templates, updated any time',
   'Scan analytics: totals, unique scans, devices, countries, up to 2 years of history, CSV download',
   'Every design option: colours, shapes, logo, frames',
   'Every format: PNG, JPG, SVG, PDF and EPS',
-  'No watermark, no trial, no expiry',
+  'No watermark, no ads, no expiry: free features are never a trial',
 ]
 
 const ADVANCED: { name: string; detail: string; ready: boolean }[] = [
@@ -187,7 +189,10 @@ export default function PricingPage() {
         </h2>
         <p className="mt-1 max-w-[65ch] text-ink-muted">
           Every plan includes every feature. Plans differ only in how many codes can use advanced
-          features.
+          features.{' '}
+          <a href="#compare" className="text-evergreen underline">
+            Compare plans
+          </a>
         </p>
         <PlanPicker billingOn={billingOn} />
         {billingOn ? null : (
@@ -201,6 +206,8 @@ export default function PricingPage() {
           </div>
         )}
       </section>
+
+      <ComparePlans />
 
       <div className="max-w-[960px]">
         <Faq items={faq} />
