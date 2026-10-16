@@ -13,6 +13,7 @@ import {
   renameFolder,
   setCodeTags,
   setPaused,
+  setRules,
   updateDestination,
   updateDetails,
 } from '@/lib/server/codes'
@@ -71,6 +72,11 @@ export async function moveCodeAction(id: string, folderId: string | null) {
 
 export async function setTagsAction(id: string, tags: string[]) {
   return run(async (ctx) => (await setCodeTags(ctx, id, tags)).tags)
+}
+
+export async function setRulesAction(id: string, rules: unknown) {
+  // Returns the rules as stored (destinations normalized), so the editor shows exactly those.
+  return run(async (ctx) => (await setRules(ctx, id, rules)).rules ?? [])
 }
 
 export async function setPausedAction(id: string, paused: boolean) {

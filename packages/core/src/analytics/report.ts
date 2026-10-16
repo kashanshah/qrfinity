@@ -22,6 +22,7 @@ export type ScanReport = {
   os: Breakdown
   browsers: Breakdown
   referrers: Breakdown
+  rules: Breakdown
 }
 
 export const BREAKDOWNS = {
@@ -31,6 +32,7 @@ export const BREAKDOWNS = {
   os: 'os',
   browsers: 'browser',
   referrers: 'referrer',
+  rules: 'rule',
 } as const satisfies Record<string, ScanBlob>
 
 const SAFE_ID = /^[A-Za-z0-9_-]{1,64}$/

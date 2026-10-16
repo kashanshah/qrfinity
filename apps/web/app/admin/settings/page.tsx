@@ -1,4 +1,4 @@
-import { codes, eq, inArray, sql, subscriptions } from '@qrfinity/db'
+import { and, codes, eq, inArray, sql, subscriptions } from '@qrfinity/db'
 import { adminContext } from '@/lib/server/context'
 import { env } from '@/lib/server/env'
 import { indexNowStatus } from '@/lib/server/indexnow'
@@ -21,7 +21,13 @@ export default async function AdminSettings() {
     db
       .select({ plan: subscriptions.plan, n: sql<number>`count(*)::int` })
       .from(subscriptions)
-      .where(inArray(subscriptions.status, ['active', 'trialing', 'past_due']))
+      .where(
+        and(
+          inArray(subscriptions.status, ['active', 'trialing', 'past_due']),
+          // A failed first payment after a trial doesn't count (see grantsPlan).
+          sql`not (${subscriptions.status} = 'past_due' and ${subscriptions.trialEnd} is not null and ${subscriptions.currentPeriodStart} <= ${subscriptions.trialEnd})`,
+        ),
+      )
       .groupBy(subscriptions.plan),
   ])
   const stripe = env.stripe
@@ -31,10 +37,11 @@ export default async function AdminSettings() {
       <section className="rounded-lg border border-hairline bg-surface p-4 md:p-6">
         <h2 className="subheading text-ink">Free codes with advanced features</h2>
         <p className="mt-1 text-ink-muted">
-          How many codes each free account can use advanced features on (custom short links today;
-          redirect rules and passwords later). Paid plans get 10, 100 or unlimited, and never fewer
-          than this. Lowering it only affects new codes; existing ones keep working and stay with
-          their owners.
+          How many codes each free account can use advanced features on (custom short links and
+          redirect rules; passwords later). Paid plans get 10, 100 or unlimited, and never fewer
+          than this. Lowering it pauses redirect rules on each account’s newest codes beyond the new
+          number (scans go to the main destination); custom short links keep working. Raising it
+          resumes them.
         </p>
         <p className="body-small mt-2 text-ink-muted">
           In use: {stats?.links ?? 0} codes with advanced features across {stats?.owners ?? 0}{' '}

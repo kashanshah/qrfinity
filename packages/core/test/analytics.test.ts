@@ -131,6 +131,7 @@ describe('Analytics Engine SQL', () => {
         os: empty,
         browsers: empty,
         referrers: empty,
+        rules: empty,
       },
       now,
     )

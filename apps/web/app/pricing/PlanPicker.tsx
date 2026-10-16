@@ -38,6 +38,12 @@ export function PlanPicker({ billingOn }: { billingOn: boolean }) {
   return (
     <div className="mt-5">
       {billingOn ? (
+        <p className="mb-4 max-w-[65ch] rounded-lg bg-mint px-4 py-3 text-ink">
+          Your first plan is free for a month. Add a card at checkout; we charge it after 30 days
+          unless you cancel before then.
+        </p>
+      ) : null}
+      {billingOn ? (
         <div role="group" aria-label="Billing period" className="mb-4 flex gap-1">
           <button
             type="button"

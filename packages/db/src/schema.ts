@@ -10,6 +10,7 @@ import type {
   LinkStatus,
   PaidPlan,
   Plan,
+  RedirectRule,
   SubscriptionStatus,
 } from '@qrfinity/core'
 import { sql } from 'drizzle-orm'
@@ -167,6 +168,14 @@ export const codes = pgTable(
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
     /** True when the owner chose the slug (counts against their custom short link allowance). */
     customSlug: boolean('custom_slug').notNull().default(false),
+    /** Redirect rules (an advanced feature), checked in order before the destination. */
+    rules: jsonb('rules').$type<RedirectRule[]>(),
+    /**
+     * True while the code is beyond its owner's advanced-feature allowance (no plan, or a smaller
+     * one). Rules then stop applying and scans go to the destination; custom short links keep
+     * working. Maintained by refreshAdvancedFeatures in apps/web/lib/server/codes.ts.
+     */
+    advancedPaused: boolean('advanced_paused').notNull().default(false),
   },
   (t) => [
     uniqueIndex('codes_domain_slug_idx').on(t.domain, t.slug),
@@ -315,6 +324,8 @@ export const scanEvents = pgTable(
     browser: text('browser').notNull().default(''),
     referrer: text('referrer').notNull().default(''),
     visitor: text('visitor').notNull().default(''),
+    /** Label of the redirect rule that sent the scan; '' for the main destination. */
+    rule: text('rule').notNull().default(''),
   },
   (t) => [
     index('scan_events_code_idx').on(t.codeId, t.at),
@@ -333,6 +344,10 @@ export const redirectLookup = pgView('redirect_lookup').as((qb) =>
       destination: codes.destination,
       status: codes.status,
       version: codes.version,
+      // Paused rules are left out here, so the Worker never sees them.
+      rules: sql<
+        RedirectRule[] | null
+      >`case when ${codes.advancedPaused} then null else ${codes.rules} end`.as('rules'),
     })
     .from(codes)
     .where(sql`${codes.kind} = 'dynamic' and ${codes.deletedAt} is null`),
@@ -404,7 +419,10 @@ export const subscriptions = pgTable(
     plan: text('plan').$type<PaidPlan>().notNull(),
     interval: text('interval').$type<BillingInterval>().notNull(),
     status: text('status').$type<SubscriptionStatus>().notNull(),
+    currentPeriodStart: timestamp('current_period_start', { withTimezone: true }),
     currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }),
+    /** End of the free trial, when the subscription started with one. */
+    trialEnd: timestamp('trial_end', { withTimezone: true }),
     cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
     createdAt: createdAt(),
     updatedAt: updatedAt(),

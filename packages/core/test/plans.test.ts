@@ -53,10 +53,11 @@ describe('plans', () => {
     expect(free.has('dynamicCodes')).toBe(true)
     expect(free.has('analyticsHistory')).toBe(true)
     expect(free.has('customSlugs')).toBe(true)
-    expect(free.has('redirectRules')).toBe(false)
-    const flags = [{ key: 'redirectRules' as const, enabled: false, userIds: ['u1'] }]
-    expect(entitlements('free', flags, 'u1').has('redirectRules')).toBe(true)
-    expect(entitlements('unlimited', flags, 'u2').has('redirectRules')).toBe(false)
+    expect(free.has('redirectRules')).toBe(true)
+    expect(free.has('passwordProtection')).toBe(false)
+    const flags = [{ key: 'passwordProtection' as const, enabled: false, userIds: ['u1'] }]
+    expect(entitlements('free', flags, 'u1').has('passwordProtection')).toBe(true)
+    expect(entitlements('unlimited', flags, 'u2').has('passwordProtection')).toBe(false)
     expect(analyticsRanges(free)).toContain(365)
   })
 })

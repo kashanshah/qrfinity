@@ -34,8 +34,11 @@ function setup(
     recordScan: vi.fn(async () => undefined),
     waitUntil: (p) => void pending.push(p),
   }
-  const get = async (path: string, init?: RequestInit) => {
-    const res = await handleRequest(new Request('https://qrfinity.link' + path, init), deps)
+  const get = async (path: string, init?: RequestInit, cf?: { country?: string }) => {
+    const req = new Request('https://qrfinity.link' + path, init)
+    // Cloudflare adds request.cf; plain Node requests don't have it.
+    if (cf) Object.defineProperty(req, 'cf', { value: cf })
+    const res = await handleRequest(req, deps)
     await Promise.all(pending)
     return res
   }
@@ -135,5 +138,70 @@ describe('redirect worker', () => {
       throw new Error('AE down')
     })
     expect((await get('/aB3xK9q')).status).toBe(302)
+  })
+
+  describe('redirect rules', () => {
+    const IPHONE =
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148'
+    const ANDROID =
+      'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 Mobile Safari/537.36'
+    const withRules = rec({
+      rules: [
+        { name: '', when: { type: 'device', devices: ['ios'] }, dest: 'https://apps.apple.com/x' },
+        {
+          name: 'Play',
+          when: { type: 'device', devices: ['android'] },
+          dest: 'https://play.example',
+        },
+        { name: '', when: { type: 'country', countries: ['FR'] }, dest: 'https://fr.example' },
+        {
+          name: 'Lunch',
+          when: { type: 'schedule', timezone: 'UTC', days: [5], from: '11:00', to: '15:00' },
+          dest: 'https://lunch.example',
+        },
+      ],
+    })
+
+    it('sends each phone to its own store and records which rule matched', async () => {
+      const { get, deps } = setup({ kv: { aB3xK9q: withRules } })
+      const ios = await get('/aB3xK9q', { headers: { 'user-agent': IPHONE } })
+      expect(ios.headers.get('location')).toBe('https://apps.apple.com/x')
+      expect(deps.recordScan).toHaveBeenLastCalledWith(
+        expect.any(Request),
+        withRules,
+        'iPhone and iPad',
+      )
+      const android = await get(
+        '/aB3xK9q',
+        { headers: { 'user-agent': ANDROID } },
+        { country: 'FR' },
+      )
+      expect(android.headers.get('location')).toBe('https://play.example')
+      expect(deps.recordScan).toHaveBeenLastCalledWith(expect.any(Request), withRules, 'Play')
+    })
+
+    it('uses the country, then the time, then the main destination', async () => {
+      const { get, deps } = setup({ kv: { aB3xK9q: withRules } })
+      deps.now = () => new Date('2026-10-16T12:00:00Z') // Friday noon UTC
+      expect((await get('/aB3xK9q', undefined, { country: 'FR' })).headers.get('location')).toBe(
+        'https://fr.example',
+      )
+      expect((await get('/aB3xK9q', undefined, { country: 'CA' })).headers.get('location')).toBe(
+        'https://lunch.example',
+      )
+      deps.now = () => new Date('2026-10-16T18:00:00Z')
+      expect((await get('/aB3xK9q', undefined, { country: 'CA' })).headers.get('location')).toBe(
+        'https://example.com/menu',
+      )
+      expect(deps.recordScan).toHaveBeenLastCalledWith(expect.any(Request), withRules, '')
+    })
+
+    it('ignores a malformed rule instead of failing the scan', async () => {
+      const broken = { ...withRules, rules: [{ name: '', when: { type: '?' }, dest: 'https://x' }] }
+      const { get } = setup({ kv: { aB3xK9q: broken as unknown as LinkRecord } })
+      const res = await get('/aB3xK9q', { headers: { 'user-agent': IPHONE } })
+      expect(res.status).toBe(302)
+      expect(res.headers.get('location')).toBe('https://example.com/menu')
+    })
   })
 })

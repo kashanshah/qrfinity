@@ -32,6 +32,7 @@ describe('daily roll-ups', () => {
       os: empty,
       browsers: empty,
       referrers: empty,
+      rules: empty,
     })
     expect(rollups).toHaveLength(1)
     expect(rollups[0]).toMatchObject({

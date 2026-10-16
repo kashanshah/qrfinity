@@ -1,14 +1,14 @@
 import {
-  effectivePlan,
+  TRIAL_DAYS,
   grantsPlan,
-  isPlan,
   type Billing,
   type BillingInterval,
+  type EdgeSync,
   type PaidPlan,
-  type Plan,
 } from '@qrfinity/core'
 import { and, desc, eq, isNull, subscriptions, user, type Database } from '@qrfinity/db'
 import { audit } from './admin'
+import { refreshAdvancedFeatures } from './codes'
 import { ServiceError } from './errors'
 
 /**
@@ -16,16 +16,16 @@ import { ServiceError } from './errors'
  * webhook (re-read, never trusted from the event body, so late or repeated events are harmless).
  */
 
-/** The plan in effect: the higher of the admin-set plan and any paying subscription. */
-export async function effectivePlanFor(db: Database, userId: string): Promise<Plan> {
-  const [[row], subs] = await Promise.all([
-    db.select({ plan: user.plan }).from(user).where(eq(user.id, userId)),
-    db
-      .select({ plan: subscriptions.plan, status: subscriptions.status })
-      .from(subscriptions)
-      .where(eq(subscriptions.userId, userId)),
-  ])
-  return effectivePlan(isPlan(row?.plan) ? row.plan : 'free', subs)
+export { effectivePlanFor } from './plan'
+
+/** True when the user has never had a subscription, so their first plan starts with a free month. */
+export async function trialAvailable(db: Database, userId: string) {
+  const [row] = await db
+    .select({ id: subscriptions.id })
+    .from(subscriptions)
+    .where(eq(subscriptions.userId, userId))
+    .limit(1)
+  return !row
 }
 
 /** The subscription to show on the account page: a paying one first, else the latest. */
@@ -35,7 +35,7 @@ export async function currentSubscription(db: Database, userId: string) {
     .from(subscriptions)
     .where(eq(subscriptions.userId, userId))
     .orderBy(desc(subscriptions.createdAt))
-  return subs.find((s) => grantsPlan(s.status)) ?? subs[0] ?? null
+  return subs.find((s) => grantsPlan(s)) ?? subs[0] ?? null
 }
 
 async function customerFor(db: Database, billing: Billing, userId: string) {
@@ -72,13 +72,15 @@ export async function planChangeUrl(
 ) {
   const customerId = await customerFor(db, billing, userId)
   const current = await currentSubscription(db, userId)
-  if (current && grantsPlan(current.status)) return billing.portalUrl(customerId, urls.portalReturn)
+  if (current && grantsPlan(current)) return billing.portalUrl(customerId, urls.portalReturn)
   return billing.checkoutUrl({
     customerId,
     plan,
     interval,
     successUrl: urls.success,
     cancelUrl: urls.cancel,
+    // The free month is for a first plan only: anyone who has subscribed before pays from day one.
+    ...((await trialAvailable(db, userId)) ? { trialDays: TRIAL_DAYS } : {}),
   })
 }
 
@@ -96,8 +98,17 @@ export async function billingPortalUrl(
   return billing.portalUrl(row.customerId, returnUrl)
 }
 
-/** Re-reads one subscription from the provider and stores it. Unknown customers are ignored. */
-export async function syncSubscription(db: Database, billing: Billing, subscriptionId: string) {
+/**
+ * Re-reads one subscription from the provider and stores it, then applies the (possibly new)
+ * allowance to the owner's codes. Unknown customers are ignored. With `edge`, codes whose advanced
+ * features pause or resume are pushed now; otherwise the outbox cron pushes them.
+ */
+export async function syncSubscription(
+  db: Database,
+  billing: Billing,
+  subscriptionId: string,
+  edge?: EdgeSync,
+) {
   const state = await billing.subscription(subscriptionId)
   if (!state) return null
   const [owner] = await db
@@ -118,13 +129,16 @@ export async function syncSubscription(db: Database, billing: Billing, subscript
     plan: state.plan,
     interval: state.interval,
     status: state.status,
+    currentPeriodStart: state.currentPeriodStart,
     currentPeriodEnd: state.currentPeriodEnd,
     cancelAtPeriodEnd: state.cancelAtPeriodEnd,
+    trialEnd: state.trialEnd,
   }
   await db
     .insert(subscriptions)
     .values({ id: state.id, ...values })
     .onConflictDoUpdate({ target: subscriptions.id, set: values })
+  await refreshAdvancedFeatures(db, owner.id, edge)
   if (before?.plan !== state.plan || before?.status !== state.status)
     await audit(db, 'billing', 'billing.subscription', 'user', owner.id, {
       subscription: state.id,
@@ -141,9 +155,10 @@ export async function handleBillingWebhook(
   billing: Billing,
   rawBody: string,
   signature: string,
+  edge?: EdgeSync,
 ) {
   const event = await billing.webhook(rawBody, signature)
-  if (event) await syncSubscription(db, billing, event.subscriptionId)
+  if (event) await syncSubscription(db, billing, event.subscriptionId, edge)
 }
 
 /**
@@ -155,6 +170,7 @@ export async function syncCheckout(
   billing: Billing,
   userId: string,
   checkoutId: string,
+  edge?: EdgeSync,
 ) {
   const [row] = await db
     .select({ customerId: user.billingCustomerId })
@@ -162,7 +178,7 @@ export async function syncCheckout(
     .where(eq(user.id, userId))
   const done = await billing.checkoutSubscription(checkoutId)
   if (!done || !row?.customerId || done.customerId !== row.customerId) return null
-  return syncSubscription(db, billing, done.subscriptionId)
+  return syncSubscription(db, billing, done.subscriptionId, edge)
 }
 
 /** Account deletion: end every open subscription now, so a deleted account is never charged. */

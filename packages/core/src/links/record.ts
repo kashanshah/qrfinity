@@ -1,4 +1,5 @@
 /** The record the redirect Worker reads from KV for every scan. Postgres is the source of truth. */
+import { parseRules, type RedirectRule } from './rules'
 
 export const LINK_STATUSES = ['active', 'paused', 'disabled'] as const
 export type LinkStatus = (typeof LINK_STATUSES)[number]
@@ -12,6 +13,8 @@ export type LinkRecord = {
   owner: string
   /** Increases with every change; a lower version never overwrites a higher one. */
   v: number
+  /** Redirect rules, checked in order before `dest`. Absent when none, or when paused. */
+  rules?: RedirectRule[]
 }
 
 export function linkKey(domain: string, slug: string): string {
@@ -31,7 +34,15 @@ export function parseLinkRecord(value: unknown): LinkRecord | null {
     return null
   }
   if (r.status === 'active' && !/^https?:\/\//i.test(r.dest)) return null
-  return { id: r.id, dest: r.dest, status: r.status as LinkStatus, owner: r.owner, v: r.v }
+  const rules = parseRules(r.rules)
+  return {
+    id: r.id,
+    dest: r.dest,
+    status: r.status as LinkStatus,
+    owner: r.owner,
+    v: r.v,
+    ...(rules ? { rules } : {}),
+  }
 }
 
 /** Builds the public short link for a code. `origin` overrides the domain in local development. */
