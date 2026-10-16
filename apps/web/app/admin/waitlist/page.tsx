@@ -29,10 +29,11 @@ export default async function AdminWaitlist({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="heading text-ink">Pro waitlist</h1>
+          <h1 className="heading text-ink">Paid plans waitlist</h1>
           <p className="mt-1 max-w-[72ch] text-ink-muted">
-            People who asked for one email when Pro launches. The privacy policy promises exactly
-            that: use the list for the launch email only, then delete it. Remove anyone who asks.
+            People who asked for one email when paid plans launch. The privacy policy promises
+            exactly that: use the list for the launch email only, then delete it. Remove anyone who
+            asks.
           </p>
         </div>
         {list.total > 0 ? (

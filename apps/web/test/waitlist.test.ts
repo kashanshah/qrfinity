@@ -16,7 +16,7 @@ beforeAll(async () => {
 })
 afterAll(() => db.$client.end())
 
-describe('Pro waitlist', () => {
+describe('Waitlist', () => {
   it('stores one lower-cased row per address and rejects bad input', async () => {
     const limiter = new PostgresRateLimiter(db)
     await joinWaitlist(db, limiter, 's', { email: ' Amira@Example.com ', visitor: 'a' })
@@ -37,7 +37,7 @@ describe('Pro waitlist', () => {
   })
 })
 
-describe('Pro waitlist admin', () => {
+describe('Waitlist admin', () => {
   const admin = (): AdminContext => ({
     db,
     edge: new FakeEdge(),
