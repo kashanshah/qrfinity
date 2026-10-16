@@ -1,9 +1,10 @@
 import { Check, Clock, Crown } from 'lucide-react'
+import Link from 'next/link'
 import { Breadcrumbs } from '@/components/content/Breadcrumbs'
 import { Faq, type FaqItem } from '@/components/content/Faq'
 import { JsonLd, softwareApplication } from '@/components/content/JsonLd'
 import { FactBlock } from '@/components/content/Prose'
-import { HOME, PRICING } from '@/content/registry'
+import { getPage, HOME, PRICING } from '@/content/registry'
 import { env } from '@/lib/server/env'
 import { pageMetadata } from '@/lib/seo'
 import { ComparePlans } from './ComparePlans'
@@ -31,29 +32,35 @@ const PLAN_EXTRAS: { name: string; detail: string }[] = [
   },
 ]
 
-const ADVANCED: { name: string; detail: string; ready: boolean }[] = [
+/** `href`: the page that explains the feature. getPage throws at build time if it doesn't exist. */
+const ADVANCED: { name: string; detail: string; ready: boolean; href?: string }[] = [
   {
     name: 'Custom short links',
+    href: getPage('/custom-short-link-qr-code').path,
     detail: 'qrfinity.link/joes-menu instead of a random link',
     ready: true,
   },
   {
     name: 'Redirect rules',
+    href: getPage('/qr-code-redirect').path,
     detail: 'iPhone to the App Store, Android to Google Play; by country, day or time',
     ready: true,
   },
   {
     name: 'Password protection',
+    href: getPage('/password-protected-qr-code').path,
     detail: 'Only people with the password can open the link or contact card',
     ready: true,
   },
   {
     name: 'Split traffic',
+    href: getPage('/guides/ab-test-qr-codes').path,
     detail: 'Share scans between up to five versions of a page and compare them (A/B test)',
     ready: true,
   },
   {
     name: 'Date and scan limits',
+    href: getPage('/guides/change-qr-code-after-date-or-scans').path,
     detail: 'After a date or a number of scans, send people to another page, like “offer ended”',
     ready: true,
   },
@@ -216,7 +223,13 @@ export default function PricingPage() {
                   />
                 )}
                 <span>
-                  <span className="font-bold">{a.name}</span>
+                  {a.href ? (
+                    <Link href={a.href} className="font-bold text-evergreen underline">
+                      {a.name}
+                    </Link>
+                  ) : (
+                    <span className="font-bold">{a.name}</span>
+                  )}
                   {a.ready ? null : (
                     <span className="label ml-2 rounded-pill bg-surface-sunk px-2 py-0.5 text-ink">
                       Coming soon
