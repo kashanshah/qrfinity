@@ -49,6 +49,7 @@ describe('content registry', () => {
       guide: 'guides',
       alternative: 'alternatives',
       landing: 'landings',
+      tool: 'tools',
     } as const
     for (const p of ALL_PAGES) {
       if (!(p.kind in dir)) continue

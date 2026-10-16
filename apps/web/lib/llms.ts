@@ -6,6 +6,7 @@ import {
   FACT_BLOCK,
   GUIDES,
   LANDINGS,
+  TOOLS,
   LEGAL,
   PRICING,
   SITE_URL,
@@ -17,6 +18,7 @@ import { absoluteUrl } from './seo'
 
 const SECTIONS: { heading: string; pages: ContentPage[]; dir?: ContentDir }[] = [
   { heading: 'Free forever', pages: LANDINGS, dir: 'landings' },
+  { heading: 'Free tools', pages: TOOLS, dir: 'tools' },
   { heading: 'QR code generators by use', pages: USE_CASES, dir: 'use-cases' },
   { heading: 'Guides', pages: GUIDES, dir: 'guides' },
   { heading: 'Comparisons', pages: ALTERNATIVES, dir: 'alternatives' },

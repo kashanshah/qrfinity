@@ -1,0 +1,41 @@
+export const faq = [
+  {
+    q: 'Can you fix my old QR code?',
+    a: 'Not the printed one. If it runs through another company’s short link, only that company can make it work again, usually by restarting a plan. What we can do is tell you why it stopped, show you where it was meant to go, and help you make a replacement that never expires.',
+  },
+  {
+    q: 'How do you know which company made the code?',
+    a: 'Codes from services that make dynamic codes contain the service’s own short link, such as qrco.de for QR Code Generator PRO or qr1.be for QR TIGER. We recognise those domains. If a code links straight to a normal website, no service is involved and the code itself can’t expire.',
+  },
+  {
+    q: 'What does “switched off” mean in the result?',
+    a: 'The link still loads, but the page says the code is inactive, deactivated or that a plan has expired. That is what services show when a trial or subscription ends. The code isn’t broken; the service has stopped forwarding it.',
+  },
+  {
+    q: 'Do you keep the link I check?',
+    a: 'No. The image is read in your browser and never uploaded. When you press “Check if the link still works”, we receive the link, open it with a short timeout, and send back what happened. We don’t store or log it.',
+  },
+  {
+    q: 'Will my new QRfinity code ever stop working like this?',
+    a: 'No. QRfinity has no trials and no plans that free codes depend on. Static codes hold their content directly, and dynamic codes keep redirecting for as long as QRfinity runs, with 12 months’ notice in our terms if that ever changes.',
+  },
+]
+
+## Why QR codes stop working
+
+A QR code is only a pattern of squares. It can’t expire by itself. When one stops working, the cause is one of three things, and the checker tells you which:
+
+1. **The service behind it switched it off.** Many generators make *dynamic* codes that point at their own short link and forward people to your page. When a free trial or subscription ends, the forwarding stops and scanners see an “inactive” or upgrade page instead. {/* source: https://support.qr-code-generator.com/hc/en-us/articles/7665046137613-What-happens-to-my-account-and-QR-Codes-when-the-trial-expires, seen 2026-10-16; https://support.qrfy.com/en/articles/6998440-what-happens-to-my-account-and-qr-codes-when-the-trial-expires, seen 2026-10-16 */}
+2. **The page it opens is gone.** The code works, but the website moved or deleted the page, so people land on a “page not found” error.
+3. **Phones can’t read the print.** Damage, glare, a tiny print size or poor contrast. If the checker can read your photo but phones struggle, this is the likely cause.
+
+## What the checker does
+
+- **Reads the code from your photo**, in your browser, and shows exactly what it holds.
+- **Names the service** if the code runs through a known QR company’s short link.
+- **Checks the link** when you ask: it follows every redirect and reports whether the page loads, is missing, or says the code was switched off.
+- **Makes a replacement.** If the old code forwarded to a page that still exists, the replacement starts with that address filled in.
+
+## Make sure it never happens again
+
+Your replacement can be a free dynamic code: you can change where it goes after printing, see how many people scan it, and it never expires. There’s no trial and no scan limit. Read more about [why our codes don’t expire](/qr-code-no-expiration), or about [what to do while the old print is still out there](/qr-code-stopped-working).

@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
 import { ALL_PAGES, SITE_URL } from '../content/registry'
 
@@ -57,6 +58,19 @@ test.describe('content pages', () => {
     const robots = await (await request.get('/robots.txt')).text()
     expect(robots).toContain(`Sitemap: ${SITE_URL}/sitemap.xml`)
     expect(robots).toContain('Disallow: /dashboard')
+  })
+
+  test('the scanner reads a QR code image and pre-fills the generator', async ({ page }) => {
+    await page.goto('/qr-code-scanner')
+    await page
+      .locator('input[type=file]')
+      .setInputFiles(fileURLToPath(new URL('./fixtures/wifi-qr.png', import.meta.url)))
+    await expect(
+      page.getByRole('heading', { name: 'This code holds a Wi-Fi network' }),
+    ).toBeVisible()
+    await expect(page.getByText('Cafe Guest', { exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Open in the generator' }).click()
+    await expect(page.getByLabel('Network name (SSID)')).toHaveValue('Cafe Guest')
   })
 
   test('unknown addresses get the 404 page', async ({ page }) => {

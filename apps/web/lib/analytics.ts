@@ -59,6 +59,19 @@ export type AnalyticsEvent =
   | { name: 'dynamic_code_created'; props: { content_type: string; custom_slug: boolean } }
   | { name: 'sign_in_requested'; props: { method: 'email' | 'google' } }
   | { name: 'pro_waitlist_joined'; props: Record<string, never> }
+  | {
+      name: 'qr_read'
+      props: {
+        tool: 'scanner' | 'checker'
+        source: 'image' | 'camera'
+        found: boolean
+        content_type: string | null
+      }
+    }
+  | {
+      name: 'link_checked'
+      props: { tool: 'scanner' | 'checker'; outcome: string; known_service: boolean }
+    }
 
 type Gtag = (...args: unknown[]) => void
 type PostHogLike = { capture: (event: string, props?: Record<string, unknown>) => void }
