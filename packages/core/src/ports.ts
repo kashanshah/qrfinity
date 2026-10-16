@@ -40,3 +40,9 @@ export interface UrlReputation {
   check(url: string): Promise<ReputationResult>
   readonly configured: boolean
 }
+
+/** Daily Cloudflare usage for the account that runs qrfinity.link (admin Usage page). */
+export interface CloudflareUsage {
+  /** One row per UTC day from `from` to `to` inclusive (YYYY-MM-DD). */
+  daily(from: string, to: string): Promise<import('./usage').UsageDay[]>
+}
