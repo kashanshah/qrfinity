@@ -10,12 +10,14 @@ function FieldShell({
   label,
   hint,
   error,
+  action,
   children,
 }: {
   id: string
   label: string
   hint?: ReactNode
   error?: string
+  action?: ReactNode
   children: ReactNode
 }) {
   return (
@@ -23,7 +25,15 @@ function FieldShell({
       <label htmlFor={id} className="label text-ink">
         {label}
       </label>
-      {children}
+      {action ? (
+        // The action sits beside the control, not the hint, so the two line up.
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex-1">{children}</div>
+          {action}
+        </div>
+      ) : (
+        children
+      )}
       {error ? (
         <p id={`${id}-msg`} className="body-small text-ink">
           <span
@@ -47,11 +57,12 @@ export function TextField({
   label,
   hint,
   error,
+  action,
   ...props
-}: Common & InputHTMLAttributes<HTMLInputElement>) {
+}: Common & { action?: ReactNode } & InputHTMLAttributes<HTMLInputElement>) {
   const id = useId()
   return (
-    <FieldShell id={id} label={label} hint={hint} error={error}>
+    <FieldShell id={id} label={label} hint={hint} error={error} action={action}>
       <input
         id={id}
         aria-invalid={error ? true : undefined}
