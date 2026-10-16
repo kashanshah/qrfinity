@@ -26,6 +26,7 @@ import { CodeTypeBadge, NeverExpiresBadge } from './Badges'
 import { CONTENT_TYPE_OPTIONS, ContentForm } from './ContentForm'
 import { DesignPanel } from './DesignPanel'
 import { HomeFinalStep } from './HomeFinalStep'
+import { KindChoice } from './KindChoice'
 import { ScanResult, type ScanSummary } from './ScanResult'
 
 export type FinalStepProps = {
@@ -273,18 +274,7 @@ function GeneratorBody({
             fixedContent.panel
           ) : (
             <div className="flex flex-col gap-6">
-              {kindChoice ? (
-                <OptionGroup
-                  label="Type of code"
-                  value={kind}
-                  onChange={setKind}
-                  columns="grid-cols-1 sm:grid-cols-2"
-                  options={[
-                    { value: 'static', label: 'Static: free, no sign-up, can’t be edited' },
-                    { value: 'dynamic', label: 'Dynamic: editable, with scan stats, free account' },
-                  ]}
-                />
-              ) : null}
+              {kindChoice ? <KindChoice value={kind} onChange={setKind} /> : null}
               <OptionGroup
                 label="Content type"
                 hideLabel

@@ -83,7 +83,7 @@ test('a dynamic code designed on the homepage survives sign-in', async ({ page, 
   await expect(
     page.getByRole('complementary', { name: 'Your QR code' }).getByText('Scans', { exact: true }),
   ).toBeVisible({ timeout: 15_000 })
-  await page.getByText('Dynamic: editable, with scan stats, free account').click()
+  await page.getByRole('radio', { name: /^Dynamic/ }).check({ force: true })
   await page.getByLabel('Website address').fill('example.com/from-home')
   await page.getByText('Dots', { exact: true }).click()
   await page.getByRole('button', { name: 'Continue with a free account' }).click()
