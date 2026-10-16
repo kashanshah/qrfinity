@@ -12,6 +12,7 @@ import {
 import {
   and,
   asc,
+  count,
   auditLog,
   blocklist,
   codes,
@@ -144,13 +145,34 @@ export async function searchCodes(db: Database, q: string) {
     .limit(100)
 }
 
-export async function searchUsers(db: Database, q: string) {
+export const PER_PAGE_OPTIONS = [10, 25, 50, 100] as const
+export const DEFAULT_PER_PAGE = 25
+
+/** Clamps a requested page size to one of the allowed options. */
+export function perPageFrom(value: unknown): number {
+  const n = Number(value)
+  return (PER_PAGE_OPTIONS as readonly number[]).includes(n) ? n : DEFAULT_PER_PAGE
+}
+
+/** Users matching an email or name search (all users when empty), newest first, one page at a time. */
+export async function searchUsers(
+  db: Database,
+  q: string,
+  opts: { page?: number; perPage?: number } = {},
+) {
   const term = q.trim()
   const like = `%${term.replace(/[%_\\]/g, (c) => '\\' + c)}%`
-  return db
+  const where = term ? or(ilike(user.email, like), ilike(user.name, like)) : undefined
+  const perPage = perPageFrom(opts.perPage)
+  const [counted] = await db.select({ total: count() }).from(user).where(where)
+  const total = counted?.total ?? 0
+  const pages = Math.max(1, Math.ceil(total / perPage))
+  const page = Math.min(Math.max(1, Math.floor(opts.page ?? 1) || 1), pages)
+  const rows = await db
     .select({
       id: user.id,
       email: user.email,
+      name: user.name,
       createdAt: user.createdAt,
       suspendedAt: user.suspendedAt,
       role: user.role,
@@ -159,9 +181,12 @@ export async function searchUsers(db: Database, q: string) {
       codes: sql<number>`(select count(*)::int from codes c where c.user_id = "user"."id" and c.deleted_at is null)`,
     })
     .from(user)
-    .where(term ? ilike(user.email, like) : undefined)
-    .orderBy(desc(user.createdAt))
-    .limit(100)
+    .where(where)
+    // id breaks ties so paging is stable when sign-ups share a timestamp.
+    .orderBy(desc(user.createdAt), desc(user.id))
+    .limit(perPage)
+    .offset((page - 1) * perPage)
+  return { rows, total, page, pages, perPage }
 }
 
 export async function listAudit(db: Database, limit = 200) {

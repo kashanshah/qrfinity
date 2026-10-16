@@ -1,7 +1,9 @@
 import Link from 'next/link'
-import { searchUsers } from '@/lib/server/admin'
+import { PER_PAGE_OPTIONS, perPageFrom, searchUsers } from '@/lib/server/admin'
 import { adminContext } from '@/lib/server/context'
 import { ActionButton } from '../ActionButton'
+import { Pagination } from '../Pagination'
+import { PerPageSelect } from '../PerPageSelect'
 import { PlanSelect } from './PlanSelect'
 import { suspendUserAction, unsuspendUserAction } from '../actions'
 
@@ -10,25 +12,38 @@ const fmt = new Intl.DateTimeFormat('en-CA', { dateStyle: 'medium' })
 export default async function AdminUsers({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>
+  searchParams: Promise<{ q?: string; page?: string; per?: string }>
 }) {
-  const { q = '' } = await searchParams
+  const sp = await searchParams
+  const q = sp.q ?? ''
   const { db, actor } = await adminContext()
-  const users = await searchUsers(db, q)
+  const {
+    rows: users,
+    total,
+    page,
+    pages,
+    perPage,
+  } = await searchUsers(db, q, {
+    page: Number(sp.page) || 1,
+    perPage: perPageFrom(sp.per),
+  })
+  const params = { q: q.trim() || undefined, per: sp.per ? String(perPage) : undefined }
   return (
     <div className="flex flex-col gap-6">
       <h1 className="heading text-ink">Users</h1>
       <form className="flex gap-2" action="/admin/users" role="search">
         <label htmlFor="q" className="sr-only">
-          Search by email
+          Search by email or name
         </label>
         <input
           id="q"
           name="q"
+          type="search"
           defaultValue={q}
-          placeholder="Email"
+          placeholder="Email or name"
           className="flex-1 rounded-md border-[1.5px] border-control-border bg-surface px-3 py-2.5 text-ink"
         />
+        {sp.per ? <input type="hidden" name="per" value={perPage} /> : null}
         <button className="button min-h-11 rounded-md border-[1.5px] border-control-border bg-surface px-5 text-ink">
           Search
         </button>
@@ -38,7 +53,22 @@ export default async function AdminUsers({
         abusive codes one by one. Plans are set by hand until billing exists; free features never
         depend on the plan.
       </p>
-      <ul className="divide-y divide-hairline rounded-lg border border-hairline bg-surface px-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Pagination
+          path="/admin/users"
+          params={params}
+          page={page}
+          pages={pages}
+          perPage={perPage}
+          total={total}
+          noun={q.trim() ? 'matching users' : 'users'}
+        />
+        <PerPageSelect value={perPage} options={PER_PAGE_OPTIONS} />
+      </div>
+      {users.length === 0 ? (
+        <p className="text-ink-muted">{q.trim() ? 'No users match.' : 'No users yet.'}</p>
+      ) : null}
+      <ul className="divide-y divide-hairline rounded-lg border border-hairline bg-surface px-4 empty:hidden">
         {users.map((u) => (
           <li key={u.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
             <div>
@@ -77,6 +107,17 @@ export default async function AdminUsers({
           </li>
         ))}
       </ul>
+      {pages > 1 ? (
+        <Pagination
+          path="/admin/users"
+          params={params}
+          page={page}
+          pages={pages}
+          perPage={perPage}
+          total={total}
+          noun={q.trim() ? 'matching users' : 'users'}
+        />
+      ) : null}
     </div>
   )
 }

@@ -5,6 +5,7 @@ export { runMigrations } from './migrate'
 export {
   and,
   asc,
+  count,
   desc,
   eq,
   gt,
