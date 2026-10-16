@@ -2,6 +2,8 @@
 
 import {
   PAGE_TEMPLATES,
+  PLAN_DETAILS,
+  planForTemplateIndex,
   PAGE_TEMPLATE_LABEL,
   renderContactPage,
   resolveAccent,
@@ -9,7 +11,20 @@ import {
   type PageTemplate,
   type VcardFields,
 } from '@qrfinity/core'
-import { AlignCenter, AlignLeft, IdCard, Palette, PanelTop, type LucideIcon } from 'lucide-react'
+import {
+  AlignCenter,
+  AlignLeft,
+  Feather,
+  IdCard,
+  Lock,
+  MousePointerClick,
+  Palette,
+  PanelTop,
+  Rows3,
+  Sun,
+  type LucideIcon,
+} from 'lucide-react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState, useTransition } from 'react'
 import { setPageStyleAction } from '@/app/dashboard/actions'
@@ -20,9 +35,13 @@ import { OptionGroup } from '@/components/ui/OptionGroup'
 
 const ICON: Record<PageTemplate, LucideIcon> = {
   classic: IdCard,
-  banner: PanelTop,
   centered: AlignCenter,
+  banner: PanelTop,
   minimal: AlignLeft,
+  buttons: MousePointerClick,
+  compact: Rows3,
+  spotlight: Sun,
+  elegant: Feather,
 }
 
 const pill = (on: boolean) =>
@@ -35,6 +54,7 @@ export function PageStyleEditor({
   fields,
   style,
   codeColor,
+  templatesAllowed,
   disabled,
 }: {
   id: string
@@ -43,6 +63,8 @@ export function PageStyleEditor({
   style: PageStyle
   /** The printed code's colour, which the accent matches by default. */
   codeColor: string
+  /** How many templates the owner's plan includes (the first ones in PAGE_TEMPLATES). */
+  templatesAllowed: number
   disabled: boolean
 }) {
   const router = useRouter()
@@ -52,6 +74,10 @@ export function PageStyleEditor({
   const [message, setMessage] = useState<string | null>(null)
   const [pending, start] = useTransition()
   const dirty = template !== style.template || accent !== style.accent
+  const index = PAGE_TEMPLATES.indexOf(template)
+  // Paid templates can be previewed; saving one needs the plan (keeping a saved one is fine).
+  const locked = index >= templatesAllowed && template !== style.template
+  const lockedPlan = PLAN_DETAILS[planForTemplateIndex(index)].name
   const shown = resolveAccent(accent, codeColor)
 
   const preview = useMemo(
@@ -110,16 +136,41 @@ export function PageStyleEditor({
               setTemplate(t)
               setMessage(null)
             }}
-            options={PAGE_TEMPLATES.map((t) => {
+            options={PAGE_TEMPLATES.map((t, i) => {
               const Icon = ICON[t]
+              const paid = i >= templatesAllowed
               return {
                 value: t,
-                label: PAGE_TEMPLATE_LABEL[t].name,
-                icon: <Icon aria-hidden="true" size={22} strokeWidth={1.75} />,
+                label: paid
+                  ? `${PAGE_TEMPLATE_LABEL[t].name} (${PLAN_DETAILS[planForTemplateIndex(i)].name})`
+                  : PAGE_TEMPLATE_LABEL[t].name,
+                icon: (
+                  <span className="relative">
+                    <Icon aria-hidden="true" size={22} strokeWidth={1.75} />
+                    {paid ? (
+                      <Lock
+                        aria-hidden="true"
+                        size={12}
+                        strokeWidth={2}
+                        className="absolute -right-2 -top-1 text-ink-muted"
+                      />
+                    ) : null}
+                  </span>
+                ),
               }
             })}
           />
           <p className="body-small -mt-3 text-ink-muted">{PAGE_TEMPLATE_LABEL[template].hint}.</p>
+          {locked ? (
+            <p role="status" className="body-small rounded-md bg-mint px-3 py-2 text-ink">
+              <strong>{PAGE_TEMPLATE_LABEL[template].name}</strong> comes with {lockedPlan} and
+              above. Preview it here;{' '}
+              <Link href="/pricing" className="font-bold text-evergreen underline">
+                choose a plan
+              </Link>{' '}
+              to use it.
+            </p>
+          ) : null}
 
           <div className="flex flex-col gap-3">
             <Checkbox
@@ -148,7 +199,11 @@ export function PageStyleEditor({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button variant="primary" disabled={disabled || !dirty || pending} onClick={save}>
+            <Button
+              variant="primary"
+              disabled={disabled || !dirty || pending || locked}
+              onClick={save}
+            >
               {pending ? 'Saving…' : 'Save look'}
             </Button>
             <p className="body-small text-ink-muted" aria-live="polite">

@@ -12,6 +12,12 @@ import {
   cleanVcardFields,
   encodeContent,
   isPageType,
+  CONTACT_TEMPLATES_BY_PLAN,
+  PAGE_TEMPLATES,
+  PAGE_TEMPLATE_LABEL,
+  PLAN_DETAILS,
+  planForTemplateIndex,
+  templateWithin,
   cleanPageStyle,
   resolveAccent,
   pageSummary,
@@ -215,7 +221,11 @@ export async function syncCode(db: Database, edge: EdgeSync, codeId: string): Pr
                 ...page,
                 // The edge gets a concrete colour, so the Worker needs nothing else to render.
                 style: {
-                  template: page.style?.template ?? 'classic',
+                  // A template beyond the owner's plan shows as Classic; the page keeps working.
+                  template: templateWithin(
+                    page.style?.template ?? 'classic',
+                    CONTACT_TEMPLATES_BY_PLAN[await effectivePlanFor(db, row.userId)],
+                  ),
                   accent: resolveAccent(page.style?.accent ?? null, designColor(row.design)),
                 },
               },
@@ -473,6 +483,40 @@ export async function refreshAdvancedFeatures(db: Database, userId: string, edge
   return changed.length
 }
 
+/**
+ * Re-publishes a user's contact pages that use a paid template, after their plan changes: each
+ * shows its template, or Classic if the plan no longer includes it.
+ */
+export async function refreshContactPages(db: Database, userId: string, edge?: EdgeSync) {
+  const free = PAGE_TEMPLATES.slice(0, CONTACT_TEMPLATES_BY_PLAN.free)
+  const list = await db
+    .select({ id: codes.id })
+    .from(codes)
+    .where(
+      and(
+        eq(codes.userId, userId),
+        isNull(codes.deletedAt),
+        sql`${codes.content}->>'type' = 'vcard'`,
+        sql`coalesce(${codes.content}->'style'->>'template', 'classic') not in (${sql.join(
+          free.map((t) => sql`${t}`),
+          sql`, `,
+        )})`,
+      ),
+    )
+  for (const c of list) {
+    await db.transaction(async (tx) => {
+      const [u] = await tx
+        .update(codes)
+        .set({ version: sql`${codes.version} + 1` })
+        .where(eq(codes.id, c.id))
+        .returning({ version: codes.version })
+      await enqueue(tx, c.id, u!.version)
+    })
+    if (edge) await syncCode(db, edge, c.id)
+  }
+  return list.length
+}
+
 /** Every user with codes using advanced features (after the admin changes the free allowance). */
 export async function refreshAdvancedFeaturesForAll(db: Database, edge?: EdgeSync) {
   const owners = await db
@@ -674,6 +718,16 @@ export async function setPageStyle(ctx: ServiceContext, id: string, input: unkno
     )
   const style: PageStyle = cleanPageStyle(input)
   if (JSON.stringify(style) === JSON.stringify(page.style)) return getCode(ctx, id)
+  // Keeping a template you already have is fine (say, to change the colour after a plan ends).
+  const index = PAGE_TEMPLATES.indexOf(style.template)
+  if (style.template !== page.style?.template) {
+    const plan = await effectivePlanFor(ctx.db, ctx.userId)
+    if (index >= CONTACT_TEMPLATES_BY_PLAN[plan])
+      throw new ServiceError(
+        `The ${PAGE_TEMPLATE_LABEL[style.template].name} template comes with ${PLAN_DETAILS[planForTemplateIndex(index)].name} and above. Choose a plan, or pick another template.`,
+        'forbidden',
+      )
+  }
   await limit(ctx, 'edit-hour', LIMITS.editPerHour)
   await ctx.db.transaction(async (tx) => {
     const [u] = await tx

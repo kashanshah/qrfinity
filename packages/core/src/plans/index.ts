@@ -92,6 +92,11 @@ export const CONTACT_TEMPLATES_BY_PLAN: Record<Plan, number> = {
   unlimited: 8,
 }
 
+/** The cheapest plan whose templates include the one at `index` in PAGE_TEMPLATES. */
+export function planForTemplateIndex(index: number): Plan {
+  return PLANS.find((p) => CONTACT_TEMPLATES_BY_PLAN[p] > index) ?? 'unlimited'
+}
+
 /** Built and available to everyone (within the allowance where it applies). Others need a feature flag. */
 export const RELEASED_FEATURES: readonly Feature[] = [
   ...FREE_FEATURES,

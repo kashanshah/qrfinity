@@ -199,12 +199,18 @@ test('a dynamic contact card opens a contact page you can update', async ({ page
 
   // Pick a template: the live page uses it.
   await expect(page.getByTitle('Contact page preview')).toBeVisible()
-  await page.getByRole('radio', { name: 'Banner' }).check({ force: true })
+  await page.getByRole('radio', { name: 'Centered' }).check({ force: true })
   await page.getByRole('button', { name: 'Save look' }).click()
   await expect(page.getByText('Saved. Scans show the new look')).toBeVisible()
   await expect
-    .poll(async () => (await (await request.get(link)).text()).includes('class="t-banner"'))
+    .poll(async () => (await (await request.get(link)).text()).includes('class="t-centered"'))
     .toBe(true)
+
+  // Paid templates can be previewed, but saving one points to the plan it needs.
+  await page.getByRole('radio', { name: 'Spotlight (Unlimited)' }).check({ force: true })
+  await expect(page.getByText(/comes with Unlimited and\s+above/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Save look' })).toBeDisabled()
+  await page.getByRole('radio', { name: 'Centered' }).check({ force: true })
 
   // Update the card: same printed code, new details.
   await page.getByLabel('Last name').fill('Smith')
