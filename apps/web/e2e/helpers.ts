@@ -24,13 +24,13 @@ export async function signIn(
 }
 
 /** "Scans" the code over HTTP, without following the redirect. */
-export async function scan(request: APIRequestContext, shortLink: string) {
+export const IPHONE_UA =
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148 Safari/604.1'
+
+export async function scan(request: APIRequestContext, shortLink: string, userAgent = IPHONE_UA) {
   const res = await request.get(shortLink, {
     maxRedirects: 0,
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148 Safari/604.1',
-    },
+    headers: { 'User-Agent': userAgent },
   })
   return {
     status: res.status(),

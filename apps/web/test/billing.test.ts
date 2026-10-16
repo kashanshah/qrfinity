@@ -32,8 +32,13 @@ class FakeBilling implements Billing {
     this.customers.push(id)
     return id
   }
-  async checkoutUrl(i: { customerId: string; plan: PaidPlan; interval: BillingInterval }) {
-    this.calls.push(`checkout:${i.customerId}:${i.plan}:${i.interval}`)
+  async checkoutUrl(i: {
+    customerId: string
+    plan: PaidPlan
+    interval: BillingInterval
+    trialDays?: number
+  }) {
+    this.calls.push(`checkout:${i.customerId}:${i.plan}:${i.interval}:trial=${i.trialDays ?? 0}`)
     return `https://checkout.test/${i.plan}`
   }
   async portalUrl(customerId: string) {
@@ -71,8 +76,10 @@ const sub = (over: Partial<SubscriptionState> = {}): SubscriptionState => ({
   plan: 'plus',
   interval: 'month',
   status: 'active',
+  currentPeriodStart: new Date('2026-10-16T00:00:00Z'),
   currentPeriodEnd: new Date('2026-11-16T00:00:00Z'),
   cancelAtPeriodEnd: false,
+  trialEnd: null,
   ...over,
 })
 
@@ -102,6 +109,31 @@ describe('billing', () => {
     expect(billing.customers).toEqual(['cus_alice'])
     const [row] = await db.select().from(user).where(eq(user.id, 'alice'))
     expect(row?.billingCustomerId).toBe('cus_alice')
+  })
+
+  it('gives a free month on the first plan only', async () => {
+    await planChangeUrl(db, billing, 'alice', 'plus', 'month', urls)
+    expect(billing.calls.at(-1)).toBe('checkout:cus_alice:plus:month:trial=30')
+    // Subscribed once (even if it ended): the next checkout is charged from day one.
+    billing.subs.set('sub_1', sub({ status: 'canceled' }))
+    await syncSubscription(db, billing, 'sub_1')
+    await planChangeUrl(db, billing, 'alice', 'pro', 'month', urls)
+    expect(billing.calls.at(-1)).toBe('checkout:cus_alice:pro:month:trial=0')
+  })
+
+  it('pauses advanced features when the first payment after the trial fails', async () => {
+    await planChangeUrl(db, billing, 'alice', 'plus', 'month', urls)
+    const trialEnd = new Date('2026-11-15T00:00:00Z')
+    billing.subs.set('sub_1', sub({ status: 'trialing', trialEnd }))
+    await syncSubscription(db, billing, 'sub_1')
+    expect(await effectivePlanFor(db, 'alice')).toBe('plus')
+    billing.subs.set('sub_1', sub({ status: 'past_due', trialEnd, currentPeriodStart: trialEnd }))
+    await syncSubscription(db, billing, 'sub_1')
+    expect(await effectivePlanFor(db, 'alice')).toBe('free')
+    // Paying later (Stripe retries, or a new card) brings the plan back.
+    billing.subs.set('sub_1', sub({ status: 'active', trialEnd, currentPeriodStart: trialEnd }))
+    await syncSubscription(db, billing, 'sub_1')
+    expect(await effectivePlanFor(db, 'alice')).toBe('plus')
   })
 
   it('sends someone who already pays to the portal instead of a second checkout', async () => {

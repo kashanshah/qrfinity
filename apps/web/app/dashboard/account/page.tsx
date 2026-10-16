@@ -27,7 +27,7 @@ export default async function AccountPage({
   // Back from Stripe checkout: store the new subscription now rather than waiting for the webhook.
   const checkout = params.checkout?.startsWith('cs_') ? params.checkout : null
   if (billing && checkout) {
-    await syncCheckout(db, billing, user.id, checkout).catch((e) => console.error(e))
+    await syncCheckout(db, billing, user.id, checkout, ctx.edge).catch((e) => console.error(e))
   }
   const [providers, [counts], usage, subscription] = await Promise.all([
     db.select({ providerId: account.providerId }).from(account).where(eq(account.userId, user.id)),
@@ -131,7 +131,7 @@ export default async function AccountPage({
 
       <DeleteAccount
         email={user.email}
-        paying={subscription !== null && grantsPlan(subscription.status)}
+        paying={subscription !== null && grantsPlan(subscription)}
       />
     </div>
   )

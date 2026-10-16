@@ -1,6 +1,7 @@
 import { WebhookSignatureError } from '@qrfinity/core'
 import { handleBillingWebhook } from '@/lib/server/billing'
 import { getDb } from '@/lib/server/db'
+import { getEdgeSync } from '@/lib/server/edge-sync'
 import { getBilling } from '@/lib/server/stripe'
 
 export const dynamic = 'force-dynamic'
@@ -16,7 +17,7 @@ export async function POST(req: Request) {
   if (!signature) return new Response('Missing signature', { status: 400 })
   const body = await req.text()
   try {
-    await handleBillingWebhook(getDb(), billing, body, signature)
+    await handleBillingWebhook(getDb(), billing, body, signature, getEdgeSync())
   } catch (e) {
     if (e instanceof WebhookSignatureError) return new Response('Bad signature', { status: 400 })
     console.error('Billing webhook failed', e)

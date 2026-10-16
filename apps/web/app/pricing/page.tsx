@@ -29,8 +29,8 @@ const ADVANCED: { name: string; detail: string; ready: boolean }[] = [
   },
   {
     name: 'Redirect rules',
-    detail: 'iPhone to the App Store, Android to Google Play; by country or time',
-    ready: false,
+    detail: 'iPhone to the App Store, Android to Google Play; by country, day or time',
+    ready: true,
   },
   {
     name: 'Password protection',
@@ -42,7 +42,7 @@ const ADVANCED: { name: string; detail: string; ready: boolean }[] = [
 const FAQ: FaqItem[] = [
   {
     q: 'Is QRfinity really free?',
-    a: 'Yes. Every feature is free: unlimited static and dynamic codes, analytics, every design option and every download format, with no trial. Paid plans only let you use advanced features, like custom short links, on more than one code.',
+    a: 'Yes. Every feature is free: unlimited static and dynamic codes, analytics, every design option and every download format. Paid plans only let you use advanced features, like custom short links and redirect rules, on more than one code.',
   },
   {
     q: 'What counts as a code with advanced features?',
@@ -50,7 +50,7 @@ const FAQ: FaqItem[] = [
   },
   {
     q: 'What happens if I stop paying?',
-    a: 'Nothing breaks. Every code keeps working, including its custom link, rules or password. You just can’t add advanced features to more codes than the free plan allows.',
+    a: 'Every code keeps working, and custom short links keep working too, so nothing you printed breaks. Advanced features stay on as many codes as the free plan covers (your oldest); on the others, redirect rules pause and scans go to each code’s main destination. Choose a plan again and they switch straight back on.',
   },
   {
     q: 'Will my free codes ever stop working?',
@@ -68,6 +68,10 @@ const SOON: FaqItem = {
 }
 
 const BILLING: FaqItem[] = [
+  {
+    q: 'Is there a free trial?',
+    a: 'Yes. Your first plan is free for a month, with every feature of that plan. You add a card at checkout and we charge it after 30 days unless you cancel before then; we email you a reminder first. If that first payment fails, the plan’s extra advanced features pause until it’s paid. Your codes and short links keep working throughout.',
+  },
   {
     q: 'How do I cancel or change my plan?',
     a: 'From your account page, open Manage plan and billing. You can switch plans, update your card, download invoices or cancel there. After cancelling, your plan stays until the end of the period you paid for.',

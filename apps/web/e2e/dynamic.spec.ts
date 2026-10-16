@@ -131,3 +131,44 @@ test('a custom short link redirects, and the free allowance is shown', async ({
   await page.goto('/dashboard/new')
   await expect(page.getByText('advanced features on 1 of 1 code', { exact: false })).toBeVisible()
 })
+
+test('redirect rules send each phone to its own store', async ({ page, request }) => {
+  await signIn(page, request, `e2e-rules-${Date.now()}@example.com`)
+  await page.goto('/dashboard/new')
+  await page.getByLabel('Website address').fill('example.com/app')
+  await page.getByRole('button', { name: 'Create dynamic code' }).click()
+  await expect(page).toHaveURL(/\/dashboard\/codes\/[0-9a-f-]{36}\?created=1/)
+  const link = `http://${await page.locator('header .mono').first().innerText()}`
+
+  await page.getByRole('button', { name: 'Add App Store and Google Play rules' }).click()
+  const dest = page.getByLabel('Send people to')
+  await dest.nth(0).fill('apps.apple.com/app/id123')
+  await dest.nth(1).fill('play.google.com/store/apps/details?id=com.example')
+  await page.getByRole('button', { name: 'Save rules' }).click()
+  await expect(page.getByText('Saved. Scans follow the new rules')).toBeVisible()
+  await expect(
+    page.getByText('In effect: App Store → Google Play → main destination.'),
+  ).toBeVisible()
+
+  expect(await scan(request, link)).toMatchObject({
+    status: 302,
+    location: 'https://apps.apple.com/app/id123',
+  })
+  expect(
+    await scan(request, link, 'Mozilla/5.0 (Linux; Android 15; Pixel 9) Mobile Safari/537.36'),
+  ).toMatchObject({ location: 'https://play.google.com/store/apps/details?id=com.example' })
+  expect(
+    await scan(
+      request,
+      link,
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/140.0 Safari/537.36',
+    ),
+  ).toMatchObject({ location: 'https://example.com/app' })
+
+  // The free code is used: a second code can't have rules too.
+  await page.goto('/dashboard/new')
+  await page.getByLabel('Website address').fill('example.com/second')
+  await page.getByRole('button', { name: 'Create dynamic code' }).click()
+  await expect(page).toHaveURL(/\/dashboard\/codes\/[0-9a-f-]{36}\?created=1/)
+  await expect(page.getByText('advanced features on 1 of 1 code', { exact: false })).toBeVisible()
+})

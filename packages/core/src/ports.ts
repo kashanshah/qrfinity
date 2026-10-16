@@ -58,6 +58,8 @@ export interface Billing {
     interval: import('./billing').BillingInterval
     successUrl: string
     cancelUrl: string
+    /** Free days before the first charge (first plan only). A card is still collected. */
+    trialDays?: number
   }): Promise<string>
   /** A hosted page where the customer changes plan, updates their card, sees invoices or cancels. */
   portalUrl(customerId: string, returnUrl: string): Promise<string>

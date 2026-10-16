@@ -239,7 +239,7 @@ export async function searchUsers(db: Database, q: string, opts: ListOptions = {
   // The best plan the person pays for (null when they don't), next to the plan an admin granted.
   const paidPlan = sql<
     string | null
-  >`(select s.plan from subscriptions s where s.user_id = "user"."id" and s.status in ('active', 'trialing', 'past_due') order by array_position(array['plus','pro','unlimited'], s.plan) desc limit 1)`
+  >`(select s.plan from subscriptions s where s.user_id = "user"."id" and s.status in ('active', 'trialing', 'past_due') and not (s.status = 'past_due' and s.trial_end is not null and s.current_period_start <= s.trial_end) order by array_position(array['plus','pro','unlimited'], s.plan) desc limit 1)`
   return paged(opts, {
     sorts: {
       email: lower(user.email),
@@ -544,10 +544,12 @@ export async function runRiskChecks(
   const summary = { checked: 0, lookups: 0, flagged: 0, disabled: 0, deferred: 0 }
   const system: AdminContext = { ...ctx, actor: 'system' }
 
-  for (const code of due) {
+  codes: for (const code of due) {
     if (!code.destination) continue
     const now = new Date()
-    const hit = screenDestination(code.destination, list)
+    // The main destination and every redirect rule's destination are checked together.
+    const urls = [...new Set([code.destination, ...(code.rules ?? []).map((r) => r.dest)])]
+    const hit = urls.map((u) => screenDestination(u, list)).find(Boolean)
     if (hit) {
       await ctx.db
         .update(codes)
@@ -565,12 +567,21 @@ export async function runRiskChecks(
       summary.flagged++
       continue
     }
-    let r = results.get(code.destination)
-    if (!r) {
-      if (summary.lookups >= budget) break
-      r = await reputation.check(code.destination)
-      summary.lookups++
-      results.set(code.destination, r)
+    // Worst result across the URLs: a threat beats unknown, which beats clean.
+    let r: Awaited<ReturnType<UrlReputation['check']>> = { status: 'clean' }
+    for (const url of urls) {
+      let one = results.get(url)
+      if (!one) {
+        if (summary.lookups >= budget) break codes
+        one = await reputation.check(url)
+        summary.lookups++
+        results.set(url, one)
+      }
+      if (one.status === 'threat') {
+        r = one
+        break
+      }
+      if (one.status === 'unknown') r = one
     }
     summary.checked++
     if (r.status === 'unknown') {

@@ -35,7 +35,8 @@ describe('plans and feature flags', () => {
     expect(e.has('dynamicCodes')).toBe(true)
     expect(e.has('analyticsHistory')).toBe(true)
     expect(e.has('customSlugs')).toBe(true)
-    expect(e.has('redirectRules')).toBe(false)
+    expect(e.has('redirectRules')).toBe(true)
+    expect(e.has('passwordProtection')).toBe(false)
   })
 
   it('lets an admin set a plan, audited', async () => {
