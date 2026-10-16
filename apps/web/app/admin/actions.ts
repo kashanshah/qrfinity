@@ -18,6 +18,7 @@ import { pagesToSubmit, submitToIndexNow } from '@/lib/server/indexnow'
 import { setFlag, setUserPlan } from '@/lib/server/entitlements'
 import { setCloudflarePlan, setFreeCustomSlugAllowance } from '@/lib/server/settings'
 import { ServiceError } from '@/lib/server/errors'
+import { removeFromWaitlist } from '@/lib/server/waitlist'
 
 type Result = { ok: true } | { ok: false; error: string }
 
@@ -46,6 +47,8 @@ export const unsuspendUserAction = async (id: string) => run((c) => unsuspendUse
 export const addBlockAction = async (kind: string, value: string, reason: string) =>
   run((c) => addBlock(c, kind, value, reason))
 export const removeBlockAction = async (id: string) => run((c) => removeBlock(c, id))
+export const removeFromWaitlistAction = async (email: string) =>
+  run((c) => removeFromWaitlist(c, email))
 export const setUserPlanAction = async (id: string, plan: string) =>
   run((c) => setUserPlan(c, id, plan))
 export const setFlagAction = async (key: string, enabled: boolean, emails: string[]) =>
