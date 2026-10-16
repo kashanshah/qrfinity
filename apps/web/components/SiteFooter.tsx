@@ -1,6 +1,13 @@
 import Link from 'next/link'
 import { CookieSettingsLink } from './Analytics'
-import { ALTERNATIVES, GUIDES, getPage, PRICING } from '@/content/registry'
+import {
+  ALTERNATIVES,
+  FEATURE_PAGES,
+  GUIDES,
+  INDUSTRY_PAGES,
+  getPage,
+  PRICING,
+} from '@/content/registry'
 import { AGENCY_URL } from '@/lib/partners'
 
 const TYPES = ['url', 'wifi', 'vcard', 'menu', 'google-review', 'with-logo', 'whatsapp', 'pdf'].map(
@@ -24,6 +31,10 @@ const COLUMNS = [
       [PRICING.path, PRICING.label],
     ],
   },
+  {
+    heading: 'Features',
+    links: [...FEATURE_PAGES, ...INDUSTRY_PAGES].map((p) => [p.path, p.label]),
+  },
   { heading: 'Guides', links: GUIDES.map((p) => [p.path, p.label]) },
   {
     heading: 'Compare',
@@ -43,7 +54,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-12 border-t border-hairline">
       <div className="body-small mx-auto max-w-[1200px] px-4 py-10 text-ink-muted md:px-6">
-        <nav aria-label="Site" className="grid grid-cols-2 gap-8 md:grid-cols-4">
+        <nav aria-label="Site" className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-5">
           {COLUMNS.map((c) => (
             <div key={c.heading}>
               <h2 className="label mb-3 font-bold text-ink">{c.heading}</h2>

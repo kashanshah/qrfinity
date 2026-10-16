@@ -1,0 +1,78 @@
+export const faq = [
+  {
+    q: 'Does the same person always see the same version?',
+    a: 'Not necessarily. Each scan picks a version at random by its share, and we store nothing on the phone, so someone who scans twice may see both. For most tests that barely matters; if it does for yours, compare unique scans and keep the test short.',
+  },
+  {
+    q: 'Can I test more than two pages?',
+    a: 'Yes. QRfinity’s split traffic shares scans between the main destination and up to four other versions, five in all. Fewer versions reach a clear answer sooner, so start with two.',
+  },
+  {
+    q: 'How long should the test run?',
+    a: 'Until each version has enough results to compare, and for at least a full week, so weekdays and weekends are both included. Stopping the moment one version pulls ahead is the most common way to pick the wrong winner.',
+  },
+  {
+    q: 'Can I split a static QR code?',
+    a: 'No. A static code holds one address and opens it directly. Splitting needs a dynamic code, whose short link decides where each scan goes.',
+  },
+  {
+    q: 'Do redirect rules still work during a test?',
+    a: 'Yes, and they come first. A scan that matches a rule, such as an iPhone sent to the App Store, follows the rule; only the scans no rule catches are split between versions.',
+  },
+]
+
+To A/B test a QR code, use a dynamic code that splits its scans between two or more pages, then compare what each page achieves. The printed code stays the same; only where each scan lands changes. On QRfinity this is called split traffic, and it’s free on one code.
+
+## What can you test with one printed code?
+
+The code itself is printed once, so you’re testing what happens after the scan:
+
+- **Two versions of a landing page:** different headline, offer or photo.
+- **Two destinations:** your website versus the app store, or a sign-up form versus a product page.
+- **Two offers:** 10% off versus a free extra, each on its own page with its own code.
+
+To test the printed design itself, such as two flyer layouts, use two separate codes instead and compare their scans.
+
+## How do I set up split traffic?
+
+1. Create a dynamic code that opens your current page. That’s **Version A**, the main destination.
+2. Open the code in your dashboard and find **Split traffic**.
+3. Choose **Split traffic 50/50**, enter the address of **Version B**, and save.
+
+Each scan now picks a version at random by its share. You can add up to four versions besides the main one, and set whole-number shares such as 70/30 while you build confidence in a new page. Scans follow a new split within about a minute.
+
+## How do I read the results?
+
+Scan analytics show **Where scans went**: how many scans each version received. That tells you the split is working, not which page won. For the result, measure what people do on each page:
+
+- **Orders, sign-ups or bookings** in your shop, form or booking system, counted per page.
+- **Website analytics**, if each version is a different page or carries a tracking parameter such as `?v=b`.
+
+Divide each version’s results by its scans to compare fairly, especially if the shares aren’t equal.
+
+<Callout>
+Name your versions in the split editor, such as “Free extra” and “10% off”. The names appear in your scan analytics, so the chart reads like your test plan.
+</Callout>
+
+## How many scans do I need?
+
+More than most people expect. If one page converts 5% of visitors and the other 6%, you need several thousand scans per version before the difference is believable. A rough guide:
+
+| Difference you hope to see | Scans per version, roughly |
+| --- | --- |
+| Doubling (5% → 10%) | A few hundred |
+| Big (5% → 7%) | About 2,000 |
+| Small (5% → 6%) | About 8,000 |
+
+These are rules of thumb, not a statistics lesson. If your code gets a few hundred scans a month, test bold changes, not small wording tweaks.
+
+## Common mistakes
+
+- **Stopping early.** Early leads come and go. Decide the number of scans or the end date before you start.
+- **Changing two things at once.** If Version B has a new headline and a new price, you won’t know which one worked.
+- **Ignoring time.** Run the test for at least a full week so weekdays and weekends are both included, and avoid holidays unless that’s what you’re testing.
+- **Forgetting to end it.** When you have a winner, make it the main destination and remove the split.
+
+## What does it cost?
+
+Split traffic is an advanced feature, alongside redirect rules, password protection, custom short links and date and scan limits. Every free account can use advanced features on 1 code; plans from $5 a month cover 10 codes or more. See [pricing](/pricing) and [redirect rules](/qr-code-redirect).

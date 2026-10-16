@@ -1,0 +1,65 @@
+export const faq = [
+  {
+    q: 'Can one QR code open the App Store on iPhone and Google Play on Android?',
+    a: 'Yes. Add two redirect rules: iPhone and iPad go to your App Store link, Android goes to your Google Play link. Everything else, such as a computer, goes to your main destination, which can be your website.',
+  },
+  {
+    q: 'How do you know which country someone is in?',
+    a: 'From the network their phone is using, as our network provider reports it. It’s accurate to the country nearly always, but a VPN or a roaming phone can show a different one. We don’t store IP addresses.',
+  },
+  {
+    q: 'Which time zone do time rules use?',
+    a: 'The one you choose for each rule, usually where your business is. A lunch menu rule for 11:00 to 15:00 in Toronto switches at those times in Toronto, wherever the person scanning is.',
+  },
+  {
+    q: 'What if two rules match?',
+    a: 'Rules are checked from the top, and the first one that matches wins. Put the most specific rule first, and move rules up or down in your dashboard.',
+  },
+  {
+    q: 'What happens to my rules if my plan ends?',
+    a: 'The code keeps working. Rules stay on as many codes as the free plan covers (your oldest); on the others they pause and every scan goes to the main destination until you choose a plan again.',
+  },
+]
+
+Redirect rules let one printed QR code send people to different places depending on their phone, their country or the time. On QRfinity you can add up to 10 rules to any dynamic code that opens a link; scans that no rule catches go to the code’s main destination. They’re free on one code, and you can change them at any time without reprinting.
+
+## What can a redirect rule check?
+
+| Rule | It sends scans by | Example |
+| --- | --- | --- |
+| Phone type | iPhone and iPad, Android, or everything else | App Store for iPhone, Google Play for Android, your website for computers |
+| Country | Where the phone’s network is, by country | Your Canadian shop for Canada, your US shop for the United States |
+| Days and times | Days of the week and a time window, in your time zone | Breakfast menu before 11:00, lunch menu until 15:00 |
+| Dates | A date range, both days included | A holiday page from 20 to 31 December |
+
+Rules are checked from the top. The first one that matches decides where the scan goes, so put the most specific first.
+
+## When are redirect rules worth using?
+
+- **Apps.** One code on packaging or a poster that opens the right app store for each phone. This is the most common use, and the [app store generator](/qr-code-generator/app-store) explains the links.
+- **Menus by time of day.** A table code that shows breakfast, lunch or dinner depending on the hour, without anyone switching anything. See [QR codes for restaurants](/qr-codes-for-restaurants).
+- **Products sold in several countries.** One label, sent to the right store, language or support page for each market.
+- **Seasonal campaigns.** A date rule that shows the holiday offer during the holidays, then quietly goes back to the usual page.
+
+## How do I set them up?
+
+1. Create a dynamic code with the generator on this page and save it to your free account. Its destination is where everyone else goes.
+2. Open the code in your dashboard and find **Redirect rules**.
+3. Add a rule, choose what it checks, and enter where it sends people. **Add App Store and Google Play rules** fills in the common pair for you.
+4. Save. Scans follow the new rules within about a minute.
+
+Every rule destination is checked against known phishing and malware lists, just like the main destination.
+
+## Can I see which rule each scan followed?
+
+Yes. Your scan analytics include **Where scans went**, which counts the scans each rule sent and how many went to the main destination. Name your rules (“App Store”, “Lunch menu”) and those names appear in the chart.
+
+## Redirect rules, split traffic or limits?
+
+They work together, and each answers a different question:
+
+- **Redirect rules:** “Who is scanning, and when?” Each kind of scan goes to its own place.
+- **Split traffic:** “Which page works better?” Scans no rule catches are shared between versions. See [how to A/B test a QR code](/guides/ab-test-qr-codes).
+- **Date and scan limits:** “Is the offer over?” After a date or a number of scans, every scan goes to one page. See [codes that switch after a date](/guides/change-qr-code-after-date-or-scans).
+
+All three are advanced features. Every free account can use advanced features on 1 code, and plans from $5 a month cover 10 codes or more. A code counts once however many advanced features it uses. See [pricing](/pricing).

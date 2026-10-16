@@ -1,0 +1,62 @@
+export const faq = [
+  {
+    q: 'Does the QR code stop working when the limit is reached?',
+    a: 'No. It keeps working and sends every scan to the page you chose, such as “this offer has ended”. On QRfinity a code never stops working because of a date or a number of scans unless you pause it yourself.',
+  },
+  {
+    q: 'How exact is the date switch?',
+    a: 'Exact to the minute. Each scan checks the time against your date, time and time zone, so the switch happens at the moment you set.',
+  },
+  {
+    q: 'How exact is the scan limit?',
+    a: 'Close, not exact. Scans are counted and checked every few minutes, so a few extra scans can get through before the switch. Don’t use it where the 101st person must be turned away, such as numbered tickets.',
+  },
+  {
+    q: 'Can I set both a date and a scan limit?',
+    a: 'Yes. Whichever comes first switches the code. For example, “the first 200 scans or until Sunday at midnight”.',
+  },
+  {
+    q: 'Can I undo it after the limit is reached?',
+    a: 'Yes. Remove the limit, or set a later date or a higher number, and scans go back to the main destination within about a minute.',
+  },
+]
+
+To make a QR code change after a date or a number of scans, use a dynamic code with a limit: once the date passes, or the code has been scanned enough times, every scan goes to another page you chose. The printed code never stops working; it just sends people somewhere else. On QRfinity these are called date and scan limits, and they’re free on one code.
+
+## When is this useful?
+
+- **Offers with a deadline.** A coupon page until the end of the month, then an “offer ended, here’s what’s on now” page.
+- **First-come rewards.** The first 100 scans get the free sample page; after that, a thank-you page with the regular offer.
+- **Events.** The registration page until doors open, then the recap or next year’s page. See [QR codes for events](/qr-codes-for-events).
+- **Seasonal print.** Packaging or posters that should stop pointing at a promotion when it ends, without anyone remembering to change it.
+
+Without a limit, codes like these keep sending people to a page that’s out of date or gone, which is worse than no code at all.
+
+## How do I set a limit?
+
+1. Create a dynamic code that opens your offer page and save it to your free account.
+2. Open the code in your dashboard and find **Date and scan limits**.
+3. Set **After this date** (and a time and time zone, or leave the time for midnight), **Or after this many scans**, or both.
+4. In **Then send people to**, enter the page for after the limit, and save.
+
+Your dashboard shows when the limit was reached and where scans go now. Until then, the code works as usual, including any redirect rules or split traffic.
+
+<Callout tone="warning">
+A scan limit is checked every few minutes, so it can let a few extra scans through. Use it for “about the first 100”, not for anything that must stop at exactly 100.
+</Callout>
+
+## What should the page after the limit say?
+
+The people scanning are still interested; don’t waste them. A good after-limit page:
+
+- **Says plainly that the offer has ended**, so nobody thinks the code is broken.
+- **Offers the next best thing:** the current promotion, a sign-up for the next one, or your regular menu or shop.
+- **Stays up.** Printed codes can be scanned for years, so point them at a page you’ll keep.
+
+## Is this the same as a QR code that expires?
+
+No, and the difference matters. Many services switch off dynamic codes when a trial or plan ends, and scanners land on an error or an upgrade page. That’s the provider’s decision, not yours. A date or scan limit is your setting: you choose when and where scans go, and the code keeps working. QRfinity codes never expire, and the [do QR codes expire guide](/guides/do-qr-codes-expire) explains why some do.
+
+## What does it cost?
+
+Date and scan limits are an advanced feature, alongside redirect rules, split traffic, password protection and custom short links. Every free account can use advanced features on 1 code, and plans from $5 a month cover 10 codes or more. If a plan ends, limits on codes beyond the free allowance pause and scans go to the main destination; the code keeps working either way. See [pricing](/pricing).
