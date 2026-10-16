@@ -10,6 +10,7 @@ const LINKS = [
   ['/admin/codes', 'Codes'],
   ['/admin/users', 'Users'],
   ['/admin/blocklist', 'Blocklist'],
+  ['/admin/waitlist', 'Waitlist'],
   ['/admin/flags', 'Feature flags'],
   ['/admin/usage', 'Usage'],
   ['/admin/settings', 'Settings'],
