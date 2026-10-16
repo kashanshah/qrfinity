@@ -17,6 +17,12 @@ describe('emails', () => {
     expect(e.html).toContain('src="https://qrfinity.com/brand/qrfinity-logo-reversed-email.png"')
     expect(e.html).not.toMatch(/\.svg"/)
     expect(e.html).not.toContain('var(--')
+    // Checked against caniemail.com: Outlook for Windows can't wrap the long URL, so it only
+    // gets the VML button; exact line heights there; no chained selectors (buggy in Outlook).
+    expect(e.html).toMatch(/<!--\[if !mso\]><!-->\s*<p[^>]*>If the button doesn’t work/)
+    expect(e.html).toContain('word-wrap:break-word')
+    expect(e.html).not.toMatch(/line-height:(?<!rule:exactly;line-height:)/)
+    expect(e.html).not.toMatch(/\b[a-z0-9]+\.[a-z-]+\s*[,{]/)
   })
 
   it('code-disabled email escapes what users and admins typed', () => {

@@ -85,7 +85,7 @@ export function facts(rows: { label: string; value: string; mono?: boolean }[]):
         r,
         i,
       ) => `<tr><td class="muted" style="padding:${i ? '12px' : '0'} 0 0;font-family:${SANS};font-size:13px;line-height:20px;color:${C.muted};">${escapeHtml(r.label)}</td></tr>
-<tr><td class="ink" style="padding:2px 0 0;font-family:${r.mono ? MONO : SANS};font-size:${r.mono ? '14px' : '16px'};line-height:24px;font-weight:700;color:${C.ink};word-break:break-word;">${escapeHtml(r.value)}</td></tr>`,
+<tr><td class="ink" style="padding:2px 0 0;font-family:${r.mono ? MONO : SANS};font-size:${r.mono ? '14px' : '16px'};line-height:24px;font-weight:700;color:${C.ink};word-wrap:break-word;-ms-word-break:break-all;">${escapeHtml(r.value)}</td></tr>`,
     )
     .join('\n')
   return `<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
@@ -106,7 +106,12 @@ type Layout = {
 }
 
 /** The shared frame: evergreen header with the logo, white card, footer with links. */
-export function layout({ siteUrl, preheader, heading, body, reason }: Layout): string {
+export function layout(opts: Layout): string {
+  // Outlook for Windows treats px line heights loosely unless told to use them exactly.
+  return frame(opts).replace(/line-height:/g, 'mso-line-height-rule:exactly;line-height:')
+}
+
+function frame({ siteUrl, preheader, heading, body, reason }: Layout): string {
   const site = siteUrl.replace(/\/$/, '')
   const logo = `${site}/brand/qrfinity-logo-reversed-email.png`
   const footerLink = (path: string, text: string) =>
@@ -144,7 +149,7 @@ export function layout({ siteUrl, preheader, heading, body, reason }: Layout): s
   @media (prefers-color-scheme: dark) {
     .bg { background-color: ${D.ground} !important; }
     .card { background-color: ${D.surface} !important; border-color: ${D.hairline} !important; }
-    .ink, h1.ink { color: ${D.ink} !important; }
+    .ink { color: ${D.ink} !important; }
     .muted { color: ${D.muted} !important; }
     .panel { background-color: ${D.mint} !important; }
     .link { color: ${D.evergreen} !important; }
@@ -210,10 +215,13 @@ export function magicLinkEmail(to: string, url: string, siteUrl: string): Email 
         p('Use the button below to sign in. No password needed.'),
         button(url, 'Sign in'),
         p('The link works once and expires in 10 minutes.', { muted: true, small: true }),
+        // Outlook for Windows can't wrap a long URL and would stretch the email; its VML button works.
+        '<!--[if !mso]><!-->',
         p(
-          `If the button doesn’t work, paste this link into your browser:<br><a href="${escapeHtml(url)}" class="link" style="color:${C.evergreen};font-family:${MONO};font-size:13px;line-height:20px;word-break:break-all;">${escapeHtml(url)}</a>`,
+          `If the button doesn’t work, paste this link into your browser:<br><a href="${escapeHtml(url)}" class="link" style="color:${C.evergreen};font-family:${MONO};font-size:13px;line-height:20px;word-break:break-all;word-wrap:break-word;-ms-word-break:break-all;">${escapeHtml(url)}</a>`,
           { muted: true, small: true },
         ),
+        '<!--<![endif]-->',
         p('Didn’t ask for this? Ignore this email. Nobody can sign in without the link.', {
           muted: true,
           small: true,
