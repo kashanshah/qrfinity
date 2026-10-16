@@ -118,9 +118,9 @@ export async function listFlaggedCodes(db: Database) {
     .limit(200)
 }
 
+/** Codes matching a search, newest first. With no search, the newest codes. */
 export async function searchCodes(db: Database, q: string) {
   const term = q.trim()
-  if (!term) return []
   const like = `%${term.replace(/[%_\\]/g, (c) => '\\' + c)}%`
   const slug = term.replace(/^https?:\/\/[^/]+\//, '').replace(/\/$/, '')
   return db
@@ -130,12 +130,14 @@ export async function searchCodes(db: Database, q: string) {
     .where(
       and(
         isNull(codes.deletedAt),
-        or(
-          eq(codes.slug, slug),
-          ilike(codes.destination, like),
-          ilike(user.email, like),
-          ilike(codes.name, like),
-        ),
+        term
+          ? or(
+              eq(codes.slug, slug),
+              ilike(codes.destination, like),
+              ilike(user.email, like),
+              ilike(codes.name, like),
+            )
+          : undefined,
       ),
     )
     .orderBy(desc(codes.createdAt))
