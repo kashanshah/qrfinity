@@ -1,9 +1,9 @@
 import { sql, type Database } from '@qrfinity/db'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import type { AdminContext } from '@/lib/server/admin'
-import { createDynamicCode, customSlugUsage, deleteCode } from '@/lib/server/codes'
-import { invalidateFlags, setFlag } from '@/lib/server/entitlements'
-import { setFreeCustomSlugAllowance } from '@/lib/server/settings'
+import { createDynamicCode, advancedCodeUsage, deleteCode } from '@/lib/server/codes'
+import { invalidateFlags, setUserPlan } from '@/lib/server/entitlements'
+import { setFreeAdvancedCodeAllowance } from '@/lib/server/settings'
 import { FakeEdge, ctxFor, design, freshDb, makeUser } from './helpers'
 
 let db: Database
@@ -40,8 +40,8 @@ describe('custom short links', () => {
   it('gives each account one free custom link by default, then random ones', async () => {
     const c = await make('alice', ' Joes Menu ')
     expect(c.slug).toBe('joes-menu')
-    expect(await customSlugUsage(ctxFor(db, 'alice'))).toEqual({ used: 1, allowance: 1 })
-    await expect(make('alice', 'second-menu')).rejects.toThrow('used your 1 custom short link')
+    expect(await advancedCodeUsage(ctxFor(db, 'alice'))).toMatchObject({ used: 1, allowance: 1 })
+    await expect(make('alice', 'second-menu')).rejects.toThrow('advanced features on 1 of 1 code')
     // Without a slug, creating still works: random short link.
     expect((await make('alice')).slug).toMatch(/^[0-9A-Za-z]{7}$/)
   })
@@ -59,21 +59,25 @@ describe('custom short links', () => {
   })
 
   it('follows the admin setting, which never takes existing links away', async () => {
-    await setFreeCustomSlugAllowance(admin(), 3)
+    await setFreeAdvancedCodeAllowance(admin(), 3)
     await make('alice', 'menu-one')
     await make('alice', 'menu-two')
-    await setFreeCustomSlugAllowance(admin(), 1)
-    expect(await customSlugUsage(ctxFor(db, 'alice'))).toEqual({ used: 2, allowance: 1 })
-    await expect(make('alice', 'menu-three')).rejects.toThrow('used your 1')
-    await setFreeCustomSlugAllowance(admin(), 0)
+    await setFreeAdvancedCodeAllowance(admin(), 1)
+    expect(await advancedCodeUsage(ctxFor(db, 'alice'))).toMatchObject({ used: 2, allowance: 1 })
+    await expect(make('alice', 'menu-three')).rejects.toThrow('on 2 of 1 code')
+    await setFreeAdvancedCodeAllowance(admin(), 0)
     await expect(make('bob', 'bobs-bar')).rejects.toThrow('aren’t available on your account')
-    await expect(setFreeCustomSlugAllowance(admin(), -1)).rejects.toThrow('0 to 50')
+    await expect(setFreeAdvancedCodeAllowance(admin(), -1)).rejects.toThrow('0 to 50')
   })
 
-  it('gives more with the Pro feature', async () => {
-    await setFlag(admin(), 'moreCustomSlugs', { enabled: false, emails: ['alice@example.com'] })
+  it('gives more codes with advanced features on paid plans', async () => {
+    await setUserPlan(admin(), 'alice', 'starter')
     await make('alice', 'menu-one')
     await make('alice', 'menu-two')
-    expect((await customSlugUsage(ctxFor(db, 'alice'))).allowance).toBe(100)
+    await make('alice', 'menu-three')
+    await expect(make('alice', 'menu-four')).rejects.toThrow('on 3 of 3 codes')
+    await setUserPlan(admin(), 'alice', 'unlimited')
+    expect((await advancedCodeUsage(ctxFor(db, 'alice'))).allowance).toBe(Number.POSITIVE_INFINITY)
+    await make('alice', 'menu-four')
   })
 })

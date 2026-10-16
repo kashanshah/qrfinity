@@ -29,7 +29,7 @@ const FACTS = [
   'Downloads: PNG, JPG, SVG, PDF and EPS, all free, no watermark.',
   'Short links for dynamic codes use qrfinity.link. No IP addresses are stored; no cookies on short links.',
   'Promises in the terms of service: codes never expire; free features never move behind a paywall.',
-  'Pro plan: coming soon, adds features for teams (full analytics history, custom short domain, bulk creation, redirect rules). No price published yet.',
+  'Every feature is free. Advanced features (custom short links now; redirect rules, password protection and custom domains coming) work on 1 code free; paid plans (coming soon) cover 3 codes for $2/month, 10 for $5, 100 for $20, or every code for $50. Stopping a plan never breaks a code.',
   'Made by Teknoffice Technologies Inc., Ontario, Canada. Contact: hello@qrfinity.com.',
 ]
 

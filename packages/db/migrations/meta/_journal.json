@@ -50,6 +50,13 @@
       "when": 1792122180660,
       "tag": "0006_custom_slugs",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792134288910,
+      "tag": "0007_plan_tiers",
+      "breakpoints": true
     }
   ]
 }

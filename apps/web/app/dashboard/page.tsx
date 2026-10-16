@@ -148,6 +148,14 @@ export default async function CodesPage({
                         {c.name}
                       </Link>
                       <StatusPill status={c.status} />
+                      {c.customSlug ? (
+                        <span
+                          className="label rounded-pill border border-hairline px-2 py-0.5 text-ink-muted"
+                          title="Uses an advanced feature (custom short link). Counts toward your plan’s codes with advanced features."
+                        >
+                          Advanced
+                        </span>
+                      ) : null}
                     </div>
                     <p
                       className="body-small truncate text-ink-muted"

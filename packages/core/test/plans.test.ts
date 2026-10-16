@@ -1,14 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { FEATURES, FREE_FEATURES, PLAN_FEATURES, analyticsRanges, entitlements } from '../src/plans'
+import {
+  ADVANCED_FEATURES,
+  FREE_FEATURES,
+  PLANS,
+  PLAN_DETAILS,
+  advancedCodeAllowance,
+  analyticsRanges,
+  entitlements,
+} from '../src/plans'
 
 describe('plans', () => {
   it('keeps the free promise: these features are free, forever', () => {
-    // Removing anything from this list breaks the promise on the pricing page. Don't.
+    // Removing anything from this list breaks the promise on the pricing page and in the terms. Don't.
     expect([...FREE_FEATURES].sort()).toEqual(
       [
         'allFormats',
         'analytics90',
-        'customSlugs',
+        'analyticsHistory',
         'dataExport',
         'dynamicCodes',
         'editDestination',
@@ -18,28 +26,37 @@ describe('plans', () => {
     )
   })
 
-  it('gives every plan everything in the plans below it', () => {
-    for (const f of PLAN_FEATURES.free) expect(PLAN_FEATURES.pro).toContain(f)
-    for (const f of PLAN_FEATURES.pro) expect(PLAN_FEATURES.business).toContain(f)
-    for (const f of Object.keys(FEATURES)) expect(PLAN_FEATURES.business).toContain(f)
+  it('never makes a free feature an advanced (allowance-limited) one', () => {
+    for (const f of ADVANCED_FEATURES) expect(FREE_FEATURES as readonly string[]).not.toContain(f)
   })
 
-  it('lets flags add features for everyone or for listed users, never remove free ones', () => {
+  it('gives each paid plan more advanced codes than the one below, at a higher price', () => {
+    for (let i = 1; i < PLANS.length; i++) {
+      const lower = PLAN_DETAILS[PLANS[i - 1]!]
+      const higher = PLAN_DETAILS[PLANS[i]!]
+      expect(higher.advancedCodes).toBeGreaterThan(lower.advancedCodes)
+      expect(higher.monthlyUsd ?? 0).toBeGreaterThan(lower.monthlyUsd ?? 0)
+    }
+    expect(PLAN_DETAILS.unlimited.advancedCodes).toBe(Number.POSITIVE_INFINITY)
+  })
+
+  it('uses the admin setting for free and never gives a paid plan less', () => {
+    expect(advancedCodeAllowance('free', 1)).toBe(1)
+    expect(advancedCodeAllowance('free', 2)).toBe(2)
+    expect(advancedCodeAllowance('starter', 1)).toBe(3)
+    expect(advancedCodeAllowance('starter', 5)).toBe(5)
+    expect(advancedCodeAllowance('unlimited', 1)).toBe(Number.POSITIVE_INFINITY)
+  })
+
+  it('gives every feature to everyone once released; flags reveal unreleased ones', () => {
     const free = entitlements('free', [], 'u1')
     expect(free.has('dynamicCodes')).toBe(true)
-    expect(free.has('analyticsHistory')).toBe(false)
-    const flags = [
-      { key: 'analyticsHistory' as const, enabled: false, userIds: ['u1'] },
-      { key: 'bulkCreate' as const, enabled: true, userIds: [] },
-    ]
-    expect(entitlements('free', flags, 'u1').has('analyticsHistory')).toBe(true)
-    expect(entitlements('free', flags, 'u2').has('analyticsHistory')).toBe(false)
-    expect(entitlements('free', flags, 'u2').has('bulkCreate')).toBe(true)
-    expect(entitlements('pro', [], 'u3').has('analyticsHistory')).toBe(true)
-  })
-
-  it('offers longer analytics ranges only with history', () => {
-    expect(analyticsRanges(entitlements('free', [], 'u'))).toEqual([7, 30, 90])
-    expect(analyticsRanges(entitlements('pro', [], 'u'))).toContain(365)
+    expect(free.has('analyticsHistory')).toBe(true)
+    expect(free.has('customSlugs')).toBe(true)
+    expect(free.has('redirectRules')).toBe(false)
+    const flags = [{ key: 'redirectRules' as const, enabled: false, userIds: ['u1'] }]
+    expect(entitlements('free', flags, 'u1').has('redirectRules')).toBe(true)
+    expect(entitlements('unlimited', flags, 'u2').has('redirectRules')).toBe(false)
+    expect(analyticsRanges(free)).toContain(365)
   })
 })

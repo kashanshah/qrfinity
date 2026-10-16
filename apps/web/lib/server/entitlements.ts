@@ -36,7 +36,8 @@ export async function getEntitlements(db: Database, userId: string): Promise<Set
 }
 
 export async function setUserPlan(ctx: AdminContext, userId: string, plan: string) {
-  if (!isPlan(plan)) throw new ServiceError('Choose free, pro or business.', 'invalid')
+  if (!isPlan(plan))
+    throw new ServiceError('Choose free, starter, plus, pro or unlimited.', 'invalid')
   await ctx.db.update(user).set({ plan }).where(eq(user.id, userId))
   await audit(ctx.db, ctx.actor, 'user.plan', 'user', userId, { plan })
 }

@@ -19,7 +19,7 @@ export function AllowanceForm({ value }: { value: number }) {
       }}
     >
       <label className="flex flex-col gap-1.5">
-        <span className="label text-ink">Links per account</span>
+        <span className="label text-ink">Codes per account</span>
         <input
           type="number"
           min={0}
