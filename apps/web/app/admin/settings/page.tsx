@@ -57,7 +57,7 @@ export default async function AdminSettings() {
             {stripe ? (
               <span className="text-ink-muted">
                 {' '}
-                ({stripe.secretKey.startsWith('sk_live_') ? 'live mode' : 'test mode'})
+                ({stripe.secretKey.includes('_live_') ? 'live mode' : 'test mode'})
               </span>
             ) : null}
           </li>
