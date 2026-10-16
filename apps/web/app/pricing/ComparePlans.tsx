@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 
 type Cell = ReactNode | ((plan: Plan) => ReactNode)
 type Row = { label: string; hint?: string; cell: Cell }
-type Group = { title: string; rows: Row[] }
+type Group = { title: string; note?: ReactNode; rows: Row[] }
 
 const yes = (
   <>
@@ -73,6 +73,15 @@ const GROUPS: Group[] = [
   },
   {
     title: 'Advanced features',
+    note: (
+      <>
+        Extras that change how a dynamic code behaves: your own short link, sending people to
+        different places, and soon a password. Free on 1 code; a plan covers more.{' '}
+        <a href="#advanced" className="text-evergreen underline">
+          What each one does
+        </a>
+      </>
+    ),
     rows: [
       { label: 'Codes that can use advanced features', cell: codes },
       { label: 'Custom short links', hint: 'qrfinity.link/your-name', cell: yes },
@@ -97,14 +106,16 @@ export function ComparePlans() {
         Scroll the table sideways to see every plan.
       </p>
       {/* Phones scroll the table sideways; the feature column stays in view. */}
-      <div className="mt-3 overflow-x-auto sm:mt-5 rounded-lg border border-hairline bg-surface">
-        <table className="w-full min-w-[600px] border-collapse text-ink">
+      {/* The table scrolls inside its own box (both ways on phones), so the plan names stay on
+          top and the feature names stay on the left while you scroll. */}
+      <div className="mt-3 max-h-[80vh] overflow-auto overscroll-contain rounded-lg border border-hairline bg-surface sm:mt-5">
+        <table className="w-full min-w-[600px] border-separate border-spacing-0 text-ink">
           <caption className="sr-only">Features and limits of each QRfinity plan</caption>
           <thead>
             <tr className="border-b border-hairline">
               <th
                 scope="col"
-                className="sticky left-0 bg-surface p-4 text-left align-bottom font-normal"
+                className="sticky left-0 top-0 z-20 border-b border-hairline bg-surface p-4 text-left align-bottom font-normal"
               >
                 <span className="sr-only">Feature</span>
               </th>
@@ -112,7 +123,7 @@ export function ComparePlans() {
                 <th
                   key={p}
                   scope="col"
-                  className={`w-[17%] p-4 text-center align-bottom ${p === 'free' ? 'bg-mint' : ''}`}
+                  className={`sticky top-0 z-10 w-[17%] border-b border-hairline p-4 text-center align-bottom ${p === 'free' ? 'bg-mint' : 'bg-surface'}`}
                 >
                   <span className="subheading block">{PLAN_DETAILS[p].name}</span>
                   <span className="body-small font-normal text-ink-muted">
@@ -130,16 +141,23 @@ export function ComparePlans() {
                 <th
                   scope="colgroup"
                   colSpan={PLANS.length + 1}
-                  className="label bg-surface-sunk px-4 py-2 text-left text-ink"
+                  className="label border-t border-hairline bg-surface-sunk px-4 py-2 text-left text-ink"
                 >
-                  {g.title}
+                  <span className="sticky left-3 inline-block max-w-[calc(100vw-4rem)] sm:max-w-none">
+                    {g.title}
+                    {g.note ? (
+                      <span className="body-small mt-0.5 block font-normal text-ink-muted">
+                        {g.note}
+                      </span>
+                    ) : null}
+                  </span>
                 </th>
               </tr>
               {g.rows.map((r) => (
-                <tr key={r.label} className="border-t border-hairline">
+                <tr key={r.label}>
                   <th
                     scope="row"
-                    className="sticky left-0 w-[150px] bg-surface px-3 py-3 text-left font-normal sm:w-auto sm:px-4"
+                    className="sticky left-0 z-[5] w-[150px] border-t border-hairline bg-surface px-3 py-3 text-left font-normal sm:w-auto sm:px-4"
                   >
                     <span className="block">{r.label}</span>
                     {r.hint ? (
@@ -149,7 +167,7 @@ export function ComparePlans() {
                   {PLANS.map((p) => (
                     <td
                       key={p}
-                      className={`px-4 py-3 text-center ${p === 'free' ? 'bg-mint/40' : ''}`}
+                      className={`border-t border-hairline px-4 py-3 text-center ${p === 'free' ? 'bg-mint/40' : ''}`}
                     >
                       {typeof r.cell === 'function' ? r.cell(p) : r.cell}
                     </td>

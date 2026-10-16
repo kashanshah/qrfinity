@@ -133,3 +133,36 @@
     letter-spacing: -1px;
   }
 }
+
+/* Website address hint (components/generator/UrlField.tsx): a blinking cursor and a soft pulsing
+   ring while the field still holds the example. Reduced motion keeps a still ring, no animation. */
+.typing-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.15em;
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  background: var(--ink);
+  animation: typing-caret 1s steps(1) infinite;
+}
+@keyframes typing-caret {
+  50% {
+    opacity: 0;
+  }
+}
+.url-hint-ring {
+  border-color: var(--signal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--signal) 45%, transparent);
+  animation: url-hint-ring 2s ease-in-out infinite;
+}
+@keyframes url-hint-ring {
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--signal) 15%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .typing-caret,
+  .url-hint-ring {
+    animation: none;
+  }
+}

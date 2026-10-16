@@ -1,5 +1,5 @@
-// Builds the platform icons the generator puts in the middle of a code by default (WhatsApp,
-// Instagram, app stores…). Each is the brand's single-colour mark from Simple Icons (CC0 data;
+// Builds the icons the generator puts in the middle of a code by default: platform icons
+// (WhatsApp, Instagram, app stores…) and one icon per other code type (Wi-Fi, email, location…). Each is the brand's single-colour mark from Simple Icons (CC0 data;
 // the marks remain their owners' trademarks), in the brand's own colour on a rounded tile.
 //
 // The icons go into codes as vector paths, so SVG, PDF and EPS downloads stay sharp at any size.
@@ -11,6 +11,17 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import {
+  mdiCalendarMonth,
+  mdiCardAccountDetails,
+  mdiEmail,
+  mdiLinkVariant,
+  mdiMapMarker,
+  mdiMessageText,
+  mdiPhone,
+  mdiTextBox,
+  mdiWifi,
+} from '@mdi/js'
 import * as si from 'simple-icons'
 import svgpath from 'svgpath'
 
@@ -44,6 +55,24 @@ const ICONS = {
   googleplay: { icon: si.siGoogleplay },
   discord: { icon: si.siDiscord },
   reddit: { icon: si.siReddit },
+  // Code types without a platform: Material Design Icons (Apache 2.0), white on a dark tile so
+  // they sit well on any code colour.
+  ...Object.fromEntries(
+    Object.entries({
+      link: ['Link', mdiLinkVariant],
+      wifi: ['Wi-Fi', mdiWifi],
+      contact: ['Contact', mdiCardAccountDetails],
+      email: ['Email', mdiEmail],
+      sms: ['SMS', mdiMessageText],
+      phone: ['Phone', mdiPhone],
+      location: ['Location', mdiMapMarker],
+      event: ['Event', mdiCalendarMonth],
+      text: ['Text', mdiTextBox],
+    }).map(([id, [title, path]]) => [
+      id,
+      { icon: { title, path, hex: 'FFFFFF' }, bg: '#14201A', mark: '#FFFFFF' },
+    ]),
+  ),
 }
 
 /** Rounded rectangle as a path (k ≈ 0.5523 makes a quarter circle from one cubic). */

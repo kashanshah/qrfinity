@@ -2,6 +2,7 @@
 
 import {
   BRAND_ICONS,
+  isTypeIcon,
   isVectorLogo,
   DOT_STYLES,
   EYE_BALL_STYLES,
@@ -409,9 +410,11 @@ function LogoSection({
             />
           ) : null}
           <p className="body-small min-w-0 flex-1 text-ink-muted">
-            {brandName
-              ? `Shows the ${brandName} icon because the code opens ${brandName}. Choose None or your own logo to change it.`
-              : 'Adds the platform’s icon when the code opens WhatsApp, a social profile, an app store or another app we recognise. This code doesn’t, so it has no logo.'}
+            {brandName && brand && isTypeIcon(brand)
+              ? `Shows a ${brandName === 'SMS' ? 'SMS' : brandName.toLowerCase()} icon for this kind of code. Choose None or your own logo to change it.`
+              : brandName
+                ? `Shows the ${brandName} icon because the code opens ${brandName}. Choose None or your own logo to change it.`
+                : 'Adds an icon that matches the code: the platform’s own for WhatsApp, social profiles and app stores, or one for links, Wi-Fi, contacts and the rest.'}
           </p>
         </div>
       ) : null}
