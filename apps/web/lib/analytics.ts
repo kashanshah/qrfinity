@@ -3,8 +3,9 @@
  *
  * Privacy rules this file keeps:
  * - Nothing loads on qrfinity.link (the redirect is a separate Worker) or on /admin.
- * - No cookies until the visitor allows them. Until then GA runs in consent mode (cookieless pings)
- *   and PostHog in cookieless mode, which needs "Cookieless server hash mode" on in the project.
+ * - In the EU, EEA, UK and Switzerland (and when the country is unknown), no cookies until the visitor
+ *   allows them: GA runs in consent mode (cookieless pings), PostHog in cookieless mode. Elsewhere
+ *   analytics cookies are on by default; Cookie settings and Global Privacy Control turn them off.
  * - No session recordings, masked text, and events carry no content, links or emails.
  */
 
@@ -12,7 +13,21 @@ export const GA_ID = process.env.NEXT_PUBLIC_GA_ID?.trim() || ''
 export const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY?.trim() || ''
 export const ANALYTICS_ENABLED = Boolean(GA_ID || POSTHOG_KEY)
 
-export type Consent = 'granted' | 'denied'
+/**
+ * 'granted' and 'denied' are the visitor's own choice. 'implied' means analytics is on by default
+ * because the visitor is outside the EU, EEA, UK and Switzerland and hasn't chosen.
+ */
+export type Consent = 'granted' | 'denied' | 'implied'
+
+export const isGranted = (c: Consent | null | undefined) => c === 'granted' || c === 'implied'
+
+/** Global Privacy Control: a browser-wide "don't track me" we treat as "No thanks". */
+export function hasPrivacySignal(): boolean {
+  return (
+    typeof navigator !== 'undefined' &&
+    (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl === true
+  )
+}
 const CONSENT_KEY = 'qrfinity-analytics-consent'
 export const CONSENT_EVENT = 'qrfinity:consent'
 export const OPEN_SETTINGS_EVENT = 'qrfinity:cookie-settings'
@@ -20,7 +35,7 @@ export const OPEN_SETTINGS_EVENT = 'qrfinity:cookie-settings'
 export function readConsent(): Consent | null {
   try {
     const v = localStorage.getItem(CONSENT_KEY)
-    return v === 'granted' || v === 'denied' ? v : null
+    return v === 'granted' || v === 'denied' || v === 'implied' ? v : null
   } catch {
     return null
   }
