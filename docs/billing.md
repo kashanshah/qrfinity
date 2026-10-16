@@ -18,7 +18,7 @@ Paid plans (Plus, Pro, Unlimited) are sold through Stripe Billing with Stripe Ta
 
 | Variable | Value |
 |---|---|
-| `STRIPE_SECRET_KEY` | Developers → API keys → Secret key (`sk_test_…`, then `sk_live_…`). A restricted key also works if it can write Customers, Checkout Sessions, Customer portal and Subscriptions, and read Prices. |
+| `STRIPE_SECRET_KEY` | Developers → API keys → Secret key (`sk_test_…`, then `sk_live_…`). A restricted key (`rk_…`) also works for the app if it has write access to Customers, Checkout Sessions, Customer portal and Subscriptions, and read access to Prices. The setup script additionally needs write access to Products, Prices and Webhook Endpoints. |
 | `STRIPE_WEBHOOK_SECRET` | The endpoint's signing secret (`whsec_…`). |
 | `STRIPE_PORTAL_CONFIGURATION` | Optional: the portal configuration id (`bpc_…`) printed by the setup script. Without it Stripe uses your default portal settings. |
 
@@ -33,7 +33,7 @@ Paid plans stay "Coming soon" (with the waitlist) until the first two are set. T
    STRIPE_SECRET_KEY=sk_test_... pnpm --filter @qrfinity/web stripe:setup --webhook https://qrfinity.com
    ```
 
-   It prints `STRIPE_WEBHOOK_SECRET` and `STRIPE_PORTAL_CONFIGURATION`. It's safe to run again; a price changed in `PLAN_DETAILS` gets a new Stripe price that takes over the lookup key (existing subscribers stay on the old price).
+   Run `pnpm install` first after pulling (the script uses `tsx`). It prints `STRIPE_WEBHOOK_SECRET` and `STRIPE_PORTAL_CONFIGURATION`. It's safe to run again; a price changed in `PLAN_DETAILS` gets a new Stripe price that takes over the lookup key (existing subscribers stay on the old price).
 
    To create the webhook by hand instead: Developers → Webhooks → Add endpoint, URL `https://qrfinity.com/api/billing/webhook`, snapshot payloads, events `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`. Copy its signing secret.
 3. **Emails:** Settings → Customer emails → turn on receipts for successful payments and refunds, and emails for failed payments (Settings → Billing → Revenue recovery: Smart Retries and failed-payment emails, then cancel the subscription if all retries fail).
