@@ -26,6 +26,7 @@ import { useGenerator } from '@/lib/generator-context'
 import { Checkbox, SelectField, TextArea, TextField } from '../ui/Field'
 import { OptionGroup } from '../ui/OptionGroup'
 import { PlaceAutocomplete } from './PlaceAutocomplete'
+import { UrlField } from './UrlField'
 
 const icon = (I: typeof Link2) => <I aria-hidden="true" size={20} strokeWidth={1.75} />
 
@@ -107,12 +108,7 @@ export function ContentForm({ result }: { result: EncodeResult }) {
   switch (type) {
     case 'url':
       return (
-        <TextField
-          label="Website address"
-          type="url"
-          inputMode="url"
-          autoComplete="url"
-          placeholder="example.com/menu"
+        <UrlField
           hint={
             kind === 'static'
               ? 'The address goes straight into the code. No redirect, no tracking.'
