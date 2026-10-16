@@ -14,6 +14,10 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { deleteAccount } from '@/lib/server/account'
 import {
   addBlock,
+  listAudit,
+  listBlocklist,
+  listFlaggedCodes,
+  listReports,
   disableCode,
   isAdmin,
   restoreCode,
@@ -163,13 +167,15 @@ describe('admin actions', () => {
       .update(codes)
       .set({ createdAt: sql`now() + interval '1 minute'` })
       .where(eq(codes.id, flyer.id))
-    expect((await searchCodes(db, '')).map((r) => r.code.id)).toEqual([flyer.id, menu.id])
-    expect((await searchCodes(db, '  ')).length).toBe(2)
-    expect((await searchCodes(db, 'menu')).map((r) => r.code.id)).toEqual([menu.id])
-    expect((await searchCodes(db, 'bob@')).map((r) => r.code.id)).toEqual([flyer.id])
-    expect((await searchCodes(db, `https://qrfinity.link/${menu.slug}`))[0]?.code.id).toBe(menu.id)
+    expect((await searchCodes(db, '')).rows.map((r) => r.code.id)).toEqual([flyer.id, menu.id])
+    expect((await searchCodes(db, '  ')).rows.length).toBe(2)
+    expect((await searchCodes(db, 'menu')).rows.map((r) => r.code.id)).toEqual([menu.id])
+    expect((await searchCodes(db, 'bob@')).rows.map((r) => r.code.id)).toEqual([flyer.id])
+    expect((await searchCodes(db, `https://qrfinity.link/${menu.slug}`)).rows[0]?.code.id).toBe(
+      menu.id,
+    )
     await db.update(codes).set({ deletedAt: new Date() }).where(eq(codes.id, menu.id))
-    expect((await searchCodes(db, '')).map((r) => r.code.id)).toEqual([flyer.id])
+    expect((await searchCodes(db, '')).rows.map((r) => r.code.id)).toEqual([flyer.id])
   })
 
   it('suspending a user signs them out everywhere', async () => {
@@ -209,7 +215,47 @@ describe('admin search', () => {
     })
     expect(all.find((u) => u.id === 'bob')).toMatchObject({ codes: 0 })
     expect((await searchUsers(db, 'ALICE')).rows.map((u) => u.id)).toEqual(['alice'])
-    expect((await searchCodes(db, 'alice@example.com')).length).toBeGreaterThanOrEqual(1)
+    expect((await searchCodes(db, 'alice@example.com')).rows.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('admin lists sort by the requested column and ignore unknown ones', async () => {
+    await makeUser(db, 'bob')
+    const ctx = ctxFor(db, 'alice')
+    await createDynamicCode(ctx, { name: 'Beta', destination: 'example.com/b', design })
+    await createDynamicCode(ctx, { name: 'alpha', destination: 'example.com/a', design })
+    await createDynamicCode(ctxFor(db, 'bob'), {
+      name: 'Gamma',
+      destination: 'example.org',
+      design,
+    })
+    const names = async (sort?: string, dir?: string) =>
+      (await searchCodes(db, '', { sort, dir })).rows.map((r) => r.code.name)
+    expect(await names('name', 'asc')).toEqual(['alpha', 'Beta', 'Gamma'])
+    expect(await names('name', 'desc')).toEqual(['Gamma', 'Beta', 'alpha'])
+    // Owner sort groups alice's codes before bob's.
+    expect((await names('owner', 'asc')).at(-1)).toBe('Gamma')
+    // Unknown keys and directions fall back to the default (newest first), never to raw SQL.
+    const fallback = await searchCodes(db, '', { sort: 'name; drop table codes', dir: 'sideways' })
+    expect(fallback).toMatchObject({ sort: 'created', dir: 'desc' })
+
+    const users = await searchUsers(db, '', { sort: 'email', dir: 'asc' })
+    expect(users.rows.map((u) => u.email)).toEqual(['alice@example.com', 'bob@example.com'])
+    expect((await searchUsers(db, '', { sort: 'codes', dir: 'desc' })).rows[0]?.id).toBe('alice')
+
+    await addBlock(adminCtx(), 'domain', 'zzz-bad.example', 'Kit seen in report 4417')
+    await addBlock(adminCtx(), 'domain', 'aaa-bad.example', 'Malware')
+    const blocks = await listBlocklist(db, 'bad.example', { sort: 'value', dir: 'desc' })
+    expect(blocks.rows.map((b) => b.value)).toEqual(['zzz-bad.example', 'aaa-bad.example'])
+    expect((await listBlocklist(db, 'report 4417')).rows.map((b) => b.value)).toEqual([
+      'zzz-bad.example',
+    ])
+
+    const audit = await listAudit(db, 'zzz-bad', { perPage: 10 })
+    expect(audit.total).toBe(1)
+    expect(audit.rows[0]).toMatchObject({ action: 'blocklist.add' })
+
+    expect(await listReports(db, 'open', 'nothing-like-this')).toMatchObject({ total: 0, rows: [] })
+    expect(await listFlaggedCodes(db)).toMatchObject({ total: 0, sort: 'checked', dir: 'desc' })
   })
 
   it('user search pages through results, newest first, and clamps bad input', async () => {
