@@ -5,6 +5,7 @@ import { Turnstile } from '@/components/Turnstile'
 import { Button } from '@/components/ui/Button'
 import { TextArea, TextField } from '@/components/ui/Field'
 import { OptionGroup } from '@/components/ui/OptionGroup'
+import { track } from '@/lib/analytics'
 import { submitReportAction } from './actions'
 
 export function ReportForm({
@@ -48,8 +49,10 @@ export function ReportForm({
         start(async () => {
           setError(null)
           const r = await submitReportAction({ reported, reason, details, email, token })
-          if (r.ok) setDone(true)
-          else setError(r.error)
+          if (r.ok) {
+            setDone(true)
+            track('abuse_report_submitted', { reason })
+          } else setError(r.error)
         })
       }}
     >

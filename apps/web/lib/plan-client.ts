@@ -3,7 +3,13 @@
 import type { Feature, Plan } from '@qrfinity/core'
 import { useEffect, useState } from 'react'
 
-export type ViewerPlan = { signedIn: boolean; plan: Plan; features: Feature[] }
+export type ViewerPlan = {
+  signedIn: boolean
+  plan: Plan
+  features: Feature[]
+  /** Signed up in the last hour (counts a first sign-in as a sign-up in site analytics). */
+  newAccount?: boolean
+}
 
 let request: Promise<ViewerPlan> | null = null
 
@@ -15,15 +21,16 @@ function loadPlan(): Promise<ViewerPlan> {
   return request
 }
 
-/** The visitor's plan, or null while it loads. */
-export function useViewerPlan(): ViewerPlan | null {
+/** The visitor's plan, or null while it loads (or while `enabled` is false). */
+export function useViewerPlan(enabled = true): ViewerPlan | null {
   const [plan, setPlan] = useState<ViewerPlan | null>(null)
   useEffect(() => {
+    if (!enabled) return
     let live = true
     void loadPlan().then((p) => live && setPlan(p))
     return () => {
       live = false
     }
-  }, [])
+  }, [enabled])
   return plan
 }

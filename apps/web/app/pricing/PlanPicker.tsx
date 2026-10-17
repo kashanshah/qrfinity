@@ -1,7 +1,7 @@
 'use client'
 
-import { PLANS, PLAN_DETAILS, type BillingInterval, type Plan } from '@qrfinity/core'
-import { useState, useTransition } from 'react'
+import { PLANS, PLAN_DETAILS, planPrice, type BillingInterval, type Plan } from '@qrfinity/core'
+import { useEffect, useState, useTransition } from 'react'
 import { track } from '@/lib/analytics'
 import { choosePlanAction } from './actions'
 
@@ -20,13 +20,33 @@ export function PlanPicker({ billingOn }: { billingOn: boolean }) {
   const [error, setError] = useState<string | null>(null)
   const [, start] = useTransition()
 
+  // Back from Stripe without subscribing (the checkout's cancel link adds ?checkout=cancelled).
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    if (url.searchParams.get('checkout') !== 'cancelled') return
+    track('checkout_cancelled', {})
+    url.searchParams.delete('checkout')
+    window.history.replaceState(null, '', url)
+  }, [])
+
+  const pickInterval = (next: BillingInterval) => {
+    setBillingInterval(next)
+    track('plan_interval_selected', { interval: next })
+  }
+
   const choose = (plan: Plan) =>
     start(async () => {
       setBusy(plan)
       setError(null)
       const r = await choosePlanAction({ plan, interval })
       if (r.ok) {
-        track('checkout_started', { plan, interval })
+        if (plan !== 'free')
+          track('begin_checkout', {
+            plan,
+            interval,
+            value: planPrice(plan, interval),
+            currency: 'USD',
+          })
         window.location.assign(r.url)
         return
       }
@@ -49,7 +69,7 @@ export function PlanPicker({ billingOn }: { billingOn: boolean }) {
             type="button"
             className={pill(interval === 'month')}
             aria-pressed={interval === 'month'}
-            onClick={() => setBillingInterval('month')}
+            onClick={() => pickInterval('month')}
           >
             Monthly
           </button>
@@ -57,7 +77,7 @@ export function PlanPicker({ billingOn }: { billingOn: boolean }) {
             type="button"
             className={pill(interval === 'year')}
             aria-pressed={interval === 'year'}
-            onClick={() => setBillingInterval('year')}
+            onClick={() => pickInterval('year')}
           >
             Yearly, 2 months free
           </button>

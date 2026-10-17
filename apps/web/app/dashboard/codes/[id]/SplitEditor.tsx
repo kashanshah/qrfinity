@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { setSplitAction } from '@/app/dashboard/actions'
+import { track } from '@/lib/analytics'
 import { AdvancedSection, type AdvancedAccess } from '@/components/dashboard/Advanced'
 import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/Field'
@@ -66,8 +67,12 @@ export function SplitEditor({
     start(async () => {
       setError(null)
       const r = await setSplitAction(id, toInput(drafts))
-      if (!r.ok) setError(r.error)
-      else {
+      if (!r.ok) {
+        setError(r.error)
+        track('code_feature_failed', { feature: 'split', code: r.code })
+      } else {
+        const versions = toDrafts(r.data).length
+        track('code_feature_saved', { feature: 'split', on: versions > 0, count: versions })
         setDrafts(toDrafts(r.data))
         setSaved(true)
         router.refresh()

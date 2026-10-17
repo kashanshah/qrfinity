@@ -4,10 +4,11 @@ import { contactName, isPageType } from '@qrfinity/core'
 import type { CodeContent } from '@qrfinity/db'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
-import { track } from '@/lib/analytics'
+import { contentVariant, designProps, track } from '@/lib/analytics'
 import { createCodeAction } from '@/app/dashboard/actions'
 import { Generator, type FinalStepProps } from '@/components/generator/Generator'
 import { AdvancedMark, advancedAccess } from '@/components/dashboard/Advanced'
+import { TrackEvent } from '@/components/TrackEvent'
 import { Button } from '@/components/ui/Button'
 import { SelectField, TextField } from '@/components/ui/Field'
 import { clearDraft, readDraft } from '@/lib/draft'
@@ -29,11 +30,14 @@ function CreateStep({
   folders,
   slugs,
   shortLinkBase,
+  fromHomepage,
 }: {
   props: FinalStepProps
   folders: Folder[]
   slugs: SlugUsage
   shortLinkBase: string
+  /** Designed on the homepage and carried through sign-in. */
+  fromHomepage: boolean
 }) {
   const router = useRouter()
   const [name, setName] = useState('')
@@ -73,12 +77,20 @@ function CreateStep({
             })
             if (r.ok) {
               track('dynamic_code_created', {
+                ...designProps(props.design),
                 content_type: props.type,
+                variant: contentVariant(props.type, props.fields[props.type]),
                 custom_slug: Boolean(slug.trim()),
+                folder: Boolean(folderId),
+                from_homepage: fromHomepage,
+                scan: props.scanFailed ? 'fail' : 'pass',
               })
               clearDraft()
               router.push(`/dashboard/codes/${r.data}?created=1`)
-            } else setError(r.error)
+            } else {
+              setError(r.error)
+              track('dynamic_code_create_failed', { content_type: props.type, code: r.code })
+            }
           })
         }}
       >
@@ -129,10 +141,15 @@ function CreateStep({
                 'An advanced feature. Your plan covers every code. Leave empty for a random link. It can’t be changed after you create the code.'
               ) : slugsLeft === 0 ? (
                 <>
+                  <TrackEvent name="upgrade_prompt_shown" props={{ feature: 'custom_slug' }} />
                   An advanced feature: you’re using advanced features on {slugs.used} of{' '}
                   {slugs.allowance} {slugs.allowance === 1 ? 'code' : 'codes'}, so this code gets a
                   random link.{' '}
-                  <a href="/pricing#plans" className="text-evergreen underline">
+                  <a
+                    href="/pricing#plans"
+                    className="text-evergreen underline"
+                    onClick={() => track('upgrade_prompt_clicked', { feature: 'custom_slug' })}
+                  >
                     Choose a plan for more
                   </a>
                   .
@@ -191,7 +208,13 @@ export function CreateCode({
       shortLinkBase={shortLinkBase}
       contentTitle="1. Where should the code send people?"
       finalStep={(p) => (
-        <CreateStep props={p} folders={folders} slugs={slugs} shortLinkBase={shortLinkBase} />
+        <CreateStep
+          props={p}
+          folders={folders}
+          slugs={slugs}
+          shortLinkBase={shortLinkBase}
+          fromHomepage={draft !== null}
+        />
       )}
     />
   )
