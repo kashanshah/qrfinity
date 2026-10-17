@@ -1,0 +1,37 @@
+export const faq = [
+  {
+    q: 'What can a Code 128 barcode hold?',
+    a: 'Letters (upper and lower case), digits, spaces and common symbols, up to 80 characters here. Long runs of digits are packed two per symbol, so number-heavy codes stay short.',
+  },
+  {
+    q: 'Code 128 or QR code?',
+    a: 'Code 128 for scanners in warehouses, shops and stock systems, which read barcodes fastest. A QR code when people will scan with their phones, or when you need to hold a web address or more data.',
+  },
+  {
+    q: 'How small can I print it?',
+    a: 'Keep the narrowest bar at least 0.19 mm wide; 0.25 to 0.33 mm is safer. Short codes can be small; long codes get wide, so keep the text short if space is tight.',
+  },
+  {
+    q: 'Is Code 128 the same as GS1-128?',
+    a: 'GS1-128 is Code 128 with special application identifiers for supply chains. This generator makes plain Code 128, which is what most inventory, asset and shipping labels use.',
+  },
+]
+
+Code 128 is the everyday barcode for labels: it holds letters, digits and symbols, packs numbers tightly, and every barcode scanner reads it. Type your text or number above and download a scan-tested barcode; PNG and JPG are free.
+
+## What people use Code 128 for
+
+- **Inventory and SKUs:** shelf labels, bin locations, product SKUs.
+- **Asset tags:** laptops, tools and equipment, with a serial number or asset ID.
+- **Shipping and returns:** order numbers, return codes and package IDs.
+- **Tickets and passes:** a ticket number that a scanner at the door looks up.
+- **Amazon FBA:** FNSKU labels use Code 128; the [FNSKU label maker](/barcode-generator/amazon-fnsku) adds the title and condition for you.
+
+## Tips for readable Code 128 barcodes
+
+- **Shorter is better.** Every character adds width. Use a short ID and keep the details in your system.
+- **Mind the bar width.** The generator shows the narrowest bar as you resize; stay above 0.19 mm.
+- **Keep the margins.** Leave blank space on both sides, at least ten times the narrowest bar.
+- **Thermal labels:** print at 100% so bars land on whole printer dots; scaled images print uneven bars.
+
+For systems that only accept capitals and digits, use [Code 39](/barcode-generator/code-39). For cartons with a GTIN, use [ITF-14](/barcode-generator/itf-14).

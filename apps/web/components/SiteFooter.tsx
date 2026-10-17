@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { CookieSettingsLink } from './Analytics'
 import {
   ALTERNATIVES,
+  BARCODE_HOME,
+  BARCODE_PAGES,
   FEATURE_PAGES,
   GUIDES,
   INDUSTRY_PAGES,
@@ -35,6 +37,10 @@ const COLUMNS = [
     heading: 'Features',
     links: [...FEATURE_PAGES, ...INDUSTRY_PAGES].map((p) => [p.path, p.label]),
   },
+  {
+    heading: 'Barcodes',
+    links: [BARCODE_HOME, ...BARCODE_PAGES].map((p) => [p.path, p.label]),
+  },
   { heading: 'Guides', links: GUIDES.map((p) => [p.path, p.label]) },
   {
     heading: 'Compare',
@@ -54,7 +60,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-12 border-t border-hairline">
       <div className="body-small mx-auto max-w-[1200px] px-4 py-10 text-ink-muted md:px-6">
-        <nav aria-label="Site" className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-5">
+        <nav aria-label="Site" className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-6">
           {COLUMNS.map((c) => (
             <div key={c.heading}>
               <h2 className="label mb-3 font-bold text-ink">{c.heading}</h2>

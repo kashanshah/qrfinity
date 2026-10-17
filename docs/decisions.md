@@ -143,6 +143,11 @@ Kashan's direction: keep every feature free unless it costs us; charge for volum
   - *Promises:* "free features never move behind a paywall" is gone from the terms, CLAUDE.md and the site. The terms (section 7) now say plans, what's free and prices can change, that website and marketing copy describe the service as it is and aren't promises about the future, and that we email 30 days before a change reduces a plan someone pays for. Section 3 keeps the promises about codes: they never expire, are never paused for not paying, and carry no watermark.
   - Replaces "every format free" and "free features never move behind a paywall" above.
 
+- **Barcodes (2026-10-17, Kashan):** a free barcode generator next to the QR tools, static and made in the browser like static QR codes, with QR codes kept as the headline. Our own encoders in `packages/core/src/barcode` (no dependency): UPC-A, EAN-13, EAN-8, UPC-E, ITF-14 (with bearer bars), ISBN (as EAN-13, ISBN-10 converted), Code 128 (sets B/C) and Code 39. Check digits are added or verified; every barcode is decoded with zxing before download. Same format rule as QR codes: PNG and JPG free; SVG, PDF and EPS with a paid plan. Rasters keep every bar a whole number of pixels.
+  - *Amazon FNSKU labels:* barcode (Code 128), FNSKU, title (shortened in the middle) and condition, on Amazon's accepted sizes: thermal rolls (2.25 × 1.25, 2 × 1, 3 × 2 in, at 203 or 300 dpi, bars a whole number of printer dots) and sheets (30-up Letter, 24- and 21-up A4). Label PNG free; label PDF and Zebra ZPL count as print formats (paid).
+  - *Not included yet:* 2D codes (Data Matrix, PDF417, Aztec), EAN-2/5 add-ons, GS1-128, bulk from a spreadsheet. We never issue UPC/EAN numbers; pages point to GS1.
+  - *Menu:* dropdowns for QR codes, Barcodes and Tools (CSS only: hover and keyboard focus), then Guides and Pricing; phones get the same groups as sections.
+
 ## Name and domains
 
 - Chosen: **QRfinity** (QR + infinity). Rejected: QRLasts (sounds like "QR Last"; qrlast.com belongs to someone else), QRVow (sounds like "QR Wow"), QRLasting (clear but forgettable), InfiniQR (spelling risk).

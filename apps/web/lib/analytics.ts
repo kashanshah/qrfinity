@@ -74,6 +74,7 @@ export type AnalyticsEvent =
     }
   | { name: 'checkout_started'; props: { plan: string; interval: 'month' | 'year' } }
   | { name: 'upgrade_prompt_shown'; props: { feature: string } }
+  | { name: 'barcode_downloaded'; props: { format: string; barcode_type: string } }
   | { name: 'qr_tested'; props: { verdict: string; warnings: number; failures: number } }
 
 type Gtag = (...args: unknown[]) => void

@@ -102,6 +102,19 @@ export default function HomePage() {
         </p>
       </section>
 
+      <section aria-labelledby="barcodes" className="mt-12 rounded-lg bg-surface-sunk p-4 md:p-6">
+        <h2 id="barcodes" className="subheading text-ink">
+          Need a barcode instead?
+        </h2>
+        <p className="mt-1 max-w-[65ch] text-ink-muted">
+          UPC, EAN-13, ISBN, Code 128, ITF-14 and Amazon FNSKU labels, free and scan-tested, made in
+          your browser like our QR codes.{' '}
+          <Link href="/barcode-generator" className="text-evergreen underline">
+            Make a barcode
+          </Link>
+        </p>
+      </section>
+
       <section aria-labelledby="guides" className="mt-12">
         <h2 id="guides" className="heading mb-4 text-ink">
           Guides

@@ -13,6 +13,7 @@ import { RelatedLinks } from './RelatedLinks'
 
 const HUB: Partial<Record<Page['kind'], string>> = {
   'use-case': '/qr-code-generator',
+  barcode: '/barcode-generator',
   guide: '/guides',
   alternative: '/alternatives',
 }
@@ -27,7 +28,7 @@ export function crumbsFor(page: Page): Crumb[] {
   const hub = HUB[page.kind]
   return [
     { name: 'Home', path: HOME.path },
-    ...(hub ? [{ name: getPage(hub).label, path: hub }] : []),
+    ...(hub && hub !== page.path ? [{ name: getPage(hub).label, path: hub }] : []),
     { name: page.label, path: page.path },
   ]
 }

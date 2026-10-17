@@ -25,7 +25,11 @@ const FREE = [
 ]
 
 const PLAN_EXTRAS: { name: string; detail: string }[] = [
-  { name: 'Print formats', detail: 'SVG, PDF and EPS files that stay sharp at any size' },
+  {
+    name: 'Print formats',
+    detail:
+      'SVG, PDF and EPS files that stay sharp at any size, for QR codes and barcodes, plus Zebra (ZPL) files for Amazon labels',
+  },
   {
     name: 'More contact card templates',
     detail: '4 on Plus, 6 on Pro, all 8 on Unlimited',

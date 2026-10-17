@@ -1,0 +1,57 @@
+export const faq = [
+  {
+    q: 'Is this barcode generator really free?',
+    a: 'Yes. Every barcode type, the scan test and PNG and JPG downloads are free, with no watermark and no sign-up. Vector files (SVG, PDF, EPS) and Zebra label files come with a paid plan.',
+  },
+  {
+    q: 'Do you give me a barcode number?',
+    a: 'No. We draw the barcode for a number you already have. For products sold in shops or on Amazon, the UPC or EAN number must come from GS1, the organisation that assigns them. For your own labels, such as inventory or asset tags, any text works with Code 128.',
+  },
+  {
+    q: 'Do barcodes expire?',
+    a: 'No. A barcode is just a pattern that stands for a number; nothing online sits behind it. It works as long as the print is readable and the number means something to whoever scans it.',
+  },
+  {
+    q: 'Can I change a barcode after printing it?',
+    a: 'No, the number is printed in the bars. If you need to change where a printed code leads, use a dynamic QR code instead: it holds a short link you can point anywhere, any time.',
+  },
+  {
+    q: 'Which barcode should I use?',
+    a: 'Products in shops: UPC-A in the US and Canada, EAN-13 elsewhere. Books: ISBN. Shipping cartons: ITF-14. Amazon FBA: the FNSKU label. Your own inventory, assets or tickets: Code 128.',
+  },
+]
+
+QRfinity makes barcodes in your browser: UPC-A, EAN-13, EAN-8, UPC-E, ITF-14, ISBN, Code 128, Code 39 and Amazon FNSKU labels. We check the digits as you type, add the check digit if you leave it off, and read each barcode back before you download it. PNG and JPG are free, with no sign-up and no watermark.
+
+## Which barcode type do I need?
+
+| You’re labelling | Use | Where the number comes from |
+| --- | --- | --- |
+| Products sold in shops in the US or Canada | [UPC-A](/barcode-generator/upc) | GS1 US or GS1 Canada |
+| Products sold in shops elsewhere | [EAN-13](/barcode-generator/ean-13) | Your country’s GS1 office |
+| Very small packages | [EAN-8](/barcode-generator/ean-8) or [UPC-E](/barcode-generator/upc-e) | GS1 |
+| Books | [ISBN](/barcode-generator/isbn) | Your country’s ISBN agency |
+| Shipping cartons and cases | [ITF-14](/barcode-generator/itf-14) | Built from your product’s GTIN |
+| Amazon FBA inventory | [Amazon FNSKU label](/barcode-generator/amazon-fnsku) | Seller Central |
+| Your own inventory, assets, tickets or files | [Code 128](/barcode-generator/code-128) | You choose |
+| Systems that require it, like some ID badges | [Code 39](/barcode-generator/code-39) | You choose |
+
+## Barcode or QR code?
+
+A barcode holds a short number or code, read by shop scanners, warehouse guns and stock systems. A QR code holds much more, such as a web address, Wi-Fi details or a contact card, and every phone camera reads it. If people will scan it with their phone, use a [QR code](/qr-code-generator). If a till, a warehouse or a stock system will scan it, use a barcode.
+
+## How big should a barcode be?
+
+Retail barcodes have a standard size: a UPC-A or EAN-13 at 100% is about 37 mm wide including its blank margins, and you can print it from 80% to 200% of that. Don’t squash the height to fit a tight space; cut the bars shorter only if your printer or retailer allows it.
+
+For Code 128 and other label barcodes, keep the narrowest bar at least 0.19 mm wide, and wider if people will scan from a distance. The generator shows the bar width as you change the size, and warns you when it gets too thin.
+
+<Callout>
+Leave the blank margins on both sides. Scanners need that quiet space to find where the barcode starts and ends, and trimming it is the most common reason a printed barcode won’t scan.
+</Callout>
+
+## Which file should I download?
+
+- **PNG:** for most printing, documents and labels. Every bar is a whole number of pixels, so edges stay sharp and scanners read the widths exactly.
+- **JPG:** where PNG isn’t accepted.
+- **SVG, PDF, EPS:** vector files for packaging and print shops, sharp at any size. They come with a paid plan, from $5 a month.

@@ -1,0 +1,42 @@
+export const faq = [
+  {
+    q: 'What number goes in an ITF-14?',
+    a: 'A 14-digit GTIN for the carton. It’s usually built from the product’s GTIN-13 or UPC: a packaging indicator digit (1–8) in front, then the first 12 digits of the product number, then a new check digit. Enter 13 digits and we add the check digit.',
+  },
+  {
+    q: 'What are the thick bars around it?',
+    a: 'Bearer bars. They protect the barcode on rough corrugated board and stop a scanner reading only part of it. We draw them above and below.',
+  },
+  {
+    q: 'How big should an ITF-14 be?',
+    a: 'At 100% it’s about 152 mm wide (bearer bars and margins included) with bars about 32 mm tall, sized to print well on corrugated board. You can scale it down for smoother printing surfaces.',
+  },
+  {
+    q: 'Can I use it on retail products?',
+    a: 'No. Shop tills expect UPC or EAN. ITF-14 is for outer cartons and cases scanned in warehouses and distribution centres.',
+  },
+]
+
+ITF-14 is the barcode on shipping cartons and cases: it encodes a 14-digit GTIN in bars wide enough to print well on corrugated board, with bearer bars around it. Enter your GTIN above; we add or check the check digit and test the scan before you download.
+
+## How to make an ITF-14 barcode
+
+1. Enter the 14-digit GTIN for the carton, or 13 digits and we add the check digit.
+2. Keep the default size for corrugated boxes (about 152 mm wide), or scale it down for printed cases on smooth board.
+3. Download a PNG, or vector files for your packaging printer (paid plan).
+
+## Building a carton GTIN from your product number
+
+If each carton holds several units of one product, its GTIN-14 is usually:
+
+| Part | Digits | Example |
+| --- | --- | --- |
+| Packaging indicator (which pack size) | 1 | 1 |
+| Product number without its check digit | 12 | 540014128876 (from 5400141288766) |
+| New check digit | 1 | 3 (we calculate it) |
+
+So a carton of product 5400141288766 might be 15400141288763. Use a different indicator digit for each pack size, and check GS1’s rules for your situation.
+
+<Callout>
+Print ITF-14 on two adjacent sides of the carton if you can, so it can be scanned whichever way the box faces on the conveyor.
+</Callout>
