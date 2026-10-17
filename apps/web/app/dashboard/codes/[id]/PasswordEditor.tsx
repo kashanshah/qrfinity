@@ -5,6 +5,7 @@ import { Eye, EyeOff, LockKeyhole } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { setPasswordAction } from '@/app/dashboard/actions'
+import { track } from '@/lib/analytics'
 import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/Field'
 import { AdvancedSection, type AdvancedAccess } from '@/components/dashboard/Advanced'
@@ -43,8 +44,11 @@ export function PasswordEditor({
       setError(null)
       setMessage(null)
       const r = await setPasswordAction(id, next)
-      if (!r.ok) setError(r.error)
-      else {
+      if (!r.ok) {
+        setError(r.error)
+        track('code_feature_failed', { feature: 'password', code: r.code })
+      } else {
+        track('code_feature_saved', { feature: 'password', on: Boolean(r.data), count: 0 })
         setPassword('')
         setEditing(false)
         setShow(false)

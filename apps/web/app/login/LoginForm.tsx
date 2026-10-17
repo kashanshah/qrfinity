@@ -2,7 +2,8 @@
 
 import { Mail } from 'lucide-react'
 import { useState } from 'react'
-import { track } from '@/lib/analytics'
+import { markSignInPending, track } from '@/lib/analytics'
+import { TrackEvent } from '@/components/TrackEvent'
 import { Turnstile } from '@/components/Turnstile'
 import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/Field'
@@ -29,10 +30,12 @@ export function LoginForm({
     setError(null)
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setError('Enter your email address, like you@example.com.')
+      track('sign_in_failed', { method: 'email', reason: 'invalid_email' })
       return
     }
     if (siteKey && !token) {
       setError('Please complete the check that you’re not a robot.')
+      track('sign_in_failed', { method: 'email', reason: 'bot_check' })
       return
     }
     setState('sending')
@@ -45,9 +48,14 @@ export function LoginForm({
     if (res.error) {
       setState('idle')
       setError(res.error.message ?? 'We couldn’t send the link. Try again in a minute.')
+      track('sign_in_failed', {
+        method: 'email',
+        reason: res.error.status === 429 ? 'rate_limited' : 'send_failed',
+      })
       return
     }
     setState('sent')
+    markSignInPending('email')
     track('sign_in_requested', { method: 'email' })
   }
 
@@ -72,6 +80,9 @@ export function LoginForm({
 
   return (
     <div className="flex flex-col gap-6">
+      {linkError ? (
+        <TrackEvent name="sign_in_failed" props={{ method: 'email', reason: 'link_invalid' }} />
+      ) : null}
       <form onSubmit={sendLink} noValidate className="flex flex-col gap-4">
         <TextField
           label="Email"
@@ -101,6 +112,7 @@ export function LoginForm({
           </div>
           <Button
             onClick={() => {
+              markSignInPending('google')
               track('sign_in_requested', { method: 'google' })
               void authClient.signIn.social({ provider: 'google', callbackURL: next })
             }}

@@ -57,7 +57,7 @@ export function QrTester({ shortLinkBase }: { shortLinkBase: string }) {
         onFound={() => {}}
         onRead={(source, text) =>
           text === null
-            ? track('qr_read', { tool: 'tester', source, found: false, content_type: null })
+            ? track('qr_read', { tool: 'tester', input: source, found: false, content_type: null })
             : undefined
         }
       />

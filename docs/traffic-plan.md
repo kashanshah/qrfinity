@@ -144,6 +144,9 @@ visit.
 
 ### P7. One data story (2–3 weeks, once)
 
+In progress: collection guide, method and the checking script are in `docs/data-story.md`.
+
+
 - **Research:** collect 300–500 QR codes from real menus, posters and packaging (photos, plus public
   image search). Decode them, follow them, and report what share are dead, and why (expired trials,
   deleted pages). Publish a page with the method and the data.

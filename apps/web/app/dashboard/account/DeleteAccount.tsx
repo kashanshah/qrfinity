@@ -4,6 +4,7 @@ import { TriangleAlert } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/Field'
+import { track } from '@/lib/analytics'
 import { deleteAccountAction } from './actions'
 
 export function DeleteAccount({ email, paying = false }: { email: string; paying?: boolean }) {
@@ -42,8 +43,10 @@ export function DeleteAccount({ email, paying = false }: { email: string; paying
             e.preventDefault()
             start(async () => {
               const r = await deleteAccountAction()
-              if (r.ok) window.location.href = '/?account=deleted'
-              else setError(r.error)
+              if (r.ok) {
+                track('account_deleted', { paying })
+                window.location.href = '/?account=deleted'
+              } else setError(r.error)
             })
           }}
         >

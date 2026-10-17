@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { createFolderAction, deleteFolderAction, renameFolderAction } from '@/app/dashboard/actions'
+import { track } from '@/lib/analytics'
 
 type Folder = { id: string; name: string }
 
@@ -16,12 +17,17 @@ export function FolderManager({ folders, active }: { folders: Folder[]; active: 
   const [editing, setEditing] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
 
-  const act = (fn: () => Promise<{ ok: boolean; error?: string }>, after?: () => void) =>
+  const act = (
+    action: 'create' | 'rename' | 'delete',
+    fn: () => Promise<{ ok: boolean; error?: string }>,
+    after?: () => void,
+  ) =>
     start(async () => {
       setError(null)
       const r = await fn()
       if (!r.ok) setError(r.error ?? 'Something went wrong.')
       else {
+        track('folder_managed', { action })
         after?.()
         router.refresh()
       }
@@ -49,6 +55,7 @@ export function FolderManager({ folders, active }: { folders: Folder[]; active: 
             onSubmit={(e) => {
               e.preventDefault()
               act(
+                'rename',
                 () => renameFolderAction(f.id, editName),
                 () => setEditing(null),
               )
@@ -94,6 +101,7 @@ export function FolderManager({ folders, active }: { folders: Folder[]; active: 
                   )
                 ) {
                   act(
+                    'delete',
                     () => deleteFolderAction(f.id),
                     () => active === f.id && router.push('/dashboard'),
                   )
@@ -112,6 +120,7 @@ export function FolderManager({ folders, active }: { folders: Folder[]; active: 
           e.preventDefault()
           if (newName.trim())
             act(
+              'create',
               () => createFolderAction(newName),
               () => setNewName(''),
             )

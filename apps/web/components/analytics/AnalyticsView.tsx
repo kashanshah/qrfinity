@@ -3,7 +3,9 @@
 import { weekly, type Breakdown, type ScanReport } from '@qrfinity/core'
 import { Download, Table2 } from 'lucide-react'
 import Link from 'next/link'
+import { track } from '@/lib/analytics'
 import { rangeLabel } from '@/lib/days'
+import { TrackEvent } from '../TrackEvent'
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 
 const COUNTRY = new Intl.DisplayNames(['en'], { type: 'region' })
@@ -282,7 +284,10 @@ export function AnalyticsView({
     scans,
   }))
 
+  const scope = basePath === '/dashboard/analytics' ? 'all' : 'code'
+
   function exportCsv() {
+    track('scan_report_exported', { days, scope })
     const lines = [[grain === 'day' ? 'date' : 'week_starting', 'scans', 'unique_scans'].join(',')]
     const src =
       grain === 'day'
@@ -316,6 +321,7 @@ export function AnalyticsView({
 
   return (
     <div className="flex flex-col gap-6">
+      <TrackEvent name="scan_report_viewed" props={{ days, scope }} />
       {/* Filters: one row, above everything they scope. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <nav aria-label="Date range" className="flex flex-wrap gap-1">

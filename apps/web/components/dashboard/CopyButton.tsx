@@ -2,6 +2,7 @@
 
 import { Check, Copy } from 'lucide-react'
 import { useState } from 'react'
+import { track } from '@/lib/analytics'
 
 export function CopyButton({ text, label = 'Copy link' }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false)
@@ -14,6 +15,7 @@ export function CopyButton({ text, label = 'Copy link' }: { text: string; label?
         try {
           await navigator.clipboard.writeText(text)
           setCopied(true)
+          track('short_link_copied', {})
           setTimeout(() => setCopied(false), 1500)
         } catch {
           // Clipboard blocked: nothing to do, the link is visible next to the button.

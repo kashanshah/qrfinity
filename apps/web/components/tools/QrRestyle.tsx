@@ -25,7 +25,7 @@ export function QrRestyle({ shortLinkBase }: { shortLinkBase: string }) {
           onRead={(source, found) =>
             track('qr_read', {
               tool: 'restyle',
-              source,
+              input: source,
               found: found !== null,
               content_type: found === null ? null : contentKind(found),
             })

@@ -3,6 +3,7 @@
 import { Pencil } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { renameCodeAction } from '@/app/dashboard/actions'
+import { track } from '@/lib/analytics'
 
 export function RenameCode({ id, name }: { id: string; name: string }) {
   const [editing, setEditing] = useState(false)
@@ -32,8 +33,10 @@ export function RenameCode({ id, name }: { id: string; name: string }) {
         e.preventDefault()
         start(async () => {
           const r = await renameCodeAction(id, value)
-          if (r.ok) setEditing(false)
-          else setError(r.error)
+          if (r.ok) {
+            setEditing(false)
+            track('code_managed', { action: 'rename' })
+          } else setError(r.error)
         })
       }}
     >

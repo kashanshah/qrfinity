@@ -18,3 +18,5 @@ apps/web/next-env.d.ts
 .wrangler/
 # Written by `next dev` for coding agents
 apps/web/AGENTS.md
+# Photos and results of the dead QR codes study (can hold personal data; see docs/data-story.md)
+/data-story/

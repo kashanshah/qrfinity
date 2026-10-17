@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useSyncExternalStore, useTransition } from 'react'
 import { setLimitsAction } from '@/app/dashboard/actions'
+import { track } from '@/lib/analytics'
 import { AdvancedSection, type AdvancedAccess } from '@/components/dashboard/Advanced'
 import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/Field'
@@ -70,8 +71,11 @@ export function LimitsEditor({
     start(async () => {
       setError(null)
       const r = await setLimitsAction(id, next)
-      if (!r.ok) setError(r.error)
-      else {
+      if (!r.ok) {
+        setError(r.error)
+        track('code_feature_failed', { feature: 'limits', code: r.code })
+      } else {
+        track('code_feature_saved', { feature: 'limits', on: Boolean(r.data), count: 0 })
         setDraft(toDraft(r.data))
         setMessage(
           r.data

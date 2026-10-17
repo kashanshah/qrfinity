@@ -23,7 +23,10 @@ import {
 } from '@/lib/server/codes'
 import { serviceContext } from '@/lib/server/context'
 
-export type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string }
+export type ActionResult<T = undefined> =
+  | { ok: true; data: T }
+  /** `code` says what kind of failure it was, for site analytics (never the message). */
+  | { ok: false; error: string; code: ServiceError['code'] | 'server' }
 
 async function run<T>(
   fn: (ctx: Awaited<ReturnType<typeof serviceContext>>) => Promise<T>,
@@ -34,11 +37,12 @@ async function run<T>(
     revalidatePath('/dashboard', 'layout')
     return { ok: true, data }
   } catch (error) {
-    if (error instanceof ServiceError) return { ok: false, error: error.message }
+    if (error instanceof ServiceError) return { ok: false, error: error.message, code: error.code }
     console.error(error)
     return {
       ok: false,
       error: 'Something went wrong on our side. Your code is safe; try again in a moment.',
+      code: 'server',
     }
   }
 }
