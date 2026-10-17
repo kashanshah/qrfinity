@@ -16,7 +16,8 @@ import {
   printPixels,
   type ExportJob,
 } from '@/lib/export'
-import { track } from '@/lib/analytics'
+import { contentVariant, designProps, track } from '@/lib/analytics'
+import { useGeneratorSurface } from '@/lib/generator-analytics'
 import { useGenerator } from '@/lib/generator-context'
 import { PRINT_PARTNER_URL } from '@/lib/partners'
 import { useViewerPlan } from '@/lib/plan-client'
@@ -30,6 +31,8 @@ export function ExportPanel({ job, scanFailed }: { job: ExportJob | null; scanFa
   const setPrintWidthMm = useGenerator((s) => s.setPrintWidthMm)
   const contentType = useGenerator((s) => s.type)
   const kind = useGenerator((s) => s.kind)
+  const variant = useGenerator((s) => contentVariant(s.type, s.fields[s.type]))
+  const surface = useGeneratorSurface()
   const [pngSize, setPngSize] = useState<PngSize>('1024')
   const [busy, setBusy] = useState<string | null>(null)
   const [status, setStatus] = useState<string | null>(null)
@@ -54,9 +57,19 @@ export function ExportPanel({ job, scanFailed }: { job: ExportJob | null; scanFa
       downloadBlob(await make(job), filename)
       setStatus(`Downloaded ${filename}.`)
       setDownloaded(true)
-      track('qr_downloaded', { format: label, content_type: contentType, kind })
+      track('qr_downloaded', {
+        ...designProps(job.design),
+        format: label,
+        content_type: contentType,
+        variant,
+        kind,
+        size: label === 'PNG' || label === 'JPG' ? pngSize : 'vector',
+        scan: scanFailed ? 'fail' : 'pass',
+        surface,
+      })
     } catch {
       setStatus(`The ${label} could not be created in this browser. Try another format.`)
+      track('download_failed', { format: label, kind })
     } finally {
       setBusy(null)
     }
@@ -180,7 +193,11 @@ export function ExportPanel({ job, scanFailed }: { job: ExportJob | null; scanFa
             <strong>SVG, PDF and EPS come with any paid plan</strong>, from $5 a month. They stay
             sharp at any print size. Your first month is free.
           </p>
-          <Link href="/pricing" className="body-small font-bold text-evergreen underline">
+          <Link
+            href="/pricing"
+            className="body-small font-bold text-evergreen underline"
+            onClick={() => track('upgrade_prompt_clicked', { feature: 'vectorFormats' })}
+          >
             {viewer?.signedIn ? 'Choose a plan' : 'See plans'}
           </Link>
         </div>
@@ -212,6 +229,7 @@ export function ExportPanel({ job, scanFailed }: { job: ExportJob | null; scanFa
           href={PRINT_PARTNER_URL}
           target="_blank"
           rel="noopener"
+          onClick={() => track('print_partner_clicked', { surface })}
           className="body-small inline-flex items-center gap-1.5 self-start text-evergreen underline"
         >
           <Sticker aria-hidden="true" size={16} strokeWidth={1.75} />

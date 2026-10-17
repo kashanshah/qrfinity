@@ -10,12 +10,21 @@ import {
   OPEN_SETTINGS_EVENT,
   POSTHOG_KEY,
   analyticsAllowedOn,
+  errorText,
+  gaDebug,
   hasPrivacySignal,
   isGranted,
   readConsent,
   saveConsent,
+  setAnalyticsUser,
+  setEventDefaults,
+  takePendingSignIn,
+  track,
+  trackOnce,
   type Consent,
 } from '@/lib/analytics'
+import { useViewerPlan } from '@/lib/plan-client'
+import { resolveTraffic } from '@/lib/traffic-source'
 
 /** PostHog goes through our own domain (/ingest, see next.config.ts) so it isn't blocked and needs no CSP entry. */
 async function startPosthog(consent: Consent | null) {
@@ -110,6 +119,51 @@ export function Analytics() {
     void startPosthog(consent)
   }, [allowed, consent])
 
+  // Plan and signed-in state go on every event; a sign-in started here counts once it lands.
+  const viewer = useViewerPlan(allowed)
+  useEffect(() => {
+    if (!viewer) return
+    setAnalyticsUser({ signed_in: viewer.signedIn ? 'yes' : 'no', plan: viewer.plan })
+    if (!viewer.signedIn) return
+    const method = takePendingSignIn()
+    if (method) track(viewer.newAccount ? 'sign_up' : 'login', { method })
+  }, [viewer])
+
+  // Where this visit came from (AI assistants get their own channel), once per page load.
+  useEffect(() => {
+    if (!allowed || consent === undefined) return
+    const t = resolveTraffic(window.location.href, document.referrer, isGranted(consent))
+    if (!t) return
+    setEventDefaults({ traffic_channel: t.session.channel })
+    setAnalyticsUser({ first_channel: t.first.channel, first_source: t.first.source })
+    if (t.isNewSession)
+      trackOnce('traffic_source', 'traffic_source', {
+        ...t.session,
+        first: t.first === t.session,
+      })
+    // Once per page load: a consent change mid-page doesn't make it a new visit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allowed, consent === undefined])
+
+  // Errors that reach the window: how often the product breaks, and where (page_location).
+  useEffect(() => {
+    if (!allowed) return
+    let count = 0
+    const report = (e: unknown, source: string) => {
+      if (++count > 10) return
+      const description = errorText(e)
+      trackOnce(`exception:${description}`, 'exception', { description, fatal: false, source })
+    }
+    const onError = (e: ErrorEvent) => report(e.error ?? e.message, 'window')
+    const onRejection = (e: PromiseRejectionEvent) => report(e.reason, 'promise')
+    window.addEventListener('error', onError)
+    window.addEventListener('unhandledrejection', onRejection)
+    return () => {
+      window.removeEventListener('error', onError)
+      window.removeEventListener('unhandledrejection', onRejection)
+    }
+  }, [allowed])
+
   if (!ANALYTICS_ENABLED || consent === undefined) return null
   return (
     <>
@@ -118,7 +172,7 @@ export function Analytics() {
           <Script id="ga-consent" strategy="afterInteractive">
             {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}window.gtag=gtag;
 gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'${isGranted(consent) ? 'granted' : 'denied'}'});
-gtag('js',new Date());gtag('config','${GA_ID}',{allow_google_signals:false,allow_ad_personalization_signals:false});`}
+gtag('js',new Date());gtag('config','${GA_ID}',{allow_google_signals:false,allow_ad_personalization_signals:false${gaDebug() ? ',debug_mode:true' : ''}});`}
           </Script>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}

@@ -8,7 +8,8 @@ import {
 import type { subscriptions } from '@qrfinity/db'
 import { CreditCard, TriangleAlert } from 'lucide-react'
 import Link from 'next/link'
-import { billingPortalAction } from './actions'
+import { TrackedLink } from '@/components/TrackedLink'
+import { CheckoutComplete, PortalButton } from './BillingTracking'
 
 type Subscription = typeof subscriptions.$inferSelect
 
@@ -25,6 +26,7 @@ export function PlanSection({
   subscription,
   billingOn,
   justSubscribed,
+  checkoutId,
   portalError,
 }: {
   plan: Plan
@@ -33,6 +35,8 @@ export function PlanSection({
   subscription: Subscription | null
   billingOn: boolean
   justSubscribed: boolean
+  /** The Stripe checkout just finished, for site analytics. */
+  checkoutId: string | null
   portalError: boolean
 }) {
   const paying = subscription && grantsPlan(subscription) ? subscription : null
@@ -86,21 +90,18 @@ export function PlanSection({
           </div>
         </div>
         {paying || subscription ? (
-          <form action={billingPortalAction} className="shrink-0">
-            <button
-              type="submit"
-              className="button inline-flex min-h-11 items-center justify-center rounded-md border-[1.5px] border-control-border bg-surface px-6 py-3 text-ink hover:bg-surface-sunk"
-            >
-              {paying || firstPaymentFailed ? 'Manage plan and billing' : 'Billing history'}
-            </button>
-          </form>
+          <PortalButton
+            plan={plan}
+            label={paying || firstPaymentFailed ? 'Manage plan and billing' : 'Billing history'}
+          />
         ) : billingOn ? (
-          <Link
+          <TrackedLink
             href="/pricing#plans"
             className="button inline-flex min-h-11 shrink-0 items-center justify-center rounded-md bg-evergreen px-6 py-3 text-on-evergreen hover:bg-evergreen-deep"
+            event={{ name: 'upgrade_prompt_clicked', props: { feature: 'account_plan' } }}
           >
             See plans
-          </Link>
+          </TrackedLink>
         ) : (
           <Link href="/pricing" className="shrink-0 text-evergreen underline">
             Paid plans are coming soon
@@ -108,6 +109,14 @@ export function PlanSection({
         )}
       </div>
 
+      {justSubscribed && paying && checkoutId ? (
+        <CheckoutComplete
+          checkoutId={checkoutId}
+          plan={paying.plan}
+          interval={paying.interval}
+          trial={paying.status === 'trialing'}
+        />
+      ) : null}
       {justSubscribed && paying ? (
         <p role="status" className="mt-4 rounded-lg bg-mint px-4 py-3 text-ink">
           {paying.status === 'trialing'

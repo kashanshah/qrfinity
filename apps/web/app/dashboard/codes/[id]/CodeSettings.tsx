@@ -11,6 +11,7 @@ import {
   setPausedAction,
   setTagsAction,
 } from '@/app/dashboard/actions'
+import { track, type AnalyticsEvent } from '@/lib/analytics'
 import { Button } from '@/components/ui/Button'
 import { SelectField, TextField } from '@/components/ui/Field'
 
@@ -28,7 +29,9 @@ export function CodeSettings({ id, status, folderId, tags, folders }: Props) {
   const [message, setMessage] = useState<string | null>(null)
   const [tagText, setTagText] = useState(tags.join(', '))
 
+  type ManageAction = Extract<AnalyticsEvent, { name: 'code_managed' }>['props']['action']
   const act = (
+    action: ManageAction,
     fn: () => Promise<{ ok: true; data: unknown } | { ok: false; error: string }>,
     ok?: (data: unknown) => void,
   ) =>
@@ -37,6 +40,7 @@ export function CodeSettings({ id, status, folderId, tags, folders }: Props) {
       const r = await fn()
       if (!r.ok) setMessage(r.error)
       else {
+        track('code_managed', { action })
         ok?.(r.data)
         router.refresh()
       }
@@ -55,6 +59,7 @@ export function CodeSettings({ id, status, folderId, tags, folders }: Props) {
         value={folderId ?? ''}
         onChange={(v) =>
           act(
+            'move',
             () => moveCodeAction(id, v || null),
             () => setMessage('Moved.'),
           )
@@ -69,6 +74,7 @@ export function CodeSettings({ id, status, folderId, tags, folders }: Props) {
         onSubmit={(e) => {
           e.preventDefault()
           act(
+            'tags',
             () => setTagsAction(id, tagText.split(',')),
             () => setMessage('Tags saved.'),
           )
@@ -100,6 +106,7 @@ export function CodeSettings({ id, status, folderId, tags, folders }: Props) {
             }
             onClick={() =>
               act(
+                status === 'paused' ? 'resume' : 'pause',
                 () => setPausedAction(id, status !== 'paused'),
                 () =>
                   setMessage(
@@ -118,6 +125,7 @@ export function CodeSettings({ id, status, folderId, tags, folders }: Props) {
           icon={<Copy aria-hidden="true" size={18} strokeWidth={1.75} />}
           onClick={() =>
             act(
+              'duplicate',
               () => duplicateCodeAction(id),
               (newId) => router.push(`/dashboard/codes/${newId as string}`),
             )
@@ -135,6 +143,7 @@ export function CodeSettings({ id, status, folderId, tags, folders }: Props) {
               )
             ) {
               act(
+                'delete',
                 () => deleteCodeAction(id),
                 () => router.push('/dashboard'),
               )

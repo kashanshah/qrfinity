@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { track } from '@/lib/analytics'
 import { useGenerator } from '@/lib/generator-context'
 import { saveTemplates, useTemplates, type Template } from '@/lib/templates'
 import { Button } from '../ui/Button'
@@ -27,6 +28,7 @@ export function Templates() {
     const label = name.trim() || `Design ${templates.length + 1}`
     const t: Template = { id: crypto.randomUUID(), name: label, design, savedAt: Date.now() }
     persist([t, ...templates].slice(0, 20), `Saved “${label}”.`)
+    track('design_saved', { saved_count: Math.min(20, templates.length + 1) })
     setName('')
   }
 
@@ -59,6 +61,7 @@ export function Templates() {
                 <Button
                   onClick={() => {
                     replaceDesign(t.design)
+                    track('design_applied', {})
                     setMessage(`Applied “${t.name}”.`)
                   }}
                 >
