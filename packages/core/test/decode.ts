@@ -14,6 +14,7 @@ export async function decodeSvg(
   svg: string,
   width = 400,
   formats: string[] = ['QRCode'],
+  extra: Record<string, unknown> = {},
 ): Promise<string | null> {
   const img = new Resvg(svg, {
     fitTo: { mode: 'width', value: width },
@@ -26,7 +27,9 @@ export async function decodeSvg(
       height: img.height,
       colorSpace: 'srgb',
     } as ImageData,
-    { formats: formats as never, tryHarder: true },
+    { formats: formats as never, tryHarder: true, ...extra },
   )
-  return results.find((r) => r.isValid)?.text ?? null
+  // With add-ons, the reader returns the code alone and the code with its add-on: keep the longest.
+  const valid = results.filter((r) => r.isValid).map((r) => r.text)
+  return valid.sort((a, b) => b.length - a.length)[0] ?? null
 }

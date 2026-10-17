@@ -1,17 +1,25 @@
 'use client'
 
 import {
+  ADDON_TYPES,
   AMAZON_LABEL_SIZES,
   DEFAULT_BAR_HEIGHT,
   DEFAULT_HEIGHT_MM,
   LABEL_CONDITIONS,
   NOMINAL_WIDTH_MM,
+  MATRIX_FORMAT,
+  MATRIX_QUIET,
+  checkAddon,
   checkBarcodeValue,
+  checkMatrixValue,
   fnskuLabelScene,
+  isMatrixType,
+  matrixScene,
   renderBarcode,
   sceneToSvg,
   type BarcodeType,
   type FnskuLabel,
+  type ModuleGrid,
   type Scene,
 } from '@qrfinity/core'
 import { Crown, Download } from 'lucide-react'
@@ -20,7 +28,7 @@ import { useEffect, useId, useMemo, useState } from 'react'
 import { ScanResult, type ScanSummary } from '@/components/generator/ScanResult'
 import { Button } from '@/components/ui/Button'
 import { ColorField } from '@/components/ui/ColorField'
-import { Checkbox, SelectField, TextField } from '@/components/ui/Field'
+import { Checkbox, SelectField, TextArea, TextField } from '@/components/ui/Field'
 import { track } from '@/lib/analytics'
 import {
   barcodeEps,
@@ -34,7 +42,8 @@ import {
   pixelsPerModule,
   type BarcodeJob,
 } from '@/lib/barcode-export'
-import { BARCODE_INFO, BARCODE_ORDER } from '@/lib/barcodes'
+import { matrixGrid } from '@/lib/barcode2d'
+import { BARCODE_INFO, BARCODE_ORDER, type AnyBarcode } from '@/lib/barcodes'
 import { downloadBlob } from '@/lib/export'
 import { useViewerPlan } from '@/lib/plan-client'
 import { svgToCanvas } from '@/lib/raster'
@@ -43,6 +52,8 @@ import { decodeBarcodeImage } from '@/lib/scan'
 /** A module of 0.33 mm is the retail standard (100%) and a good default for every type. */
 const DEFAULT_MODULE_MM = 0.33
 const MIN_MODULE_MM = 0.19
+/** 2D codes: 0.5 mm modules read easily with phones and scanners; PDF417 is wide, so 0.33 mm. */
+const DEFAULT_2D_MODULE_MM = { datamatrix: 0.5, aztec: 0.5, pdf417: 0.33 } as const
 
 type PngSize = 'screen' | 'large' | 'print'
 type Mode = 'barcode' | 'label'
@@ -65,16 +76,16 @@ function defaultWidthMm(type: BarcodeType, sceneWidth: number) {
 }
 
 /** Rasterises a scene and asks the decoder what it reads. */
-async function readScene(scene: Scene, px: number): Promise<string | null> {
+async function readScene(scene: Scene, px: number, formats?: string[]): Promise<string | null> {
   const width = Math.round(px)
   const height = Math.round((px * scene.height) / scene.width)
   const canvas = await svgToCanvas(sceneToSvg(scene, { width }), width, height, '#ffffff')
   const image = canvas.getContext('2d')!.getImageData(0, 0, width, height)
-  return decodeBarcodeImage(image)
+  return decodeBarcodeImage(image, formats)
 }
 
 /** A scanner reads UPC codes in their EAN-13 form; both mean the same number. */
-function sameNumber(type: BarcodeType, read: string, value: string) {
+function sameNumber(type: AnyBarcode, read: string, value: string) {
   if (read === value) return true
   if (type === 'upca') return read === `0${value}`
   if (type === 'upce') return read.length === 13 && read.endsWith(value.slice(-1))
@@ -97,8 +108,10 @@ function PaidButton({ label, onClick }: { label: string; onClick: () => void }) 
   )
 }
 
-export function BarcodeGenerator({ initialType }: { initialType: BarcodeType }) {
-  const [type, setType] = useState<BarcodeType>(initialType)
+export function BarcodeGenerator({ initialType }: { initialType: AnyBarcode }) {
+  const [type, setType] = useState<AnyBarcode>(initialType)
+  const [addon, setAddon] = useState('')
+  const [rectangular, setRectangular] = useState(false)
   const [input, setInput] = useState(BARCODE_INFO[initialType].example)
   const [showText, setShowText] = useState(true)
   const [fg, setFg] = useState('#000000')
@@ -124,7 +137,33 @@ export function BarcodeGenerator({ initialType }: { initialType: BarcodeType }) 
   const vector = viewer === null || viewer.features.includes('vectorFormats')
 
   const info = BARCODE_INFO[type]
-  const checked = useMemo(() => checkBarcodeValue(type, input), [type, input])
+  const matrix = isMatrixType(type)
+  const checked = useMemo(
+    () => (isMatrixType(type) ? checkMatrixValue(type, input) : checkBarcodeValue(type, input)),
+    [type, input],
+  )
+  const canAddon = !matrix && ADDON_TYPES.includes(type as BarcodeType)
+  const addonChecked = checkAddon(canAddon ? addon : '')
+  const addonValue = addonChecked.ok ? addonChecked.value : ''
+
+  // 2D grids come from the zxing writer (loaded on first use); keep each with the input it was made for.
+  const matrixKey = matrix && checked.ok ? `${type}|${rectangular}|${checked.value}` : null
+  const [gridResult, setGridResult] = useState<{
+    key: string
+    grid?: ModuleGrid
+    error?: string
+  } | null>(null)
+  useEffect(() => {
+    if (!matrixKey || !isMatrixType(type) || !checked.ok) return
+    let live = true
+    matrixGrid(type, checked.value, { rectangular })
+      .then((grid) => live && setGridResult({ key: matrixKey, grid }))
+      .catch((e: unknown) => live && setGridResult({ key: matrixKey, error: String(e) }))
+    return () => {
+      live = false
+    }
+  }, [matrixKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  const grid = gridResult && gridResult.key === matrixKey ? gridResult : null
   const labelMode = type === 'fnsku' && mode === 'label'
   const size = AMAZON_LABEL_SIZES.find((s) => s.id === sizeId) ?? AMAZON_LABEL_SIZES[0]!
   const thermal = !size.sheet
@@ -132,8 +171,20 @@ export function BarcodeGenerator({ initialType }: { initialType: BarcodeType }) 
   // The barcode, sized: height in mm becomes modules once the width (and so the module size) is known.
   const built = useMemo(() => {
     if (!checked.ok) return null
+    if (isMatrixType(type)) {
+      if (!grid?.grid) return null
+      const scene = matrixScene(
+        grid.grid,
+        { foreground: fg, background: bg, transparent },
+        MATRIX_QUIET[type],
+      )
+      const w = widthMm ?? Math.round(scene.width * DEFAULT_2D_MODULE_MM[type] * 10) / 10
+      const moduleMm = w / scene.width
+      return { scene, widthMm: w, heightMm: (w * scene.height) / scene.width, moduleMm }
+    }
     const o = { showText, fg, bg, transparent }
-    const first = renderBarcode(type, checked.value, style(type, o), checked.above)
+    const above = 'above' in checked ? (checked.above as string | undefined) : undefined
+    const first = renderBarcode(type, checked.value, style(type, o), above, addonValue)
     const w = widthMm ?? defaultWidthMm(type, first.scene.width)
     const moduleMm = w / first.scene.width
     const h = heightMm ?? DEFAULT_HEIGHT_MM[type]
@@ -141,10 +192,11 @@ export function BarcodeGenerator({ initialType }: { initialType: BarcodeType }) 
       type,
       checked.value,
       style(type, o, Math.max(5, h / moduleMm)),
-      checked.above,
+      above,
+      addonValue,
     )
     return { scene, widthMm: w, heightMm: h, moduleMm }
-  }, [checked, type, showText, fg, bg, transparent, widthMm, heightMm])
+  }, [checked, type, grid, showText, fg, bg, transparent, widthMm, heightMm, addonValue])
 
   const label: FnskuLabel | null = useMemo(
     () =>
@@ -173,8 +225,9 @@ export function BarcodeGenerator({ initialType }: { initialType: BarcodeType }) 
     let live = true
     const svg = previewSvg!
     const t = setTimeout(async () => {
-      const px = labelMode ? 900 : Math.min(2400, previewScene.width * 4)
-      const read = await readScene(previewScene, px).catch(() => null)
+      const px = labelMode ? 900 : Math.min(2400, previewScene.width * (matrix ? 6 : 4))
+      const formats = isMatrixType(type) ? [MATRIX_FORMAT[type]] : undefined
+      const read = await readScene(previewScene, px, formats).catch(() => null)
       if (!live) return
       const ok = read !== null && sameNumber(type, read, checked.value)
       const lowContrast = !labelMode && fg.toLowerCase() === bg.toLowerCase()
@@ -210,7 +263,7 @@ export function BarcodeGenerator({ initialType }: { initialType: BarcodeType }) 
     }
   }, [previewSvg]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function pickType(next: BarcodeType) {
+  function pickType(next: AnyBarcode) {
     setType(next)
     setInput(BARCODE_INFO[next].example)
     setWidthMm(null)
@@ -258,7 +311,7 @@ export function BarcodeGenerator({ initialType }: { initialType: BarcodeType }) 
         ? 8
         : pixelsPerModule(job, 300)
     : 1
-  const nominal = NOMINAL_WIDTH_MM[type]
+  const nominal = matrix ? undefined : NOMINAL_WIDTH_MM[type as BarcodeType]
   const disabled = busy !== null || scan.state === 'checking'
 
   return (
@@ -273,16 +326,59 @@ export function BarcodeGenerator({ initialType }: { initialType: BarcodeType }) 
             label: `${BARCODE_INFO[t].name}: ${BARCODE_INFO[t].use}`,
           }))}
         />
-        <TextField
-          label={info.label}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          autoComplete="off"
-          spellCheck={false}
-          maxLength={90}
-          error={checked.ok ? undefined : input ? checked.error : undefined}
-          hint={checked.ok ? (checked.note ?? info.hint) : info.hint}
-        />
+        {matrix ? (
+          <TextArea
+            label={info.label}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            spellCheck={false}
+            maxLength={1500}
+            error={
+              checked.ok
+                ? grid?.error
+                  ? 'This is more than the code can hold. Shorten the text.'
+                  : undefined
+                : input
+                  ? checked.error
+                  : undefined
+            }
+            hint={info.hint}
+          />
+        ) : (
+          <TextField
+            label={info.label}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+            maxLength={120}
+            error={checked.ok ? undefined : input ? checked.error : undefined}
+            hint={
+              checked.ok && 'note' in checked
+                ? ((checked.note as string | undefined) ?? info.hint)
+                : info.hint
+            }
+          />
+        )}
+        {canAddon ? (
+          <TextField
+            label="Add-on (optional)"
+            value={addon}
+            inputMode="numeric"
+            maxLength={5}
+            onChange={(e) => setAddon(e.target.value)}
+            error={addonChecked.ok ? undefined : addonChecked.error}
+            hint="The small extra barcode on books and magazines: 5 digits for a price (51299 = US$12.99), 2 for an issue number."
+          />
+        ) : null}
+        {type === 'datamatrix' ? (
+          <Checkbox
+            label="Rectangular shape"
+            checked={rectangular}
+            onChange={setRectangular}
+            hint="For long, narrow spaces such as cables and the edge of a label."
+          />
+        ) : null}
 
         {type === 'fnsku' ? (
           <SelectField
@@ -363,32 +459,38 @@ export function BarcodeGenerator({ initialType }: { initialType: BarcodeType }) 
                 hint={
                   nominal && built
                     ? `${Math.round((built.widthMm / nominal) * 100)}% of standard size (${nominal} mm). Retail allows 80–200%.`
-                    : built
-                      ? `Including blank margins. Bars are ${built.moduleMm.toFixed(2)} mm at their narrowest.`
-                      : undefined
+                    : built && matrix
+                      ? `${built.widthMm.toFixed(1)} × ${built.heightMm.toFixed(1)} mm with margins; each square is ${built.moduleMm.toFixed(2)} mm.`
+                      : built
+                        ? `Including blank margins. Bars are ${built.moduleMm.toFixed(2)} mm at their narrowest.`
+                        : undefined
                 }
               />
-              <TextField
-                label="Bar height (mm)"
-                type="number"
-                inputMode="decimal"
-                min={2}
-                max={300}
-                step={0.1}
-                value={built ? Number(built.heightMm.toFixed(1)) : ''}
-                onChange={(e) => {
-                  const v = Number(e.target.value)
-                  if (Number.isFinite(v) && v > 0) setHeightMm(Math.min(300, v))
-                }}
-              />
+              {matrix ? null : (
+                <TextField
+                  label="Bar height (mm)"
+                  type="number"
+                  inputMode="decimal"
+                  min={2}
+                  max={300}
+                  step={0.1}
+                  value={built ? Number(built.heightMm.toFixed(1)) : ''}
+                  onChange={(e) => {
+                    const v = Number(e.target.value)
+                    if (Number.isFinite(v) && v > 0) setHeightMm(Math.min(300, v))
+                  }}
+                />
+              )}
             </div>
-            <Checkbox
-              label="Show the number under the bars"
-              checked={showText}
-              onChange={setShowText}
-            />
+            {matrix ? null : (
+              <Checkbox
+                label="Show the number under the bars"
+                checked={showText}
+                onChange={setShowText}
+              />
+            )}
             <div className="grid gap-4 sm:grid-cols-2">
-              <ColorField label="Bars" value={fg} onChange={setFg} />
+              <ColorField label={matrix ? 'Code' : 'Bars'} value={fg} onChange={setFg} />
               <ColorField label="Background" value={bg} onChange={setBg} />
             </div>
             <Checkbox

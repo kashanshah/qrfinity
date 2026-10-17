@@ -6,7 +6,7 @@ export const contentType = OG_CONTENT_TYPE
 export const alt = 'QRfinity'
 
 export function generateStaticParams() {
-  return BARCODE_PAGES.map((p) => ({ slug: p.path.split('/').pop()! }))
+  return BARCODE_PAGES.filter((p) => p.barcode).map((p) => ({ slug: p.path.split('/').pop()! }))
 }
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {

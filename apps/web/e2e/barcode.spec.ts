@@ -79,3 +79,50 @@ test('the menu opens the barcode section', async ({ page, isMobile }) => {
   await page.getByRole('link', { name: 'Amazon FNSKU labels' }).first().click()
   await expect(page).toHaveURL(/\/barcode-generator\/amazon-fnsku$/)
 })
+
+test('a Data Matrix code is drawn by the writer and scan-tested', async ({ page }) => {
+  await page.goto('/barcode-generator/data-matrix')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Free Data Matrix code generator',
+  )
+  await expectScans(page)
+  await page.getByLabel('Text or number').fill('Serial 7731-A, lot 42')
+  await page.getByLabel('Rectangular shape').check()
+  await expectScans(page)
+})
+
+test('GS1-128 fields are checked and an EAN-13 takes a price add-on', async ({ page }) => {
+  await page.goto('/barcode-generator/gs1-128')
+  await expectScans(page)
+  await page.getByLabel('GS1 data').fill('(17)271341')
+  await expect(page.getByText(/is a date written YYMMDD/)).toBeVisible()
+  await page.getByLabel('GS1 data').fill('(01)0950110153000(10)ABC')
+  await expectScans(page)
+  await expect(panel(page).getByText('(01)09501101530003(10)ABC').first()).toBeVisible()
+
+  await page.goto('/barcode-generator/isbn')
+  await page.getByLabel('Add-on (optional)').fill('51299')
+  await expectScans(page)
+  await expect(panel(page).getByText('51299', { exact: true }).first()).toBeVisible()
+})
+
+test('bulk barcodes check every row and download a zip of PNGs', async ({ page, isMobile }) => {
+  await page.goto('/barcode-generator/bulk')
+  await page.getByLabel('Barcode type').selectOption('upca')
+  await page.getByLabel('Values, one per line').fill('UPC\n036000291452\n03600029145\n036000291453')
+  await expect(page.getByText('1 row needs fixing')).toBeVisible()
+  await expect(page.getByText('Line 4')).toBeVisible()
+  await expect(page.getByText('2 barcodes ready')).toBeVisible()
+  await expect(page.getByText('First barcode scan-tested')).toBeVisible({ timeout: 15_000 })
+
+  test.skip(isMobile, 'download covered on desktop')
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: '2 PNGs at print size (.zip)' }).click(),
+  ])
+  expect(download.suggestedFilename()).toBe('upc-barcodes.zip')
+  const bytes = await readFile((await download.path())!)
+  expect(bytes.subarray(0, 2).toString('latin1')).toBe('PK')
+  expect(bytes.includes(Buffer.from('036000291452.png'))).toBe(true)
+  expect(bytes.includes(Buffer.from('036000291452-2.png'))).toBe(true)
+})

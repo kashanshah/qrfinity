@@ -1,2 +1,5 @@
 export * from './encode'
 export * from './scene'
+export * from './gs1'
+export * from './matrix'
+export * from './bulk'

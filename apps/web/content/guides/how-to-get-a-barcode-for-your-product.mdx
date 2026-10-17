@@ -1,0 +1,59 @@
+export const faq = [
+  {
+    q: 'Can I make up my own UPC number?',
+    a: 'No. A made-up number may belong to another company’s product, and shops and marketplaces check numbers against the GS1 registry. For your own internal labels, such as stock or asset tags, use Code 128 with any text instead.',
+  },
+  {
+    q: 'Are cheap barcodes from resellers OK?',
+    a: 'Resold numbers were licensed to another company, so the GS1 registry shows that company, not you. Many large retailers and Amazon check GTINs against GS1 records and can reject or remove listings that don’t match. Buy from GS1 if you sell through big retailers or Amazon.',
+  },
+  {
+    q: 'Do I need a different barcode for each size or colour?',
+    a: 'Yes. Every variant a shop stocks separately (size, colour, flavour, pack count) needs its own GTIN and barcode.',
+  },
+  {
+    q: 'Do I need a GS1 barcode for Amazon?',
+    a: 'Amazon asks for a GTIN (UPC or EAN) when you create a new product listing, unless your brand has an exemption. If Amazon stores your stock (FBA), you can also cover the barcode with an FNSKU label, which Amazon gives you for free in Seller Central.',
+  },
+]
+
+To put a barcode on a product you sell in shops, you need a number from GS1, the not-for-profit organisation that runs the UPC and EAN system. You license a company prefix from the GS1 office in your country, give each product a number from it (a GTIN), and then make the barcode from that number. Making the barcode is the easy part, and you can do it free in our [barcode generator](/barcode-generator).
+
+## Step 1: Decide whether you need a GS1 number
+
+You need a GS1 number (a GTIN, printed as a UPC or EAN barcode) if you sell:
+
+- in shops and supermarkets, which scan products at the till;
+- through large online retailers and marketplaces, including Amazon’s product catalogue;
+- through distributors and wholesalers, who track stock by GTIN.
+
+You don’t need one for barcodes only you will scan: stock labels, asset tags, tickets or file labels. Use [Code 128](/barcode-generator/code-128) with any text you choose.
+
+## Step 2: Get your numbers from GS1
+
+Go to the GS1 office for the country where your business is based (GS1 US, GS1 Canada, GS1 UK and so on). You can usually choose between:
+
+- **Single GTINs:** one number at a time, suited to a business with a handful of products.
+- **A company prefix:** a block of numbers (10, 100, 1,000 or more) with your company’s prefix at the start, plus a yearly fee.
+
+Prices and options change and differ by country, so check your GS1 office’s site. GS1 also asks for product details so the registry shows your company as the brand owner.
+
+## Step 3: Give each product its number
+
+Every product variant gets its own GTIN: each size, colour, flavour and pack count. Keep a list (a spreadsheet works) of which number belongs to which product, and never reuse a number for a different product.
+
+GS1’s tools show the full 12- or 13-digit number, check digit included. If you only have the first digits, our generator adds the check digit for you.
+
+## Step 4: Make the barcode
+
+- **US and Canada:** print a [UPC-A](/barcode-generator/upc). Shops everywhere scan it.
+- **Everywhere else:** print an [EAN-13](/barcode-generator/ean-13).
+- **Very small packs:** [EAN-8](/barcode-generator/ean-8) or [UPC-E](/barcode-generator/upc-e), if GS1 gave you a number that fits.
+- **Outer cartons:** an [ITF-14](/barcode-generator/itf-14) built from the same GTIN.
+- **Books:** an [ISBN](/barcode-generator/isbn) from your ISBN agency, not GS1.
+
+Many products? Paste the list into the [bulk barcode generator](/barcode-generator/bulk) and download them all at once.
+
+## Step 5: Print it at the right size
+
+Retail barcodes have a standard size, about 37 mm wide at 100%, and can be scaled from 80% to 200%. Keep dark bars on a light background and leave the margins clear. The [barcode size guide](/guides/barcode-size-and-printing) covers the details.

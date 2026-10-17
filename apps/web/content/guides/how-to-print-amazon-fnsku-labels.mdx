@@ -1,0 +1,66 @@
+export const faq = [
+  {
+    q: 'Can I print FNSKU labels on a regular printer?',
+    a: 'Yes. Use removable label sheets, such as 30 labels per US Letter page or 21 or 24 per A4 page. Print at 100% (actual size) on a laser printer if you can; inkjet works if the labels are matte.',
+  },
+  {
+    q: 'What label size does Amazon require?',
+    a: 'Amazon accepts labels from 1 × 2 inches up to 2 × 3 inches. The common thermal size is 2.25 × 1.25 inches (DYMO 30334, many Zebra and Rollo rolls).',
+  },
+  {
+    q: 'Can I cover the manufacturer barcode with an FNSKU label?',
+    a: 'Yes. The FNSKU label should cover the original UPC or EAN completely, so only one barcode on the item can be scanned.',
+  },
+  {
+    q: 'Do I need a label for every unit?',
+    a: 'Yes. Each unit you send to an Amazon warehouse needs its own FNSKU label, unless your products use the manufacturer barcode and Amazon has approved that.',
+  },
+]
+
+To print Amazon FNSKU labels, get each product’s FNSKU from Seller Central, make a label with the barcode, the FNSKU, the product title and the condition, and print it at 100% on a thermal printer or a sheet of labels. Our [FNSKU label generator](/barcode-generator/amazon-fnsku) makes the label at your printer’s exact resolution, so the bars print crisp and Amazon’s warehouse scanners read them first time.
+
+## Step 1: Find your FNSKUs
+
+In Seller Central, open **Inventory**, then **Manage FBA inventory**. The FNSKU is the 10-character code shown for each product, usually starting with X00. If you have many products, download the inventory report: its FNSKU and product name columns paste straight into the [bulk generator](/barcode-generator/bulk).
+
+## Step 2: Pick your printer and label size
+
+| Printer                                                | Label                                                 | Choose in the generator                |
+| ------------------------------------------------------ | ----------------------------------------------------- | -------------------------------------- |
+| Zebra, Rollo, MUNBYN and other 4-inch thermal printers | 2.25 × 1.25 in rolls                                  | 2.25 × 1.25 in thermal, 203 or 300 dpi |
+| DYMO LabelWriter                                       | DYMO 30334 (2.25 × 1.25 in)                           | 2.25 × 1.25 in thermal                 |
+| Smaller thermal rolls                                  | 2 × 1 in                                              | 2 × 1 in thermal                       |
+| Laser or inkjet printer                                | 30 per US Letter sheet (like Avery 5160) or A4 sheets | The matching sheet size                |
+
+Check your printer’s resolution on its label or spec sheet: most Zebra and Rollo printers are 203 dpi; some are 300 dpi.
+
+## Step 3: Make the labels
+
+1. Open the [FNSKU label generator](/barcode-generator/amazon-fnsku) and enter the FNSKU.
+2. Add the product title. Long titles are shortened with an ellipsis in the middle, as Amazon allows.
+3. Choose the condition (New, Used – Like New and so on).
+4. Pick your label size and printer resolution, and check the scan test passes.
+5. Download the PNG (free), or a PDF or ZPL file with a paid plan.
+
+For a whole shipment, use the [bulk generator](/barcode-generator/bulk): one label per row, all in one download.
+
+## Step 4: Print at 100%
+
+This is where most label problems come from.
+
+- **Turn off “fit to page” or “scale”.** Choose actual size or 100%. Scaling changes bar widths and makes some bars thicker than others.
+- **Set the paper size to your label size** in the printer dialog, not Letter or A4, when printing to a thermal printer.
+- **Zebra printers:** for the sharpest result, send the ZPL file; the printer draws the barcode itself.
+- **Label sheets:** print one test page on plain paper first and hold it over a label sheet to check alignment.
+
+## Step 5: Check before you ship
+
+- Scan a printed label with a phone scanner app or a barcode gun: it should read the FNSKU exactly.
+- Make sure the label covers any original UPC or EAN on the item.
+- Use labels that peel off cleanly; Amazon asks for removable adhesive on most items.
+
+## Labels won’t scan?
+
+- **Faint print:** clean the print head and raise the darkness setting on a thermal printer.
+- **Uneven bars:** you printed at a scale other than 100%, or used an image made for another dpi. Download the label for your printer’s resolution.
+- **Label cut off:** the printer’s label size doesn’t match the roll. Set it in the printer settings, then calibrate the printer.

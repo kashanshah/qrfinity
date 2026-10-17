@@ -1,0 +1,38 @@
+export const faq = [
+  {
+    q: 'How many barcodes can I make at once?',
+    a: 'Up to 1,000 rows per batch. For more, split your list and run it again; each batch takes a few seconds, and nothing is uploaded, so there is no queue.',
+  },
+  {
+    q: 'What should my spreadsheet look like?',
+    a: 'One barcode per row. The first column is the number or text; an optional second column is the file name, or for Amazon labels the product title. A header row such as “SKU” or “Barcode” is skipped. Copy the columns straight from Excel or Google Sheets, or upload a CSV.',
+  },
+  {
+    q: 'Is bulk generation free?',
+    a: 'Yes. Checking every row, the scan test and a zip of PNG files are free, with no sign-up. A single print-ready PDF of all the barcodes, and Zebra ZPL files for Amazon labels, come with a paid plan.',
+  },
+  {
+    q: 'Are my product numbers uploaded anywhere?',
+    a: 'No. Your list is read and every barcode is drawn in your browser. Nothing you paste or upload is sent to our servers.',
+  },
+]
+
+Paste a column from your spreadsheet or upload a CSV, pick the barcode type, and download every barcode in one zip. Each row is checked as you type, with problems listed by line number, and the first barcode is scan-tested so you know the batch will read. It all happens in your browser: your product list is never uploaded.
+
+## How it works
+
+1. **Pick the type.** UPC, EAN-13, Code 128, GS1-128, Data Matrix, Amazon FNSKU and every other type the [barcode generator](/barcode-generator) makes.
+2. **Add your list.** Paste one value per line, or two columns copied from Excel or Google Sheets: the value, then a file name. Or upload a CSV file.
+3. **Fix any problems.** Rows with a wrong check digit or a character the type can’t hold are listed by line, so you can correct them in your sheet. We add missing check digits for you.
+4. **Download.** A zip with one PNG per barcode, named after the second column or the value. With a paid plan, one PDF with every barcode laid out on Letter or A4 pages, ready to print.
+
+## Amazon FNSKU labels in bulk
+
+Pick **Amazon FNSKU**, paste the FNSKU and product title columns from your Seller Central inventory report, and choose your label size and condition. You get one label per row, sized for a thermal printer or a sheet of labels. Download them as PNG files, or with a paid plan as one PDF or as ZPL for Zebra printers. The [guide to printing FNSKU labels](/guides/how-to-print-amazon-fnsku-labels) covers printer settings.
+
+## Tips for a clean batch
+
+- **Keep numbers as text in your sheet.** Spreadsheets drop leading zeros from UPCs (036000291452 becomes 36000291452). Format the column as text before you paste the numbers in.
+- **One type per batch.** Mixing UPCs and Code 128 SKUs in one list will flag the rows that don’t fit; run them as two batches.
+- **Name your files.** A second column with the SKU or product name gives each PNG a name you can find later.
+- **Check one print.** Before printing hundreds, print one barcode at its final size and scan it with the scanner you’ll use.

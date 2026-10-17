@@ -1,0 +1,46 @@
+export const faq = [
+  {
+    q: 'What is the difference between GS1-128 and Code 128?',
+    a: 'GS1-128 is Code 128 with a special start character (FNC1) that tells the scanner the data is made of GS1 fields. Each field starts with an application identifier, such as (01) for the GTIN or (17) for the expiry date, so warehouse systems know what every number means.',
+  },
+  {
+    q: 'How do I type the fields?',
+    a: 'Put each application identifier in brackets, followed by its data: (01)09501101530003(17)271231(10)LOT42. Dates are YYMMDD. We check lengths, digits and dates, add a missing check digit to a GTIN or SSCC, and insert the separators scanners need between variable-length fields.',
+  },
+  {
+    q: 'Is GS1-128 the same as UCC/EAN-128?',
+    a: 'Yes. UCC/EAN-128 and EAN-128 are older names for the same barcode.',
+  },
+  {
+    q: 'How much data can it hold?',
+    a: 'Up to 48 characters of data across all the fields. If you need more, split it across two barcodes, or use a GS1 Data Matrix.',
+  },
+]
+
+GS1-128 is the barcode on pallet labels, shipping cases and healthcare packaging: Code 128 with GS1 application identifiers, so one barcode can carry the product’s GTIN, a batch number, an expiry date and a weight. Type each field with its identifier in brackets, and we check it, add the separators and test the scan. PNG and JPG are free.
+
+## Common application identifiers
+
+| AI     | Means                             | Format              |
+| ------ | --------------------------------- | ------------------- |
+| (00)   | SSCC, the pallet or parcel serial | 18 digits           |
+| (01)   | GTIN of the trade item            | 14 digits           |
+| (02)   | GTIN of the items inside a case   | 14 digits           |
+| (10)   | Batch or lot number               | Up to 20 characters |
+| (11)   | Production date                   | YYMMDD              |
+| (15)   | Best before date                  | YYMMDD              |
+| (17)   | Expiry date                       | YYMMDD              |
+| (21)   | Serial number                     | Up to 20 characters |
+| (30)   | Count of items                    | Up to 8 digits      |
+| (37)   | Count of trade items in a case    | Up to 8 digits      |
+| (310n) | Net weight in kg, n decimals      | 6 digits            |
+| (400)  | Customer’s purchase order number  | Up to 30 characters |
+
+## Tips for GS1-128 labels
+
+- **Put fixed-length fields first.** GTIN, dates and weights have fixed lengths, so no separator is needed after them. That keeps the barcode shorter.
+- **Your GTIN comes from GS1.** The (01) number is the same GTIN as the product’s retail barcode, padded to 14 digits. Use the number your company licensed.
+- **Mind the width.** Every field adds width. A typical pallet label barcode is 100 to 150 mm wide; keep the narrowest bar at least 0.25 mm for warehouse scanners.
+- **Human-readable text matters.** The text under the bars shows each field in brackets, which is what logistics labels expect.
+
+For the carton barcode with only a GTIN, use [ITF-14](/barcode-generator/itf-14). For plain labels without GS1 fields, use [Code 128](/barcode-generator/code-128).

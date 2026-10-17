@@ -4,6 +4,7 @@
  * into modules: a string of 1s (bar) and 0s (space), one character per narrowest bar width.
  * Wide elements (Code 39, ITF) are 3 modules, a ratio every scanner reads.
  */
+import { gs1Data, gs1Text, parseGs1 } from './gs1'
 
 export const BARCODE_TYPES = [
   'code128',
@@ -15,6 +16,7 @@ export const BARCODE_TYPES = [
   'code39',
   'isbn',
   'fnsku',
+  'gs1128',
 ] as const
 
 export type BarcodeType = (typeof BARCODE_TYPES)[number]
@@ -39,6 +41,8 @@ export type Encoded = {
   quiet: { left: number; right: number }
   /** ITF-14 bearer bars above and below. */
   bearer?: boolean
+  /** EAN-2/EAN-5 add-on to the right, with its digits printed above it. */
+  addon?: { modules: string; text: string; gap: number }
 }
 
 // ---------------------------------------------------------------------------
@@ -230,6 +234,49 @@ function encodeUpcE(d: string): Encoded {
       { text: d[7]!, from: 52, to: 59, small: true },
     ],
     quiet: { left: 9, right: 9 },
+  }
+}
+
+// EAN-2 / EAN-5 add-ons (price or issue number, beside an EAN-13 or UPC-A)
+
+const EAN5_PARITY = [
+  'GGLLL',
+  'GLGLL',
+  'GLLGL',
+  'GLLLG',
+  'LGGLL',
+  'LLGGL',
+  'LLLGG',
+  'LGLGL',
+  'LGLLG',
+  'LLGLG',
+]
+const EAN2_PARITY = ['LL', 'LG', 'GL', 'GG']
+
+/** 2 or 5 digits → add-on modules: start 1011, digits separated by 01. */
+export function addonModules(d: string): string {
+  let parity: string
+  if (d.length === 5) {
+    const sum = 3 * (digit(d, 0) + digit(d, 2) + digit(d, 4)) + 9 * (digit(d, 1) + digit(d, 3))
+    parity = EAN5_PARITY[sum % 10]!
+  } else {
+    parity = EAN2_PARITY[Number(d) % 4]!
+  }
+  let m = '1011'
+  for (let i = 0; i < d.length; i++) {
+    if (i > 0) m += '01'
+    m += (parity[i] === 'L' ? L : G)[digit(d, i)]
+  }
+  return m
+}
+
+/** Adds an add-on (2 or 5 digits) to an EAN-13 or UPC-A, with the 9-module gap the standard asks for. */
+function withAddon(enc: Encoded, addon?: string): Encoded {
+  if (!addon) return enc
+  return {
+    ...enc,
+    addon: { modules: addonModules(addon), text: addon, gap: 9 },
+    quiet: { ...enc.quiet, right: 5 },
   }
 }
 
@@ -466,13 +513,18 @@ function digitRun(s: string, i: number): number {
   return n
 }
 
-/** Printable ASCII → Code 128 symbol values (start code first, no check or stop). */
+/** Marks FNC1 in Code 128 input (GS1-128 uses it at the start and after variable-length fields). */
+export const FNC1 = '\x1d'
+const FNC1_VALUE = 102
+
+/** Printable ASCII (and FNC1) → Code 128 symbol values (start code first, no check or stop). */
 export function code128Values(s: string): number[] {
   const out: number[] = []
   let set: 'B' | 'C'
-  const lead = digitRun(s, 0)
+  const first = s[0] === FNC1 ? 1 : 0
+  const lead = digitRun(s, first)
   // Start in C when the data opens with 4+ digits (or is all digits, 2+).
-  if (lead >= 4 || (lead === s.length && lead >= 2)) {
+  if (lead >= 4 || (lead === s.length - first && lead >= 2)) {
     set = 'C'
     out.push(START_C)
   } else {
@@ -481,6 +533,12 @@ export function code128Values(s: string): number[] {
   }
   let i = 0
   while (i < s.length) {
+    // FNC1 has the same value in sets B and C.
+    if (s[i] === FNC1) {
+      out.push(FNC1_VALUE)
+      i++
+      continue
+    }
     if (set === 'C') {
       if (digitRun(s, i) >= 2) {
         out.push(Number(s.slice(i, i + 2)))
@@ -528,7 +586,13 @@ function encodeCode128(value: string): Encoded {
 // Validation: what people type → the exact value to encode (check digits added or checked).
 
 export type Checked =
-  | { ok: true; value: string; /** Shown above the bars (ISBN). */ above?: string; note?: string }
+  | {
+      ok: true
+      value: string
+      /** Shown above the bars (ISBN). */
+      above?: string
+      note?: string
+    }
   | { ok: false; error: string }
 
 const onlyDigits = (s: string) => s.replace(/[\s-]/g, '')
@@ -621,6 +685,23 @@ function checkCode128(input: string): Checked {
   return { ok: true, value: input }
 }
 
+function checkGs1(input: string): Checked {
+  const parsed = parseGs1(input)
+  if (!parsed.ok) return parsed
+  return { ok: true, value: gs1Text(parsed.elements) }
+}
+
+/** An add-on: empty (none), or 2 or 5 digits. */
+export function checkAddon(
+  input: string,
+): { ok: true; value: string } | { ok: false; error: string } {
+  const d = input.replace(/\s/g, '')
+  if (!d) return { ok: true, value: '' }
+  if (!/^(\d{2}|\d{5})$/.test(d))
+    return { ok: false, error: 'An add-on has 2 digits (issue number) or 5 (price).' }
+  return { ok: true, value: d }
+}
+
 /** Amazon FNSKUs are 10 letters and digits, usually starting X00. ASINs (B0…) are also accepted. */
 function checkFnsku(input: string): Checked {
   const v = input.replace(/\s/g, '').toUpperCase()
@@ -661,18 +742,28 @@ export function checkBarcodeValue(type: BarcodeType, input: string): Checked {
       return checkCode128(input)
     case 'fnsku':
       return checkFnsku(input)
+    case 'gs1128':
+      return checkGs1(input)
   }
 }
 
-/** Encodes a value already passed through checkBarcodeValue. */
-export function encodeBarcode(type: BarcodeType, value: string, above?: string): Encoded {
+/** Types that can carry an EAN-2/EAN-5 add-on. */
+export const ADDON_TYPES: BarcodeType[] = ['ean13', 'upca', 'isbn']
+
+/** Encodes a value already passed through checkBarcodeValue (and an add-on through checkAddon). */
+export function encodeBarcode(
+  type: BarcodeType,
+  value: string,
+  above?: string,
+  addon?: string,
+): Encoded {
   switch (type) {
     case 'ean13':
-      return encodeEan13(value)
+      return withAddon(encodeEan13(value), addon)
     case 'isbn':
-      return { ...encodeEan13(value), ...(above ? { above } : {}) }
+      return withAddon({ ...encodeEan13(value), ...(above ? { above } : {}) }, addon)
     case 'upca':
-      return encodeUpcA(value)
+      return withAddon(encodeUpcA(value), addon)
     case 'ean8':
       return encodeEan8(value)
     case 'upce':
@@ -684,5 +775,12 @@ export function encodeBarcode(type: BarcodeType, value: string, above?: string):
     case 'code128':
     case 'fnsku':
       return encodeCode128(value)
+    case 'gs1128': {
+      const parsed = parseGs1(value)
+      if (!parsed.ok) throw new Error(parsed.error)
+      // Printed in its readable form, with the AIs in brackets.
+      const enc = encodeCode128(gs1Data(parsed.elements))
+      return { ...enc, text: [{ text: value, from: 0, to: enc.modules.length }] }
+    }
   }
 }

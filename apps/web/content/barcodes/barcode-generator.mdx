@@ -17,24 +17,27 @@ export const faq = [
   },
   {
     q: 'Which barcode should I use?',
-    a: 'Products in shops: UPC-A in the US and Canada, EAN-13 elsewhere. Books: ISBN. Shipping cartons: ITF-14. Amazon FBA: the FNSKU label. Your own inventory, assets or tickets: Code 128.',
+    a: 'Products in shops: UPC-A in the US and Canada, EAN-13 elsewhere. Books: ISBN. Shipping cartons: ITF-14. Pallet labels: GS1-128. Amazon FBA: the FNSKU label. Your own inventory, assets or tickets: Code 128. Tiny parts: Data Matrix.',
   },
 ]
 
-QRfinity makes barcodes in your browser: UPC-A, EAN-13, EAN-8, UPC-E, ITF-14, ISBN, Code 128, Code 39 and Amazon FNSKU labels. We check the digits as you type, add the check digit if you leave it off, and read each barcode back before you download it. PNG and JPG are free, with no sign-up and no watermark.
+QRfinity makes barcodes in your browser: UPC-A, EAN-13, EAN-8, UPC-E, ITF-14, ISBN, Code 128, GS1-128, Code 39, the 2D codes Data Matrix, PDF417 and Aztec, and Amazon FNSKU labels. Need hundreds? [Make them in bulk](/barcode-generator/bulk) from a spreadsheet. We check the digits as you type, add the check digit if you leave it off, and read each barcode back before you download it. PNG and JPG are free, with no sign-up and no watermark.
 
 ## Which barcode type do I need?
 
-| You’re labelling | Use | Where the number comes from |
-| --- | --- | --- |
-| Products sold in shops in the US or Canada | [UPC-A](/barcode-generator/upc) | GS1 US or GS1 Canada |
-| Products sold in shops elsewhere | [EAN-13](/barcode-generator/ean-13) | Your country’s GS1 office |
-| Very small packages | [EAN-8](/barcode-generator/ean-8) or [UPC-E](/barcode-generator/upc-e) | GS1 |
-| Books | [ISBN](/barcode-generator/isbn) | Your country’s ISBN agency |
-| Shipping cartons and cases | [ITF-14](/barcode-generator/itf-14) | Built from your product’s GTIN |
-| Amazon FBA inventory | [Amazon FNSKU label](/barcode-generator/amazon-fnsku) | Seller Central |
-| Your own inventory, assets, tickets or files | [Code 128](/barcode-generator/code-128) | You choose |
-| Systems that require it, like some ID badges | [Code 39](/barcode-generator/code-39) | You choose |
+| You’re labelling                             | Use                                                                      | Where the number comes from    |
+| -------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------ |
+| Products sold in shops in the US or Canada   | [UPC-A](/barcode-generator/upc)                                          | GS1 US or GS1 Canada           |
+| Products sold in shops elsewhere             | [EAN-13](/barcode-generator/ean-13)                                      | Your country’s GS1 office      |
+| Very small packages                          | [EAN-8](/barcode-generator/ean-8) or [UPC-E](/barcode-generator/upc-e)   | GS1                            |
+| Books                                        | [ISBN](/barcode-generator/isbn)                                          | Your country’s ISBN agency     |
+| Shipping cartons and cases                   | [ITF-14](/barcode-generator/itf-14)                                      | Built from your product’s GTIN |
+| Amazon FBA inventory                         | [Amazon FNSKU label](/barcode-generator/amazon-fnsku)                    | Seller Central                 |
+| Your own inventory, assets, tickets or files | [Code 128](/barcode-generator/code-128)                                  | You choose                     |
+| Systems that require it, like some ID badges | [Code 39](/barcode-generator/code-39)                                    | You choose                     |
+| Pallets and cases with batch, expiry or SSCC | [GS1-128](/barcode-generator/gs1-128)                                    | Your GTIN plus your own data   |
+| Tiny labels, parts and electronics           | [Data Matrix](/barcode-generator/data-matrix)                            | You choose                     |
+| Tickets, passes and documents with long text | [Aztec](/barcode-generator/aztec) or [PDF417](/barcode-generator/pdf417) | You choose                     |
 
 ## Barcode or QR code?
 
@@ -47,7 +50,8 @@ Retail barcodes have a standard size: a UPC-A or EAN-13 at 100% is about 37 mm w
 For Code 128 and other label barcodes, keep the narrowest bar at least 0.19 mm wide, and wider if people will scan from a distance. The generator shows the bar width as you change the size, and warns you when it gets too thin.
 
 <Callout>
-Leave the blank margins on both sides. Scanners need that quiet space to find where the barcode starts and ends, and trimming it is the most common reason a printed barcode won’t scan.
+  Leave the blank margins on both sides. Scanners need that quiet space to find where the barcode
+  starts and ends, and trimming it is the most common reason a printed barcode won’t scan.
 </Callout>
 
 ## Which file should I download?
