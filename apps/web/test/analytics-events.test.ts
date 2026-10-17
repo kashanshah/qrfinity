@@ -37,14 +37,14 @@ describe('event properties', () => {
     expect(
       a.cleanProps({
         transaction_id: 'cs_test_a1B2c3D4e5F6g7H8',
-        source: 'chatgpt.com',
-        campaign: 'spring-menu',
-        medium: 'https://evil.example/x',
+        source_name: 'chatgpt.com',
+        source_campaign: 'spring-menu',
+        source_medium: 'https://evil.example/x',
       }),
     ).toEqual({
       transaction_id: 'cs_test_a1B2c3D4e5F6g7H8',
-      source: 'chatgpt.com',
-      campaign: 'spring-menu',
+      source_name: 'chatgpt.com',
+      source_campaign: 'spring-menu',
     })
   })
 
