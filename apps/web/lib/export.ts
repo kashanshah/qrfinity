@@ -40,7 +40,7 @@ function crc32(bytes: Uint8Array): number {
   return (c ^ 0xffffffff) >>> 0
 }
 
-async function withDpi(png: Blob, dpi: number): Promise<Blob> {
+export async function withDpi(png: Blob, dpi: number): Promise<Blob> {
   const bytes = new Uint8Array(await png.arrayBuffer())
   const ppm = Math.round(dpi / 0.0254)
   const chunk = new Uint8Array(21)

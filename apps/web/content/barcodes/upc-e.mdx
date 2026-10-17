@@ -1,0 +1,28 @@
+export const faq = [
+  {
+    q: 'What is UPC-E?',
+    a: 'A compressed UPC-A for small packages. Certain UPC-A numbers with runs of zeros can be written in 6 digits; the scanner expands them back to the full 12-digit UPC.',
+  },
+  {
+    q: 'Can any UPC be turned into UPC-E?',
+    a: 'No. Only UPC-A numbers with the right pattern of zeros compress. If your UPC doesn’t, use UPC-A, or ask GS1 about numbers suitable for small packages.',
+  },
+  {
+    q: 'What do I enter?',
+    a: 'The 6 digits, 7 if you include the number system (0 or 1) in front, or 8 with the check digit at the end. We work out the check digit from the full UPC-A it stands for.',
+  },
+]
+
+UPC-E is a compact barcode for small packages sold in the US and Canada: it writes certain 12-digit UPCs in 6 digits, about 22 mm wide. Enter your UPC-E number above; we check it against the full UPC-A it stands for and test the scan before you download.
+
+## How to make a UPC-E barcode
+
+1. Enter the 6 UPC-E digits, or 7 with the number system, or 8 with the check digit.
+2. Check the preview: the number system prints on the left and the check digit on the right.
+3. Download a PNG at print resolution, or vector files for your printer (paid plan).
+
+## How UPC-E relates to UPC-A
+
+A scanner reading a UPC-E sends the full 12-digit UPC-A to the till, so prices and stock records only need the UPC-A. For example, UPC-E 04252614 stands for UPC-A 042100005264. That’s why the check digit is calculated from the full number.
+
+For packages with room, a full [UPC-A](/barcode-generator/upc) is simpler. Outside North America, the small-pack barcode is [EAN-8](/barcode-generator/ean-8).

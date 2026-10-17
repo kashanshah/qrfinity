@@ -10,7 +10,11 @@ prepareZXingModule({
   overrides: { wasmBinary: wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength) },
 })
 
-export async function decodeSvg(svg: string, width = 400): Promise<string | null> {
+export async function decodeSvg(
+  svg: string,
+  width = 400,
+  formats: string[] = ['QRCode'],
+): Promise<string | null> {
   const img = new Resvg(svg, {
     fitTo: { mode: 'width', value: width },
     background: '#ffffff',
@@ -22,7 +26,7 @@ export async function decodeSvg(svg: string, width = 400): Promise<string | null
       height: img.height,
       colorSpace: 'srgb',
     } as ImageData,
-    { formats: ['QRCode'], tryHarder: true },
+    { formats: formats as never, tryHarder: true },
   )
   return results.find((r) => r.isValid)?.text ?? null
 }

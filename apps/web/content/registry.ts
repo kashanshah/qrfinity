@@ -5,6 +5,7 @@
  */
 import {
   DEFAULT_PAYMENT,
+  type BarcodeType,
   type ContentFields,
   type ContentType,
   type PaymentMethod,
@@ -19,6 +20,7 @@ export type PageKind =
   | 'landing'
   | 'tool'
   | 'guide'
+  | 'barcode'
   | 'alternative'
   | 'hub'
   | 'pricing'
@@ -49,6 +51,8 @@ export type ContentPage = {
   related?: string[]
   /** Guide paths linked from the page (2 on use-case pages). */
   guides?: string[]
+  /** Barcode pages: the barcode generator, opened on this type. */
+  barcode?: BarcodeType
   /** A tool shown in place of the generator (restyle: remake a code made by WeChat or Alipay). */
   tool?: 'restyle'
 }
@@ -1043,6 +1047,134 @@ export const ALTERNATIVES: ContentPage[] = [
   ),
 ]
 
+const barcodePage = (
+  slug: string,
+  barcode: BarcodeType,
+  label: string,
+  h1: string,
+  title: string,
+  description: string,
+  intro: string,
+  related: string[],
+): ContentPage => ({
+  path: slug ? `/barcode-generator/${slug}` : '/barcode-generator',
+  kind: 'barcode',
+  label,
+  h1,
+  title,
+  description,
+  intro,
+  updated: U,
+  barcode,
+  related: related.map((r) => `/barcode-generator/${r}`),
+  guides: ['/guides/qr-code-size-for-print', '/guides/how-to-print-qr-codes-on-packaging'],
+})
+
+/** The barcode generator and one page per type. Static, made in the browser, like static QR codes. */
+export const BARCODE_HOME: ContentPage = barcodePage(
+  '',
+  'code128',
+  'Barcode generator',
+  'Free barcode generator',
+  'Free barcode generator: UPC, EAN, Code 128 and more',
+  'Make UPC, EAN-13, Code 128, ITF-14, ISBN and Amazon FNSKU barcodes in your browser. Checked digits, a scan test, free PNG downloads, no sign-up.',
+  'Pick a type, type the number, download. Every barcode is scan-tested before you print.',
+  ['upc', 'ean-13', 'amazon-fnsku'],
+)
+
+export const BARCODE_PAGES: ContentPage[] = [
+  barcodePage(
+    'upc',
+    'upca',
+    'UPC-A',
+    'Free UPC barcode generator',
+    'Free UPC barcode generator (UPC-A)',
+    'Turn a 12-digit UPC into a scannable UPC-A barcode for retail packaging. We check the check digit and test the scan. Free PNG, no sign-up.',
+    'For products sold in the US and Canada. Paste your UPC; we check it and draw it.',
+    ['ean-13', 'upc-e', 'itf-14'],
+  ),
+  barcodePage(
+    'ean-13',
+    'ean13',
+    'EAN-13',
+    'Free EAN-13 barcode generator',
+    'Free EAN-13 barcode generator for retail products',
+    'Make an EAN-13 barcode from your 13-digit number, sized to the retail standard and scan-tested before download. Free PNG and JPG, no sign-up.',
+    'The retail barcode used worldwide. Enter 12 or 13 digits; we add or check the last one.',
+    ['upc', 'ean-8', 'isbn'],
+  ),
+  barcodePage(
+    'amazon-fnsku',
+    'fnsku',
+    'Amazon FNSKU labels',
+    'Free Amazon FNSKU barcode and label generator',
+    'Amazon FNSKU label generator for FBA (free)',
+    'Make Amazon FBA labels with the FNSKU barcode, title and condition, for thermal printers (Zebra, Rollo, DYMO) or label sheets. Free PNG.',
+    'Labels Amazon’s warehouses scan, sized for your printer, with bars that print crisp.',
+    ['code-128', 'upc', 'ean-13'],
+  ),
+  barcodePage(
+    'isbn',
+    'isbn',
+    'ISBN',
+    'Free ISBN barcode generator',
+    'Free ISBN barcode generator for books',
+    'Turn your ISBN into the EAN-13 barcode printed on book covers. Accepts ISBN-13 or old ISBN-10, checks the digits and tests the scan. Free.',
+    'The barcode on the back cover. Paste your ISBN, with or without hyphens.',
+    ['ean-13', 'upc', 'code-128'],
+  ),
+  barcodePage(
+    'code-128',
+    'code128',
+    'Code 128',
+    'Free Code 128 barcode generator',
+    'Free Code 128 barcode generator for labels',
+    'Encode letters, numbers and symbols in a compact Code 128 barcode for shipping, inventory and asset labels. Scan-tested, free PNG, no sign-up.',
+    'The everyday barcode for labels: any text or number, packed tight.',
+    ['code-39', 'itf-14', 'amazon-fnsku'],
+  ),
+  barcodePage(
+    'itf-14',
+    'itf14',
+    'ITF-14',
+    'Free ITF-14 barcode generator',
+    'Free ITF-14 barcode generator for shipping cartons',
+    'Make ITF-14 barcodes with bearer bars for cases and shipping cartons from a 14-digit GTIN. Check digit added or checked, scan-tested. Free.',
+    'For outer cartons and cases. Bearer bars included, sized for corrugated board.',
+    ['upc', 'ean-13', 'code-128'],
+  ),
+  barcodePage(
+    'ean-8',
+    'ean8',
+    'EAN-8',
+    'Free EAN-8 barcode generator',
+    'Free EAN-8 barcode generator for small packages',
+    'Make EAN-8 barcodes for packages too small for an EAN-13. Enter 7 or 8 digits; we add or check the check digit and test the scan. Free PNG.',
+    'The short retail barcode, for small packs. Enter 7 or 8 digits.',
+    ['ean-13', 'upc-e', 'upc'],
+  ),
+  barcodePage(
+    'upc-e',
+    'upce',
+    'UPC-E',
+    'Free UPC-E barcode generator',
+    'Free UPC-E barcode generator for small packages',
+    'Make compact UPC-E barcodes for small packages sold in the US and Canada. Enter 6 to 8 digits; we check them against the full UPC-A. Free.',
+    'The compressed UPC for small packs. Enter 6, 7 or 8 digits.',
+    ['upc', 'ean-8', 'ean-13'],
+  ),
+  barcodePage(
+    'code-39',
+    'code39',
+    'Code 39',
+    'Free Code 39 barcode generator',
+    'Free Code 39 barcode generator for ID badges',
+    'Make Code 39 barcodes for ID badges, older industrial systems and libraries: capital letters, digits and a few symbols. Scan-tested, free PNG.',
+    'An older barcode many systems still expect: capitals, digits and a few symbols.',
+    ['code-128', 'itf-14', 'ean-13'],
+  ),
+]
+
 export const HUBS: ContentPage[] = [
   {
     path: '/qr-code-generator',
@@ -1203,6 +1335,8 @@ export const ALL_PAGES: ContentPage[] = [
   ...FEATURE_PAGES,
   ...INDUSTRY_PAGES,
   ...TOOLS,
+  BARCODE_HOME,
+  ...BARCODE_PAGES,
   ...GUIDES,
   ...ALTERNATIVES,
   PRICING,

@@ -50,6 +50,7 @@ describe('content registry', () => {
       alternative: 'alternatives',
       landing: 'landings',
       tool: 'tools',
+      barcode: 'barcodes',
     } as const
     for (const p of ALL_PAGES) {
       if (!(p.kind in dir)) continue

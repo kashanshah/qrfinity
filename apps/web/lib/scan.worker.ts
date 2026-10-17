@@ -10,12 +10,19 @@ prepareZXingModule({
 })
 
 self.onmessage = async (
-  event: MessageEvent<{ id: number; image: ImageData; photo?: boolean; detail?: boolean }>,
+  event: MessageEvent<{
+    id: number
+    image: ImageData
+    photo?: boolean
+    detail?: boolean
+    /** zxing format names; QR codes by default. Barcodes ask for 'AllLinear'. */
+    formats?: string[]
+  }>,
 ) => {
-  const { id, image, photo, detail } = event.data
+  const { id, image, photo, detail, formats } = event.data
   try {
     const results = await readBarcodes(image, {
-      formats: ['QRCode'],
+      formats: (formats ?? ['QRCode']) as never,
       tryHarder: true,
       maxNumberOfSymbols: 1,
       // Photos and screenshots of printed codes: turned, light-on-dark or tiny in a big frame.

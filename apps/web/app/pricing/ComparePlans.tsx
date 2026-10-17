@@ -76,7 +76,7 @@ const GROUPS: Group[] = [
     rows: [
       {
         label: 'Print formats',
-        hint: 'SVG, PDF, EPS: sharp at any size',
+        hint: 'SVG, PDF, EPS and Zebra label files',
         cell: (p) => (p === 'free' ? none : yes),
       },
       {

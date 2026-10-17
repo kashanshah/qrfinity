@@ -1,0 +1,37 @@
+export const faq = [
+  {
+    q: 'Where do I get a UPC number?',
+    a: 'From GS1 US (or GS1 Canada), which licenses company prefixes and the numbers built from them. Shops and marketplaces such as Amazon check UPCs against the GS1 register, so numbers bought cheaply from resellers can get listings rejected.',
+  },
+  {
+    q: 'What is the check digit?',
+    a: 'The last of the 12 digits, calculated from the other 11 so scanners can catch misreads. Enter 11 digits and we add it; enter 12 and we check it.',
+  },
+  {
+    q: 'What size should a UPC barcode be?',
+    a: 'At 100% a UPC-A is about 37.3 mm wide including its blank margins, with bars about 22.9 mm tall. You can print it from 80% to 200% of that. Keep the full height if you can.',
+  },
+  {
+    q: 'UPC or EAN?',
+    a: 'Scanners worldwide read both. UPC-A is the usual choice for products sold mainly in the US and Canada; EAN-13 elsewhere. A UPC-A is the same as an EAN-13 that starts with 0.',
+  },
+]
+
+A UPC-A barcode encodes the 12-digit Universal Product Code that shop tills scan in the US and Canada. Paste your UPC above: we check the check digit, size the barcode to the retail standard and read it back before you download. PNG and JPG are free.
+
+## How to make a UPC barcode
+
+1. Enter your 12-digit UPC, or the first 11 digits and we add the check digit.
+2. Keep the size at 100% (about 37 mm wide) unless your packaging needs it smaller or larger; retail allows 80% to 200%.
+3. Download a PNG at print resolution, or an SVG, PDF or EPS for your designer or printer (paid plan).
+
+## Printing tips for UPC barcodes
+
+- **Dark bars on a light background.** Black on white is safest. Red bars don’t scan: many scanners use red light.
+- **Keep the margins.** The blank space each side is part of the barcode.
+- **Don’t shorten the bars** unless your retailer allows it; shorter bars are harder to scan at an angle.
+- **Test a printed proof** with a scanner or a phone barcode app before a big print run.
+
+The [packaging guide](/guides/how-to-print-qr-codes-on-packaging) covers finishes, curved surfaces and file formats that apply to barcodes too.
+
+For small packages, the compressed [UPC-E](/barcode-generator/upc-e) fits in less space. For outer cartons, use [ITF-14](/barcode-generator/itf-14).

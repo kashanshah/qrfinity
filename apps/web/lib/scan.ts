@@ -27,12 +27,22 @@ function getWorker(): Worker {
   return worker
 }
 
-function post(image: ImageData, photo: boolean, detail: boolean): Promise<Reply> {
+function post(
+  image: ImageData,
+  photo: boolean,
+  detail: boolean,
+  formats?: string[],
+): Promise<Reply> {
   const id = nextId++
   return new Promise((resolve) => {
     pending.set(id, resolve)
-    getWorker().postMessage({ id, image, photo, detail }, [image.data.buffer])
+    getWorker().postMessage({ id, image, photo, detail, formats }, [image.data.buffer])
   })
+}
+
+/** Reads a linear barcode (EAN, UPC, Code 128…) from rendered pixels (the image is transferred). */
+export async function decodeBarcodeImage(image: ImageData): Promise<string | null> {
+  return (await post(image, false, false, ['AllLinear'])).text
 }
 
 async function decode(image: ImageData, photo = false): Promise<string | null> {

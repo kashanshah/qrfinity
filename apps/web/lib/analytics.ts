@@ -181,6 +181,7 @@ export type AnalyticsEvent =
       props: { tool: 'scanner' | 'checker'; outcome: string; known_service: boolean }
     }
   | { name: 'qr_tested'; props: { verdict: string; warnings: number; failures: number } }
+  | { name: 'barcode_downloaded'; props: { format: string; barcode_type: string } }
   | { name: 'abuse_report_submitted'; props: { reason: string } }
   // Acquisition
   | {

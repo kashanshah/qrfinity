@@ -1,0 +1,53 @@
+export const faq = [
+  {
+    q: 'Where do I find my FNSKU?',
+    a: 'In Seller Central, go to Inventory, then Manage FBA inventory. The FNSKU is the 10-character code next to each product, usually starting with X00. Products that use the manufacturer’s barcode show the ASIN (B0…) instead.',
+  },
+  {
+    q: 'What does an Amazon FBA label need?',
+    a: 'The FNSKU barcode, the FNSKU printed in text, the product title (shortened if needed) and the condition, such as New. The generator puts all four on every label.',
+  },
+  {
+    q: 'Which label sizes does Amazon accept?',
+    a: 'Labels from 1 × 2 inches up to 2 × 3 inches. Thermal printers usually use 2.25 × 1.25 in or 2 × 1 in rolls; office printers use sheets such as 30 labels per US Letter page or 21 or 24 per A4 page.',
+  },
+  {
+    q: 'Why are my thermal labels hard to scan?',
+    a: 'Usually the bars were resized to a width that doesn’t fit the printer’s dots, so some bars print thicker than others. Our labels are drawn at your printer’s exact resolution (203 or 300 dpi), with every bar a whole number of dots. Print at 100%, not “fit to page”.',
+  },
+  {
+    q: 'Can I print to a Zebra printer directly?',
+    a: 'Yes, with the ZPL download (with a paid plan). Zebra printers draw the barcode and text themselves from a ZPL file, the sharpest result a thermal printer gives. Send it to the printer with Zebra’s utilities or any tool that sends raw files.',
+  },
+]
+
+An Amazon FNSKU label carries the barcode Amazon’s warehouses scan to know which seller’s stock a unit is. This generator makes complete FBA labels, with the FNSKU barcode, the FNSKU in text, the product title and the condition, sized for thermal label printers or office label sheets. The label PNG is free.
+
+## How do I make an FNSKU label?
+
+1. Copy the FNSKU from Seller Central (Inventory, then Manage FBA inventory). It’s 10 characters, like X001ABC2DE.
+2. Paste it above, add the product title and choose the condition.
+3. Pick your label size and, for a thermal printer, its resolution (most are 203 dpi).
+4. Download the PNG, or the PDF or Zebra file for many labels at once, and print at 100% (actual size).
+
+The scan check reads the finished label back before you download, so you know the barcode works before a whole shipment is labelled.
+
+## Labels for professional printers
+
+**Thermal printers (Zebra, Rollo, DYMO, Brother):** choose a roll size and your printer’s resolution. The barcode is drawn so every bar is a whole number of printer dots wide, which is what keeps thermal barcodes readable; resized images are the usual cause of labels Amazon can’t scan.
+
+- **PNG:** one label at the printer’s exact resolution. Free.
+- **PDF:** one label per page, as many as you need, ready for the printer’s driver (paid plan).
+- **ZPL:** for Zebra printers. The printer draws the label itself, at its own resolution, with the number of copies built in (paid plan).
+
+**Office printers:** choose a sheet layout (30 per US Letter page like Avery 5160, or 24 or 21 per A4 page). The PDF fills as many sheets as your label count needs. Print at 100%, with no scaling.
+
+<Callout tone="warning">
+Each FNSKU belongs to one product listing and condition. A label with the wrong FNSKU sends your stock to the wrong listing, so double-check the code against Seller Central before printing a batch.
+</Callout>
+
+## FNSKU or manufacturer barcode?
+
+If your product already has a GS1 UPC or EAN and Amazon lets you use it, you may not need FNSKU labels at all; Amazon then tracks your stock by that barcode. FNSKU labels keep your units separate from other sellers’ units of the same product, which many sellers prefer. Amazon’s Seller Central help explains which applies to your listings.
+
+Need just the barcode for your own label design? Choose **Just the barcode** above. It’s a standard [Code 128 barcode](/barcode-generator/code-128).
