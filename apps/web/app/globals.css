@@ -166,3 +166,47 @@
     animation: none;
   }
 }
+
+/* Phone menu drawer (components/SiteNav.tsx): slides in from the right over a dimmed page. */
+dialog.drawer[open] {
+  animation: drawer-in 200ms ease-out;
+}
+dialog.drawer::backdrop {
+  background: rgb(0 0 0 / 0.4);
+  animation: drawer-fade 200ms ease-out;
+}
+/* The page behind stays put while the drawer is open. */
+html:has(dialog.drawer[open]) {
+  overflow: hidden;
+}
+@keyframes drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes drawer-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.drawer[open],
+  dialog.drawer::backdrop {
+    animation: none;
+  }
+}
+
+/*
+ * Footer sections (components/SiteFooter.tsx): collapsible on phones; from the md breakpoint every
+ * section shows as a column whether or not it's open.
+ */
+@media (min-width: 48rem) {
+  .footer-section::details-content {
+    content-visibility: visible;
+    display: block;
+    height: auto;
+  }
+  .footer-section > summary {
+    pointer-events: none;
+  }
+}

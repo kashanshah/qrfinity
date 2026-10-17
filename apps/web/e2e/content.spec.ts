@@ -159,7 +159,7 @@ test('the theme follows the device, and a choice in the header is remembered', a
 }) => {
   // Wider screens: a dropdown in the header. Phones: the same choices in the menu.
   const choose = async (current: string, next: string) => {
-    if (isMobile) await page.getByLabel('Menu').click()
+    if (isMobile) await page.getByRole('button', { name: 'Menu', exact: true }).click()
     else await page.getByLabel(`Theme: ${current}`).click()
     await page.getByRole('button', { name: next }).click()
   }
@@ -193,4 +193,48 @@ test('the theme follows the device, and a choice in the header is remembered', a
   await expect(html).not.toHaveAttribute('data-theme')
   await page.reload()
   await expect(html).not.toHaveAttribute('data-theme')
+})
+
+test('choosing a menu link closes the menu', async ({ page, isMobile }) => {
+  await page.goto('/pricing')
+  if (isMobile) {
+    // Phones: a drawer that closes on a link, on Escape and on the close button.
+    const menu = page.getByRole('dialog', { name: 'Menu' })
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
+    await expect(menu).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(menu).toBeHidden()
+    await page.getByRole('button', { name: 'Menu', exact: true }).click()
+    await menu.getByText('Tools', { exact: true }).click()
+    await menu.getByRole('link', { name: 'QR code tester' }).click()
+    await expect(page).toHaveURL(/\/qr-code-tester$/)
+    await expect(menu).toBeHidden()
+  } else {
+    const menu = page.locator('header nav[aria-label="Main"]').first()
+    const panel = menu.locator('a[href="/qr-code-tester"]')
+    await menu.getByRole('link', { name: 'Tools', exact: true }).hover()
+    await expect(panel).toBeVisible()
+    await panel.click()
+    await expect(page).toHaveURL(/\/qr-code-tester$/)
+    // The pointer is still over the menu, and the panel stays shut until it leaves.
+    await expect(panel).toBeHidden()
+  }
+})
+
+test('footer sections fold on phones and show as columns on wider screens', async ({
+  page,
+  isMobile,
+}) => {
+  await page.goto('/pricing')
+  const footer = page.getByRole('navigation', { name: 'Site' })
+  const link = footer.locator('a[href="/qr-code-tester"]')
+  // The links are always in the page, folded or not.
+  await expect(link).toHaveCount(1)
+  if (isMobile) {
+    await expect(link).toBeHidden()
+    await footer.getByText('Free QR codes', { exact: true }).click()
+    await expect(link).toBeVisible()
+  } else {
+    await expect(link).toBeVisible()
+  }
 })
