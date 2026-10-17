@@ -1,6 +1,6 @@
 /**
  * The dead QR codes study (docs/data-story.md): how a checked code is classified and summarised.
- * Shared by the admin page (/admin/study) and the command-line script (scripts/data-story.ts).
+ * Used by the admin page (/admin/study) and its upload route.
  */
 import { identifyQrService, SHORTENER_DOMAINS } from '@qrfinity/core'
 import type { LinkCheck } from './server/link-check'
