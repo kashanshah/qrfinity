@@ -19,6 +19,7 @@ import { setFlag, setUserPlan } from '@/lib/server/entitlements'
 import { refreshAdvancedFeaturesForAll } from '@/lib/server/codes'
 import { setCloudflarePlan, setFreeAdvancedCodeAllowance } from '@/lib/server/settings'
 import { ServiceError } from '@/lib/server/errors'
+import { deleteStudyEntry, recheckStudy, setStudyResultByHand } from '@/lib/server/study'
 import { removeFromWaitlist } from '@/lib/server/waitlist'
 
 type Result = { ok: true } | { ok: false; error: string }
@@ -95,3 +96,21 @@ export async function submitIndexNowAction(
 }
 export const setCloudflarePlanAction = async (plan: string) =>
   run((c) => setCloudflarePlan(c, plan))
+
+/** Admin → Study: re-checks a few links that are due. Call again while `remaining` > 0. */
+export async function recheckStudyAction(): Promise<
+  { ok: true; checked: number; remaining: number } | { ok: false; error: string }
+> {
+  const ctx = await adminContext()
+  try {
+    const r = await recheckStudy(ctx)
+    revalidatePath('/admin/study')
+    return { ok: true, ...r }
+  } catch (e) {
+    console.error(e)
+    return { ok: false, error: 'The re-check stopped. Check the logs, then try again.' }
+  }
+}
+export const studyByHandAction = async (id: string, works: boolean) =>
+  run((c) => setStudyResultByHand(c, id, works))
+export const deleteStudyEntryAction = async (id: string) => run((c) => deleteStudyEntry(c, id))

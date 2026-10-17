@@ -14,8 +14,7 @@
     "test": "vitest run --passWithNoTests",
     "test:e2e": "playwright test",
     "db:migrate": "pnpm --dir ../.. db:migrate",
-    "stripe:setup": "tsx scripts/stripe-setup.ts",
-    "data-story": "tsx scripts/data-story.ts"
+    "stripe:setup": "tsx scripts/stripe-setup.ts"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
@@ -23,6 +22,7 @@
     "@next/mdx": "16.4.2",
     "@qrfinity/core": "workspace:*",
     "@qrfinity/db": "workspace:*",
+    "aws4fetch": "^1.0.20",
     "better-auth": "^1.7.10",
     "fflate": "^0.8.3",
     "harfbuzzjs": "1.6.3",

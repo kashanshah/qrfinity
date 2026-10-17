@@ -20,3 +20,5 @@ apps/web/next-env.d.ts
 apps/web/AGENTS.md
 # Photos and results of the dead QR codes study (can hold personal data; see docs/data-story.md)
 /data-story/
+# Local file storage in development (S3 stand-in)
+apps/web/.data/

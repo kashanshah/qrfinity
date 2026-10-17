@@ -144,7 +144,7 @@ visit.
 
 ### P7. One data story (2–3 weeks, once)
 
-In progress: collection guide, method and the checking script are in `docs/data-story.md`.
+In progress: collection guide and method in `docs/data-story.md`; photos are added and checked in Admin → Study.
 
 
 - **Research:** collect 300–500 QR codes from real menus, posters and packaging (photos, plus public

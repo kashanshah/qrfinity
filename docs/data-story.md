@@ -33,65 +33,55 @@ national story rather than a local one. Note the city in the log.
 
 - **One code per photo, filling about a third of the frame,** straight on, in focus. Step back
   if the code is large.
-- **Any phone camera is fine.** iPhones save HEIC by default: either set Settings → Camera →
-  Formats → Most Compatible before you start, or export the photos as JPG afterwards. The script
-  reads JPG, PNG and WebP.
-- **Don't open the codes on the spot.** The script follows every link the same way, with the
+- **Any phone camera is fine.** The easiest is "Take a photo" in Admin → Study, which saves and
+  checks each code as you go. Photos taken with the camera app work too: add them later with
+  "Choose photos" (phone browsers turn iPhone HEIC photos into JPG when uploading).
+- **Don't open the codes on the spot.** The admin follows every link the same way, with the
   same checks, so results are comparable. Opening them yourself also risks scam codes.
 - **Public places only.** Don't photograph codes inside homes, on private documents, on tickets
   or receipts with personal details, or on anything that shows people's faces or car plates. If a
   code is on a parking meter or payment terminal, photograph it but never pay through it.
-- **Same code twice is fine.** Chains print the same code in many places; the script counts each
-  code once and reports duplicates.
+- **Same code twice is fine.** Chains print the same code in many places; each code is counted
+  once, with how many times it was seen.
 
-## 3. Name and log the photos
+## 3. Add photos in the admin
 
-Put every photo in one folder named `data-story/` at the root of the repository (git ignores it:
-photos can hold personal data). Keep the camera's file names, or rename them `0001.jpg`,
-`0002.jpg`…
+Everything happens in **Admin → Study** (`/admin/study`), from a computer or a phone, so any admin
+can collect from anywhere:
 
-Add a `log.csv` in the same folder, one row per photo. It's optional, but the category column is
-what turns one number into a story ("menus fare worst"):
+1. **Set where you are:** the category (menus, posters, windows…), city, country and the date the
+   photos were taken, plus optional notes ("faded poster dated 2023"). The category, city and
+   country are remembered on that device for the next photos.
+2. **Add photos:** "Take a photo" opens the phone's camera; "Choose photos" takes any number of
+   photos at once from a phone or computer.
+3. **Each photo is processed right away,** with progress shown for each one:
+   - The browser reads the code and makes the photo smaller (2,000 px on the longest side).
+   - The server gets the smaller photo, a fingerprint of what the code holds (so a code
+     photographed twice is counted once, as "seen 2 times"), its type and, for links, the
+     address. Decoded Wi-Fi passwords and contact details are not stored.
+   - New links are followed straight away with the QR code checker's own check (redirects,
+     error pages, domains that no longer exist, pages saying a code was deactivated), and
+     codes that go through a QR service's short link are marked.
 
-```csv
-file,category,city,country,date,notes
-0001.jpg,menu,Toronto,CA,2026-10-18,café table tent
-0002.jpg,poster,Toronto,CA,2026-10-18,community board; poster dated 2023
-0003.jpg,packaging,Toronto,CA,2026-10-18,coffee bag
-```
+Photos are kept in a **private S3 bucket** (or an S3-compatible store such as Cloudflare R2), set
+with `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` and, for R2,
+`S3_ENDPOINT` (see `apps/web/.env.example`). The bucket stays private: photos are only served
+through the admin, to signed-in admins. Without these settings, codes are still recorded, just
+without their photos. Deleting a code in the admin deletes its photos too.
 
-`date` is when you took the photo. `notes` is anything useful: the print's age, if visible, or
-"peeling", "faded".
+## 4. Re-check, verify, export
 
-## 4. Run the checks
-
-```bash
-pnpm --filter @qrfinity/web data-story ../../data-story
-```
-
-For each photo, the script:
-
-1. Reads every QR code in it (photos with no readable code are counted as unreadable, separately
-   from dead links).
-2. Records what the code holds. For anything that isn't a link (Wi-Fi, contacts, text, payments),
-   only the type is kept: no passwords or personal details are stored.
-3. Follows each link with the same check as our QR code checker (redirects, error pages,
-   domains that no longer exist, and pages that say a code has been deactivated), and notes
-   whether the link goes through a QR service's short link.
-4. Writes `results.csv` (one row per code), `results.json` and `summary.md`.
-
-It refuses to run without a working internet connection, because then every link would look dead.
-
-**Then re-check after at least 24 hours:**
-
-```bash
-pnpm --filter @qrfinity/web data-story ../../data-story --recheck
-```
-
-A link counts as **dead** only if it failed every check and the checks were at least a day apart.
-That keeps sites that were briefly down out of the headline number. Links that refused an
-automated check ("verify by hand" in the summary) are opened by hand in a normal browser and
-noted in `results.csv`.
+- **Re-check after at least 24 hours.** "Re-check due" follows every link that failed and was
+  last checked over a day ago (and any not checked yet). A link counts as **dead** only if it
+  failed every check and the first and last were at least a day apart, so sites that were
+  briefly down stay out of the headline number.
+- **Verify by hand.** Some sites refuse automated checks; they're listed under "Verify by hand".
+  Open the link in a normal browser and press **Works** or **Doesn’t work**; a hand check settles
+  the result.
+- **Results** update live on the page: the dead share, why links died, the dead share by
+  category, short links versus direct links, and dead links per QR service.
+- **Download CSV** gives every code with its checks, for analysis and for the published data
+  (after removing what section 5 says to remove).
 
 ## 5. What we publish
 
@@ -121,6 +111,8 @@ One page on qrfinity.com, for example `/research/dead-qr-codes`, with:
   headline, don't speculate about why a service's codes died beyond what the page they lead to
   says, and offer each named service a chance to comment before we publish.
 - **Name no small businesses.** The story is about the problem, not about whose menu is broken.
+- **Photos stay private.** They're evidence for us, not for publication; delete them (and the
+  bucket's contents) once the study is published and any questions about it are settled.
 - **Disclose our interest.** Say plainly that QRfinity makes QR codes that don't expire, and that
   the full data is published so anyone can check it.
 - **Legal review** of the page before it goes live (legal@qrfinity.com), since it names other
@@ -131,6 +123,6 @@ One page on qrfinity.com, for example `/research/dead-qr-codes`, with:
 | Week | Work |
 | --- | --- |
 | 1 | Collect photos (an hour or two a day, plus a weekend walk through a busy area). |
-| 2 | Run the checks, re-check after 24 hours, verify the "by hand" links, review the numbers. |
+| 1 to 2 | Photos are checked as they're added; re-check after 24 hours, verify the "by hand" links, review the numbers. |
 | 2 to 3 | Write and design the report page and charts; legal review; ask named services for comment. |
 | 3 | Publish, then pitch: marketing newsletters, small-business publications, local news, and the subreddits where QR code questions come up. |
