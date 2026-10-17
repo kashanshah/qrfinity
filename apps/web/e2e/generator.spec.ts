@@ -72,7 +72,7 @@ test('SVG, PDF and EPS point to paid plans on the free plan', async ({ page, isM
   await expectScans(page)
   let downloaded = false
   page.on('download', () => (downloaded = true))
-  await page.getByRole('button', { name: 'EPS', exact: true }).click()
+  await page.getByRole('button', { name: 'EPS, with a paid plan' }).click()
   await expect(page.getByText('SVG, PDF and EPS come with any paid plan')).toBeVisible()
   await expect(page.getByRole('link', { name: 'See plans' })).toHaveAttribute('href', '/pricing')
   expect(downloaded).toBe(false)
