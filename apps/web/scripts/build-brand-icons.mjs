@@ -37,6 +37,8 @@ const ICONS = {
   tiktok: { icon: si.siTiktok },
   // Douyin is ByteDance's Chinese TikTok and uses the same note mark.
   douyin: { icon: si.siTiktok },
+  // The ghost is drawn on Snapchat yellow, as on its app icon; a yellow ghost on white wouldn't show.
+  snapchat: { icon: si.siSnapchat, bg: '#FFFC00', mark: '#000000' },
   youtube: { icon: si.siYoutube },
   threads: { icon: si.siThreads },
   pinterest: { icon: si.siPinterest },
@@ -60,6 +62,9 @@ const ICONS = {
   googleplay: { icon: si.siGoogleplay },
   discord: { icon: si.siDiscord },
   reddit: { icon: si.siReddit },
+  calendly: { icon: si.siCalendly },
+  zoom: { icon: si.siZoom },
+  linktree: { icon: si.siLinktree },
   // Code types without a platform: Material Design Icons (Apache 2.0), white on a dark tile so
   // they sit well on any code colour.
   ...Object.fromEntries(

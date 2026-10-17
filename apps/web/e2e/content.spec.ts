@@ -107,7 +107,7 @@ test.describe('content pages', () => {
     const res = await page.goto('/no-such-page')
     expect(res?.status()).toBe(404)
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('We can’t find that page')
-    await expect(page.getByRole('link', { name: 'Make a QR code' })).toHaveAttribute('href', '/')
+    await expect(page.getByRole('link', { name: 'Make a QR code', exact: true })).toHaveAttribute('href', '/')
   })
 
   test('the Wi-Fi page preloads the Wi-Fi generator and scans', async ({ page }) => {

@@ -1,0 +1,55 @@
+export const faq = [
+  {
+    q: 'What resolution should a QR code be for print?',
+    a: 'At least 300 dpi at the size it will be printed: about 240 pixels wide for a 2 cm code, 470 for 4 cm, 1,180 for 10 cm. A vector file (SVG, PDF or EPS) has no resolution at all and is sharp at any size.',
+  },
+  {
+    q: 'Why does my QR code look blurry when printed?',
+    a: 'The image was enlarged beyond its pixels, often a screenshot or a small download stretched to fit. Download it again at the final print size, or use a vector file.',
+  },
+  {
+    q: 'Which format should I send a print shop?',
+    a: 'A PDF or EPS if they can take one: they scale to any size and keep exact colours. Otherwise a PNG at 300 dpi at the final size. Avoid JPG for codes on light backgrounds: compression can blur the edges.',
+  },
+  {
+    q: 'How large can a free PNG be?',
+    a: 'Up to 6,000 pixels wide, which is about 50 cm at 300 dpi. Large signs and banners are seen from further away, so 150 dpi is plenty for them, which doubles that to about 1 metre.',
+  },
+]
+
+A high-resolution QR code is one with enough pixels for its printed size, or a vector file with no pixels at all. For print, download a PNG at 300 dpi at the final size, or an SVG, PDF or EPS file that stays sharp at any size. Never print a screenshot or stretch a small image to fit.
+
+## Pixels, dpi and print size
+
+A PNG or JPG is a grid of pixels. When it’s printed, those pixels are spread over the print size; dots per inch (dpi) says how tightly. For sharp print, aim for 300 dpi:
+
+| Print width | Pixels at 300 dpi |
+| --- | --- |
+| 2 cm (business card) | 240 px |
+| 4 cm (flyer, table card) | 470 px |
+| 10 cm (shop window) | 1,180 px |
+| 20 cm (poster) | 2,360 px |
+| 50 cm (large sign) | 5,910 px |
+
+Banners and signs read from several metres away can drop to 150 dpi without anyone noticing.
+
+## Download it at the right size
+
+In the generator’s **Download** step, set the **print width**. The PNG “Print” size is then made at 300 dpi for exactly that width, and the file says so in its name and settings, so print software places it at the right size. PNG downloads go up to 6,000 pixels, about 50 cm at 300 dpi.
+
+## Vector files: sharp at any size
+
+SVG, PDF and EPS files describe the code as shapes, not pixels, so they’re sharp on a business card and on a billboard. Designers can place them in Illustrator, InDesign, Affinity or Canva, and change the size freely. On QRfinity they keep the full design: colours, pattern, logo and frame, with frame text drawn as shapes, so no fonts are needed.
+
+Vector downloads come with any paid plan. A free PNG at 300 dpi is enough for most print up to about 50 cm.
+
+## Common mistakes
+
+- **Screenshots.** A screenshot is screen resolution, usually far too low, and often includes blur from scaling.
+- **Stretching a small image.** Enlarging a 300-pixel code to 20 cm makes soft, blurry edges that cameras struggle with.
+- **JPG compression.** JPG blurs sharp edges slightly. Use PNG for print where you can.
+- **Resizing inside a document.** Word and PowerPoint sometimes compress images on save. Check the setting, or link the original file.
+
+## Check before you print
+
+Print one copy at the real size and scan it with two phones. To check a finished file from any source, use the [QR code tester](/qr-code-tester): it also tells you the smallest size to print it at.

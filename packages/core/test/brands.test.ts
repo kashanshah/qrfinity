@@ -174,3 +174,16 @@ describe('frame text outlines', () => {
     expect(scene.items.some((i) => i.kind === 'text')).toBe(true)
   })
 })
+
+describe('Snapchat, Calendly, Zoom and Linktree', () => {
+  it('makes Snapchat add links and gives each its icon', () => {
+    expect(encodeContent('social', { platform: 'snapchat', handle: '@maple.cafe' })).toEqual({
+      ok: true,
+      payload: 'https://www.snapchat.com/add/maple.cafe',
+    })
+    expect(brandFor('social', { platform: 'snapchat', handle: '' })).toBe('snapchat')
+    expect(brandForUrl('calendly.com/amira/30min')).toBe('calendly')
+    expect(brandForUrl('https://us02web.zoom.us/j/123')).toBe('zoom')
+    expect(brandForUrl('linktr.ee/maplecafe')).toBe('linktree')
+  })
+})
