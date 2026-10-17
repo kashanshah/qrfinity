@@ -459,3 +459,66 @@ export const subscriptions = pgTable(
   },
   (t) => [index('subscriptions_user_idx').on(t.userId)],
 )
+
+/**
+ * The dead QR codes study (docs/data-story.md, /admin/study): one row per distinct code found in
+ * public. Photos are decoded in the browser; besides the photo itself (kept in the private file
+ * store, see studyPhotos), only a fingerprint of the content (to count each code once), its type
+ * and, for links, the address are stored. Decoded Wi-Fi passwords and contact details are not.
+ */
+export const studyCodes = pgTable(
+  'study_codes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    /** SHA-256 of the decoded text; unreadable photos get a random one. */
+    fingerprint: text('fingerprint').notNull(),
+    photoName: text('photo_name'),
+    category: text('category').notNull().default('other'),
+    city: text('city'),
+    country: text('country'),
+    takenOn: date('taken_on', { mode: 'string' }),
+    notes: text('notes'),
+    /** 'url', 'wifi', 'vcard'…, or 'unreadable'. */
+    contentType: text('content_type').notNull(),
+    url: text('url'),
+    service: text('service'),
+    shortLink: boolean('short_link').notNull().default(false),
+    /** Latest check: outcome, plain reason, final address and HTTP status. */
+    outcome: text('outcome'),
+    reason: text('reason'),
+    finalUrl: text('final_url'),
+    httpStatus: integer('http_status'),
+    /** Every check, oldest first: { outcome, reason, at }. */
+    checks: jsonb('checks')
+      .$type<{ outcome: string; reason: string; at: string }[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    lastCheckedAt: timestamp('last_checked_at', { withTimezone: true }),
+    /** How many photos showed this same code (chains print the same code in many places). */
+    timesSeen: integer('times_seen').notNull().default(1),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex('study_codes_fingerprint_idx').on(t.fingerprint),
+    index('study_codes_recheck_idx').on(t.lastCheckedAt),
+  ],
+)
+
+/** Photos for the study, in the private file store (S3). Deleted with their code. */
+export const studyPhotos = pgTable(
+  'study_photos',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    codeId: uuid('code_id')
+      .notNull()
+      .references(() => studyCodes.id, { onDelete: 'cascade' }),
+    /** Key in the file store, e.g. study/2026/10/<uuid>.jpg. */
+    fileKey: text('file_key').notNull(),
+    photoName: text('photo_name'),
+    bytes: integer('bytes').notNull(),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('study_photos_code_idx').on(t.codeId)],
+)

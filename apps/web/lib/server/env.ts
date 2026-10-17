@@ -85,6 +85,21 @@ export const env = {
       ? { secretKey, webhookSecret, portalConfiguration: read('STRIPE_PORTAL_CONFIGURATION') }
       : null
   },
+  /** Private S3 (or S3-compatible, e.g. R2) bucket for admin uploads such as study photos. */
+  get s3() {
+    const bucket = read('S3_BUCKET')
+    const accessKeyId = read('S3_ACCESS_KEY_ID')
+    const secretAccessKey = read('S3_SECRET_ACCESS_KEY')
+    if (!bucket || !accessKeyId || !secretAccessKey) return null
+    return {
+      bucket,
+      accessKeyId,
+      secretAccessKey,
+      region: read('S3_REGION') ?? 'us-east-1',
+      /** Only for S3-compatible stores, e.g. https://<account>.r2.cloudflarestorage.com. */
+      endpoint: read('S3_ENDPOINT'),
+    }
+  },
   get webRiskApiKey() {
     return read('WEB_RISK_API_KEY')
   },

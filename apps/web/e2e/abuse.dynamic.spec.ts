@@ -87,10 +87,55 @@ test('every admin page opens for an admin', async ({ page, request }) => {
     ['/admin/usage', 'Usage'],
     ['/admin/settings', 'Settings'],
     ['/admin/audit', null],
+    ['/admin/study', 'Dead QR codes study'],
   ] as const) {
     const res = await page.goto(path)
     expect(res?.status(), path).toBe(200)
     if (heading) await expect(page.getByRole('heading', { level: 1 }), path).toHaveText(heading)
     await expect(page.getByText('Application error'), path).toHaveCount(0)
   }
+})
+
+test('the study takes photos, counts each code once and keeps the photos private', async ({
+  page,
+  request,
+}) => {
+  await signIn(page, request, 'e2e-admin@example.com', '/admin/study')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Dead QR codes study')
+  await page.getByLabel('City').fill('Testville')
+  const fixture = (f: string) => new URL(`./fixtures/${f}`, import.meta.url).pathname
+  // The same code twice, and a photo with no code at all.
+  await page
+    .getByLabel('Choose photos')
+    .setInputFiles([fixture('pale-qr.png'), fixture('pale-qr.png'), fixture('no-code.png')])
+  const progress = page.getByRole('list').filter({ hasText: 'no-code.png' })
+  await expect(progress.getByText('Seen before, counted once.')).toBeVisible({ timeout: 60_000 })
+  await expect(
+    progress
+      .getByText('No code found', { exact: false })
+      .or(progress.getByText('could not be read')),
+  ).toBeVisible({ timeout: 60_000 })
+
+  await page.reload()
+  const row = page.getByRole('row').filter({ hasText: 'https://example.com/menu' })
+  await expect(row).toHaveCount(1)
+  await expect(row.getByText('Seen 2 times')).toBeVisible()
+  await expect(row.getByText('Testville', { exact: false })).toBeVisible()
+
+  // Photos are served to admins only.
+  const src = await row.getByRole('img').first().getAttribute('src')
+  expect((await page.request.get(src!)).headers()['content-type']).toBe('image/jpeg')
+  expect((await request.get(src!)).status()).toBe(404)
+
+  // Hand checks settle a result; the CSV has every code.
+  await row.getByRole('button', { name: 'Doesn’t work' }).click()
+  await expect(row.getByText('Doesn’t work (checked by hand)')).toBeVisible()
+  const csv = await (await page.request.get('/admin/study/export')).text()
+  expect(csv).toContain('https://example.com/menu')
+  expect(csv).toContain('Testville')
+
+  page.once('dialog', (d) => d.accept())
+  await row.getByRole('button', { name: 'Delete' }).click()
+  await expect(page.getByRole('row').filter({ hasText: 'https://example.com/menu' })).toHaveCount(0)
+  expect((await page.request.get(src!)).status()).toBe(404)
 })

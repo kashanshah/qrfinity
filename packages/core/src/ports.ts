@@ -81,3 +81,15 @@ export interface Billing {
    */
   webhook(rawBody: string, signature: string): Promise<{ subscriptionId: string } | null>
 }
+
+/**
+ * Private file storage (an S3 or S3-compatible bucket such as Cloudflare R2 today; local disk in
+ * development). Files are never public: the app reads them back for signed-in admins only.
+ */
+export interface FileStore {
+  put(key: string, body: Uint8Array, contentType: string): Promise<void>
+  get(key: string): Promise<{ body: ArrayBuffer; contentType: string } | null>
+  remove(key: string): Promise<void>
+  /** False when no storage is set up: uploads are refused, the rest of the app works. */
+  readonly configured: boolean
+}
