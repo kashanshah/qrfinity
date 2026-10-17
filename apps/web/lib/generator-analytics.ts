@@ -87,7 +87,7 @@ export function useGeneratorTracking(store: GeneratorStore, surface: GeneratorSu
         if (s.printWidthMm !== prev.printWidthMm)
           trackOnce('design:print_width', 'design_option_used', {
             option: 'print_width',
-            value: 'changed',
+            choice: 'changed',
           })
         if (s.design !== prev.design) {
           const changed = (Object.keys(s.design) as (keyof Design)[]).filter(
@@ -100,7 +100,7 @@ export function useGeneratorTracking(store: GeneratorStore, surface: GeneratorSu
             if (o)
               trackOnce(`design:${surface}:${o[0]}:${o[1]}`, 'design_option_used', {
                 option: o[0],
-                value: o[1],
+                choice: o[1],
               })
           }
         }

@@ -216,7 +216,7 @@ export function QrInput({
 function report(tool: Mode, source: 'image' | 'camera', text: string | null) {
   track('qr_read', {
     tool,
-    source,
+    input: source,
     found: text !== null,
     content_type: text === null ? null : parseContent(text).type,
   })

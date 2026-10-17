@@ -83,7 +83,7 @@ export type AnalyticsEvent =
       props: { content_type: string; kind: CodeKind; previous: string }
     }
   | { name: 'content_variant_selected'; props: { content_type: string; variant: string } }
-  | { name: 'design_option_used'; props: { option: string; value: string } }
+  | { name: 'design_option_used'; props: { option: string; choice: string } }
   | { name: 'content_problem'; props: { content_type: string; kind: CodeKind; reason: string } }
   | { name: 'scan_check_failed'; props: { reason: string; content_type: string } }
   | { name: 'scan_warning_shown'; props: { warning: string } }
@@ -171,7 +171,7 @@ export type AnalyticsEvent =
       name: 'qr_read'
       props: {
         tool: 'scanner' | 'checker' | 'restyle' | 'tester'
-        source: 'image' | 'camera'
+        input: 'image' | 'camera'
         found: boolean
         content_type: string | null
       }
@@ -185,7 +185,13 @@ export type AnalyticsEvent =
   // Acquisition
   | {
       name: 'traffic_source'
-      props: { channel: string; source: string; medium: string; campaign: string; first: boolean }
+      props: {
+        channel: string
+        source_name: string
+        source_medium: string
+        source_campaign: string
+        first: boolean
+      }
     }
   // Reliability
   | { name: 'exception'; props: { description: string; fatal: boolean; source: string } }
@@ -211,7 +217,7 @@ const LOOKS_PERSONAL = /[@/\\]|https?:|www\.|\.[a-z]{2,}(?:$|[/?#])|\d{6,}/i
 const STRIPE_ID = /^[a-z]{2,4}_[A-Za-z0-9_]{8,200}$/
 
 // Traffic sources: a host name or a UTM tag (chatgpt.com, newsletter), never a path or query.
-const SOURCE_KEYS = new Set(['source', 'first_source', 'medium', 'campaign'])
+const SOURCE_KEYS = new Set(['source_name', 'first_source', 'source_medium', 'source_campaign'])
 const SOURCE_NAME = /^[a-z0-9][a-z0-9._-]{0,59}$/
 
 /** Keeps short, safe option names and numbers; drops anything that could be content. */

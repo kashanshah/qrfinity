@@ -123,7 +123,7 @@ export function Analytics() {
   const viewer = useViewerPlan(allowed)
   useEffect(() => {
     if (!viewer) return
-    setAnalyticsUser({ signed_in: viewer.signedIn ? 'yes' : 'no', plan: viewer.plan })
+    setAnalyticsUser({ signed_in: viewer.signedIn ? 'yes' : 'no', user_plan: viewer.plan })
     if (!viewer.signedIn) return
     const method = takePendingSignIn()
     if (method) track(viewer.newAccount ? 'sign_up' : 'login', { method })
@@ -138,7 +138,10 @@ export function Analytics() {
     setAnalyticsUser({ first_channel: t.first.channel, first_source: t.first.source })
     if (t.isNewSession)
       trackOnce('traffic_source', 'traffic_source', {
-        ...t.session,
+        channel: t.session.channel,
+        source_name: t.session.source,
+        source_medium: t.session.medium,
+        source_campaign: t.session.campaign,
         first: t.first === t.session,
       })
     // Once per page load: a consent change mid-page doesn't make it a new visit.
