@@ -103,6 +103,17 @@ test.describe('content pages', () => {
     ).toHaveText('Scans', { timeout: 15_000 })
   })
 
+  test('only the pages that read codes may use the camera', async ({ request }) => {
+    for (const path of ['/qr-code-scanner', '/qr-code-checker', '/qr-code-generator/wechat']) {
+      const res = await request.get(path)
+      expect(res.headers()['permissions-policy'], path).toContain('camera=(self)')
+    }
+    for (const path of ['/', '/qr-code-generator/url', '/qr-code-tester']) {
+      const res = await request.get(path)
+      expect(res.headers()['permissions-policy'], path).toContain('camera=()')
+    }
+  })
+
   test('unknown addresses get the 404 page', async ({ page }) => {
     const res = await page.goto('/no-such-page')
     expect(res?.status()).toBe(404)
