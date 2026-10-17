@@ -1,0 +1,46 @@
+export const faq = [
+  {
+    q: 'Can I use an EAN-13 in the US?',
+    a: 'Yes. US scanners have read EAN-13 since 2005, so an EAN-13 from your country’s GS1 office works in American shops. Some retailers still ask for UPC-A in their supplier forms; a UPC can always be written as an EAN-13 by adding a 0 in front.',
+  },
+  {
+    q: 'How do I turn a UPC into an EAN?',
+    a: 'Put a 0 in front: UPC 036000291452 is EAN-13 0036000291452. The check digit stays the same. The other way only works for EAN-13 numbers that start with 0.',
+  },
+  {
+    q: 'Is a GTIN the same as a UPC?',
+    a: 'GTIN is the name for the number; UPC and EAN are the barcodes that carry it. A 12-digit GTIN is printed as a UPC-A, a 13-digit GTIN as an EAN-13.',
+  },
+  {
+    q: 'Which one does Amazon want?',
+    a: 'Either. Amazon accepts UPC, EAN and other GTINs for new listings, as long as the number is registered to your brand with GS1.',
+  },
+]
+
+UPC-A and EAN-13 are the same barcode system with a different number of digits. A UPC-A holds 12 digits and is used mainly in the US and Canada; an EAN-13 holds 13 and is used everywhere else. Every modern retail scanner reads both, so print the one that matches the number GS1 gave you.
+
+## The differences at a glance
+
+|                         | UPC-A                                     | EAN-13                                        |
+| ----------------------- | ----------------------------------------- | --------------------------------------------- |
+| Digits                  | 12                                        | 13                                            |
+| Where it’s issued       | GS1 US and GS1 Canada                     | Every other GS1 office                        |
+| First digits            | Company prefix                            | Country or GS1 prefix, then company           |
+| Read in shops worldwide | Yes                                       | Yes                                           |
+| Standard width at 100%  | About 37 mm with margins                  | About 37 mm with margins                      |
+| Make one                | [UPC-A generator](/barcode-generator/upc) | [EAN-13 generator](/barcode-generator/ean-13) |
+
+## Why there are two
+
+UPC came first, in the US in the 1970s. Europe then extended it to 13 digits so other countries could have their own prefixes: that became EAN. A UPC is really an EAN-13 that starts with 0, which is why scanners read UPCs as 13 digits and why the two are fully compatible.
+
+## The small versions
+
+- **[UPC-E](/barcode-generator/upc-e)** squeezes certain UPC-A numbers (those with runs of zeros) into 6 digits for small packages. Only some numbers can be compressed.
+- **[EAN-8](/barcode-generator/ean-8)** is a separate 8-digit number that GS1 issues on request for packs too small for an EAN-13.
+
+## Which should I print?
+
+Print the one that matches your number. If GS1 US or GS1 Canada gave you a 12-digit number, print a UPC-A. If your GS1 office gave you 13 digits, print an EAN-13. If a retailer asks for a 12-digit UPC and you have a 13-digit EAN starting with 0, drop the 0.
+
+For books, the barcode is always an EAN-13 built from the ISBN; see the [ISBN barcode generator](/barcode-generator/isbn).

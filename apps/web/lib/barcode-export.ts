@@ -125,43 +125,112 @@ export async function labelPng(label: FnskuLabel): Promise<Blob> {
 
 /**
  * Labels as a PDF: thermal sizes get one label per page (the printer feeds one label at a time);
- * sheet sizes are laid out on Letter or A4, filling as many sheets as the copies need.
+ * sheet sizes are laid out on Letter or A4, filling as many sheets as needed. All labels share a size.
  */
-export function labelPdf(label: FnskuLabel, copies: number): Promise<Blob> {
-  const { scene } = fnskuLabelScene(label)
-  const n = Math.max(1, Math.min(999, Math.floor(copies)))
-  const sheet = label.size.sheet
-  const title = `FNSKU ${label.fnsku}`
+export function labelsPdf(labels: FnskuLabel[], title: string): Promise<Blob> {
+  const size = labels[0]!.size
+  const sheet = size.sheet
+  const scenes = labels.map((l) => fnskuLabelScene(l).scene)
   if (!sheet) {
-    const page = {
-      widthMm: label.size.widthMm,
-      heightMm: label.size.heightMm,
-      items: [{ scene, x: 0, y: 0, w: label.size.widthMm, h: label.size.heightMm }],
-    }
     return pdfPages(
-      Array.from({ length: n }, () => page),
+      scenes.map((scene) => ({
+        widthMm: size.widthMm,
+        heightMm: size.heightMm,
+        items: [{ scene, x: 0, y: 0, w: size.widthMm, h: size.heightMm }],
+      })),
       title,
     )
   }
   const perSheet = sheet.columns * sheet.rows
   const pages: { widthMm: number; heightMm: number; items: Placed[] }[] = []
-  for (let i = 0; i < n; i++) {
+  scenes.forEach((scene, i) => {
     if (i % perSheet === 0)
       pages.push({ widthMm: sheet.pageWidthMm, heightMm: sheet.pageHeightMm, items: [] })
     const slot = i % perSheet
-    const col = slot % sheet.columns
-    const row = Math.floor(slot / sheet.columns)
     pages.at(-1)!.items.push({
       scene,
-      x: sheet.marginLeftMm + col * sheet.pitchXMm,
-      y: sheet.marginTopMm + row * sheet.pitchYMm,
-      w: label.size.widthMm,
-      h: label.size.heightMm,
+      x: sheet.marginLeftMm + (slot % sheet.columns) * sheet.pitchXMm,
+      y: sheet.marginTopMm + Math.floor(slot / sheet.columns) * sheet.pitchYMm,
+      w: size.widthMm,
+      h: size.heightMm,
     })
-  }
+  })
   return pdfPages(pages, title)
+}
+
+/** Copies of one label. */
+export function labelPdf(label: FnskuLabel, copies: number): Promise<Blob> {
+  const n = Math.max(1, Math.min(999, Math.floor(copies)))
+  return labelsPdf(
+    Array.from({ length: n }, () => label),
+    `FNSKU ${label.fnsku}`,
+  )
 }
 
 export function labelZpl(label: FnskuLabel & { dpi: 203 | 300 }, copies: number): Blob {
   return new Blob([fnskuLabelZpl(label, copies)], { type: 'text/plain' })
+}
+
+/** Several Zebra labels in one file, one per label. */
+export function labelsZpl(labels: (FnskuLabel & { dpi: 203 | 300 })[]): Blob {
+  return new Blob([labels.map((l) => fnskuLabelZpl(l, 1)).join('')], { type: 'text/plain' })
+}
+
+// ---------------------------------------------------------------------------
+// Bulk barcodes
+
+/** Every item as a file in one ZIP. `make` builds each file; `onProgress` reports how many are done. */
+export async function zipFiles(
+  items: { name: string; make: () => Promise<Blob> | Blob }[],
+  onProgress?: (done: number) => void,
+): Promise<Blob> {
+  const { zipSync } = await import('fflate')
+  const files: Record<string, Uint8Array> = {}
+  for (const [i, item] of items.entries()) {
+    files[item.name] = new Uint8Array(await (await item.make()).arrayBuffer())
+    onProgress?.(i + 1)
+  }
+  // PNGs are already compressed: store them.
+  return new Blob([zipSync(files, { level: 0 })], { type: 'application/zip' })
+}
+
+export const PAGE_SIZES = {
+  letter: { name: 'US Letter', widthMm: 215.9, heightMm: 279.4 },
+  a4: { name: 'A4', widthMm: 210, heightMm: 297 },
+} as const
+
+/** Barcodes at their print size, flowed onto pages in rows with 6 mm between them. */
+export function barcodesPdf(
+  jobs: BarcodeJob[],
+  page: keyof typeof PAGE_SIZES,
+  title: string,
+): Promise<Blob> {
+  const { widthMm: pw, heightMm: ph } = PAGE_SIZES[page]
+  const margin = 12
+  const gap = 6
+  const pages: { widthMm: number; heightMm: number; items: Placed[] }[] = [
+    { widthMm: pw, heightMm: ph, items: [] },
+  ]
+  let x = margin
+  let y = margin
+  let rowH = 0
+  for (const job of jobs) {
+    const w = Math.min(job.widthMm, pw - margin * 2)
+    const h = (w * job.scene.height) / job.scene.width
+    if (x + w > pw - margin) {
+      x = margin
+      y += rowH + gap
+      rowH = 0
+    }
+    if (y + h > ph - margin) {
+      pages.push({ widthMm: pw, heightMm: ph, items: [] })
+      x = margin
+      y = margin
+      rowH = 0
+    }
+    pages.at(-1)!.items.push({ scene: job.scene, x, y, w, h })
+    x += w + gap
+    rowH = Math.max(rowH, h)
+  }
+  return pdfPages(pages, title)
 }

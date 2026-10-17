@@ -43,14 +43,19 @@ It works because QR codes are built with error correction: spare data spread acr
 4. **Watch the scan check.** The preview is decoded like a phone camera would. If it warns that the logo is too large, make it smaller until the warning clears.
 5. **Download or save.** Download a static code as PNG or JPG (SVG, PDF and EPS with a plan), or save a dynamic code to your free account.
 
-<Screenshot name="with-logo" alt="The QRfinity generator with Link selected, a logo uploaded in the centre of the code, the logo size slider visible and the scan check showing the code scans." />
+<Screenshot
+  name="with-logo"
+  alt="The QRfinity generator with Link selected, a logo uploaded in the centre of the code, the logo size slider visible and the scan check showing the code scans."
+/>
 
 ## How error correction works
 
 Every QR code uses one of four error correction levels: L, M, Q and H. Level H, the highest, can restore up to about 30% of the code if it is damaged or covered. Higher levels add more spare data, which makes the pattern denser, so there is a trade-off: a logo needs a higher level, and a higher level needs a slightly bigger print. You can change the level under Error correction if you want to, but the automatic setting suits most logos.
 
 <Callout tone="warning">
-Treat that 30% as a safety margin, not a target. A logo that uses all of it leaves nothing for a scratch, a crease or a reflection, and the code may fail in real conditions even if it scans on your screen.
+  Treat that 30% as a safety margin, not a target. A logo that uses all of it leaves nothing for a
+  scratch, a crease or a reflection, and the code may fail in real conditions even if it scans on
+  your screen.
 </Callout>
 
 ## Design and print tips
@@ -64,5 +69,7 @@ Treat that 30% as a safety margin, not a target. A logo that uses all of it leav
 ## Static or dynamic?
 
 <Recommendation pick="either">
-The logo works the same on both. Choose static for a link that will never change, or dynamic if you want to change the destination later or count scans; a dynamic code stores a short address, so its pattern stays simpler around your logo.
+  The logo works the same on both. Choose static for a link that will never change, or dynamic if
+  you want to change the destination later or count scans; a dynamic code stores a short address, so
+  its pattern stays simpler around your logo.
 </Recommendation>

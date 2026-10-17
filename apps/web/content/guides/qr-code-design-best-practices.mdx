@@ -37,15 +37,15 @@ QR codes also carry spare data, called error correction, so a phone can still re
 
 More than you think. Our scan check fails any code with a contrast ratio under 3:1 between the code and its background, and warns below 4.5:1, because codes in that range can be slow to scan in dim light. Black on white is 21:1. Most dark brand colours on white land between 7:1 and 15:1.
 
-| Do | Don’t |
-| --- | --- |
-| Dark code on a light background | Light code on a dark background (some older phones can’t read it) |
-| Navy, dark green, burgundy, charcoal on white or cream | Yellow, light grey, pastels or neon on white |
-| Gradients where both ends are dark | Gradients that fade to a light colour |
-| A solid background behind the code | A photo, pattern or texture behind the code |
-| Matte paper or a matte laminate | High-gloss finishes under bright lights |
-| Corner markers in the same or a darker colour | Corner markers in a pale accent colour |
-| Contrast of 4.5:1 or more | Contrast under 3:1 |
+| Do                                                     | Don’t                                                             |
+| ------------------------------------------------------ | ----------------------------------------------------------------- |
+| Dark code on a light background                        | Light code on a dark background (some older phones can’t read it) |
+| Navy, dark green, burgundy, charcoal on white or cream | Yellow, light grey, pastels or neon on white                      |
+| Gradients where both ends are dark                     | Gradients that fade to a light colour                             |
+| A solid background behind the code                     | A photo, pattern or texture behind the code                       |
+| Matte paper or a matte laminate                        | High-gloss finishes under bright lights                           |
+| Corner markers in the same or a darker colour          | Corner markers in a pale accent colour                            |
+| Contrast of 4.5:1 or more                              | Contrast under 3:1                                                |
 
 Inverted codes, with light modules on a dark background, are worth a special mention. Newer iPhones and Android phones read them, but some older phones and scanner apps don’t. Our scan check flags them so you can decide whether that risk is acceptable for your audience.
 
@@ -57,12 +57,12 @@ When you add a logo on QRfinity, we raise the error correction level so there’
 
 Error correction levels, for reference:
 
-| Level | Recovers about | Use it for |
-| --- | --- | --- |
-| L | 7% | Plain codes on clean, flat surfaces |
-| M | 15% | Most codes without a logo |
-| Q | 25% | Codes with a small logo, or rough surfaces |
-| H | 30% | Codes with a larger logo, or prints that may get scuffed |
+| Level | Recovers about | Use it for                                               |
+| ----- | -------------- | -------------------------------------------------------- |
+| L     | 7%             | Plain codes on clean, flat surfaces                      |
+| M     | 15%            | Most codes without a logo                                |
+| Q     | 25%            | Codes with a small logo, or rough surfaces               |
+| H     | 30%            | Codes with a larger logo, or prints that may get scuffed |
 
 Higher levels add modules, so a code with a logo is slightly denser than the same code without one. Our [QR code generator with logo](/qr-code-generator/with-logo) handles these settings for you and checks the result.
 

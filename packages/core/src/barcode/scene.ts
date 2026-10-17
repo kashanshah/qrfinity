@@ -28,6 +28,7 @@ export const DEFAULT_BAR_HEIGHT: Record<BarcodeType, number> = {
   code39: 50,
   code128: 50,
   fnsku: 50,
+  gs1128: 50,
 }
 
 /** Default bar height in mm: the standard height at 100% for retail and ITF-14, a practical one for labels. */
@@ -41,6 +42,7 @@ export const DEFAULT_HEIGHT_MM: Record<BarcodeType, number> = {
   code39: 15,
   code128: 15,
   fnsku: 12,
+  gs1128: 25,
 }
 
 /** Nominal print width (mm, quiet zones included) at 100% magnification, where a standard exists. */
@@ -87,9 +89,11 @@ function barsPath(
 /** Builds the scene for an encoded barcode. Width = quiet zones + modules; units = modules. */
 export function barcodeScene(type: BarcodeType, enc: Encoded, style: BarcodeStyle): Scene {
   const retail = RETAIL.includes(type)
+  const addonW = enc.addon ? enc.addon.gap + enc.addon.modules.length : 0
+  const symbolW = enc.modules.length + addonW
   const left = Math.max(enc.quiet.left, ...enc.text.map((t) => 1 - t.from))
-  const right = Math.max(enc.quiet.right, ...enc.text.map((t) => t.to + 1 - enc.modules.length))
-  const width = left + enc.modules.length + right
+  const right = Math.max(enc.quiet.right, ...enc.text.map((t) => t.to + 1 - symbolW))
+  const width = left + symbolW + right
 
   // Text size: retail digits are about 9 modules tall; other text fits the symbol width.
   const runText = enc.text.map((t) => t.text).join(' ')
@@ -126,6 +130,33 @@ export function barcodeScene(type: BarcodeType, enc: Encoded, style: BarcodeStyl
     d: barsPath(enc.modules, left, top, barH, guardH, isGuard),
     fill: { type: 'solid', color: fg },
   })
+
+  if (enc.addon) {
+    // Add-on digits sit above its bars; the bars end level with the guard bars.
+    const x0 = left + enc.modules.length + enc.addon.gap
+    const textTop = style.showText ? fontSize * CAP_HEIGHT + 1.5 : 0
+    items.push({
+      kind: 'path',
+      d: barsPath(
+        enc.addon.modules,
+        x0,
+        top + textTop,
+        guardH - textTop,
+        guardH - textTop,
+        () => false,
+      ),
+      fill: { type: 'solid', color: fg },
+    })
+    if (style.showText)
+      items.push({
+        kind: 'text',
+        text: enc.addon.text,
+        x: x0 + enc.addon.modules.length / 2,
+        y: top + fontSize * CAP_HEIGHT,
+        fontSize,
+        fill: fg,
+      })
+  }
 
   if (bearer) {
     // ITF-14 bearer bars across the whole symbol, quiet zones included, so a skewed scan can't misread it.
@@ -175,8 +206,9 @@ export function renderBarcode(
   value: string,
   style: BarcodeStyle,
   above?: string,
+  addon?: string,
 ): { scene: Scene; encoded: Encoded } {
-  const encoded = encodeBarcode(type, value, above)
+  const encoded = encodeBarcode(type, value, above, addon)
   return { scene: barcodeScene(type, encoded, style), encoded }
 }
 

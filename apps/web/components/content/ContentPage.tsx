@@ -97,7 +97,13 @@ export function ContentPage({
         <RelatedLinks
           related={page.related}
           guides={page.guides}
-          relatedHeading={page.kind === 'alternative' ? 'Read next' : undefined}
+          relatedHeading={
+            page.kind === 'alternative'
+              ? 'Read next'
+              : page.related?.[0]?.startsWith('/barcode-generator')
+                ? 'Related barcodes'
+                : undefined
+          }
         />
         <FactBlock />
       </div>

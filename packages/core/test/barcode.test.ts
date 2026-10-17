@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   AMAZON_LABEL_SIZES,
   DEFAULT_BAR_HEIGHT,
+  checkAddon,
   checkBarcodeValue,
+  parseGs1,
   code128Values,
   fitMiddle,
   fnskuLabelScene,
@@ -120,6 +122,60 @@ describe('barcodes scan', () => {
     expect(eps).toContain('%!PS-Adobe-3.0 EPSF-3.0')
     expect(eps).toContain('(006381)')
   })
+})
+
+describe('GS1-128', () => {
+  it('checks application identifiers', () => {
+    expect(checkBarcodeValue('gs1128', '(01)0950110153000(10)ABC')).toEqual({
+      ok: true,
+      value: '(01)09501101530003(10)ABC',
+    })
+    expect(parseGs1('(01)09501101530004')).toMatchObject({
+      ok: false,
+      error: expect.stringContaining('should be 3'),
+    })
+    expect(parseGs1('(17)251399')).toMatchObject({
+      ok: false,
+      error: expect.stringContaining('YYMMDD'),
+    })
+    expect(parseGs1('(10)LOT 42')).toMatchObject({ ok: false })
+    expect(parseGs1('(77)123')).toMatchObject({ ok: false, error: expect.stringContaining('(77)') })
+    expect(parseGs1('01 09501101530003')).toMatchObject({ ok: false })
+    expect(parseGs1('(3103)001250')).toMatchObject({ ok: true })
+  })
+
+  it('scans with FNC1 separators in the right places', async () => {
+    const value = '(01)09501101530003(17)250101(10)ABC123(21)XYZ'
+    const { scene } = renderBarcode('gs1128', value, style('gs1128'))
+    const px = Math.round(scene.width * 4)
+    expect(await decodeSvg(sceneToSvg(scene, { width: px }), px, ['Code128'])).toBe(value)
+  })
+})
+
+describe('EAN-2 and EAN-5 add-ons', () => {
+  it('accepts 2 or 5 digits', () => {
+    expect(checkAddon('')).toEqual({ ok: true, value: '' })
+    expect(checkAddon('51299')).toEqual({ ok: true, value: '51299' })
+    expect(checkAddon('123')).toMatchObject({ ok: false })
+  })
+
+  for (const [type, value, addon, expected] of [
+    ['isbn', '9780306406157', '51299', '978030640615751299'],
+    ['ean13', '4006381333931', '12', '400638133393112'],
+    ['upca', '036000291452', '05', '003600029145205'],
+  ] as const) {
+    it(`${type} with a ${addon.length}-digit add-on scans`, async () => {
+      const checked = checkBarcodeValue(type, value)
+      if (!checked.ok) throw new Error(checked.error)
+      const { scene } = renderBarcode(type, checked.value, style(type), checked.above, addon)
+      const px = Math.round(scene.width * 4)
+      expect(
+        await decodeSvg(sceneToSvg(scene, { width: px }), px, ['AllLinear'], {
+          eanAddOnSymbol: 'Read',
+        }),
+      ).toBe(expected)
+    })
+  }
 })
 
 describe('Amazon FNSKU labels', () => {

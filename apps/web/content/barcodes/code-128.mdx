@@ -13,7 +13,7 @@ export const faq = [
   },
   {
     q: 'Is Code 128 the same as GS1-128?',
-    a: 'GS1-128 is Code 128 with special application identifiers for supply chains. This generator makes plain Code 128, which is what most inventory, asset and shipping labels use.',
+    a: 'GS1-128 is Code 128 with GS1 application identifiers for supply chains, such as a GTIN, batch and expiry date. This page makes plain Code 128, which most inventory, asset and shipping labels use; for GS1 fields, use the GS1-128 generator.',
   },
 ]
 
@@ -34,4 +34,4 @@ Code 128 is the everyday barcode for labels: it holds letters, digits and symbol
 - **Keep the margins.** Leave blank space on both sides, at least ten times the narrowest bar.
 - **Thermal labels:** print at 100% so bars land on whole printer dots; scaled images print uneven bars.
 
-For systems that only accept capitals and digits, use [Code 39](/barcode-generator/code-39). For cartons with a GTIN, use [ITF-14](/barcode-generator/itf-14).
+Need GS1 fields like a batch or expiry date? Use [GS1-128](/barcode-generator/gs1-128). For systems that only accept capitals and digits, use [Code 39](/barcode-generator/code-39). For cartons with a GTIN, use [ITF-14](/barcode-generator/itf-14).

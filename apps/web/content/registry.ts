@@ -7,6 +7,7 @@ import {
   DEFAULT_PAYMENT,
   type BarcodeType,
   type ContentFields,
+  type MatrixType,
   type ContentType,
   type PaymentMethod,
 } from '@qrfinity/core'
@@ -51,8 +52,8 @@ export type ContentPage = {
   related?: string[]
   /** Guide paths linked from the page (2 on use-case pages). */
   guides?: string[]
-  /** Barcode pages: the barcode generator, opened on this type. */
-  barcode?: BarcodeType
+  /** Barcode pages: the barcode generator, opened on this type (unset on the bulk page). */
+  barcode?: BarcodeType | MatrixType
   /** A tool shown in place of the generator (restyle: remake a code made by WeChat or Alipay). */
   tool?: 'restyle'
 }
@@ -847,7 +848,7 @@ const guide = (
   description,
   intro,
   updated: U,
-  related: related.map((r) => `/qr-code-generator/${r}`),
+  related: related.map((r) => (r.startsWith('/') ? r : `/qr-code-generator/${r}`)),
 })
 
 export const GUIDES: ContentPage[] = [
@@ -995,6 +996,42 @@ export const GUIDES: ContentPage[] = [
     'Yes, mostly. Here’s when each one is enough.',
     ['url', 'with-logo', 'link-in-bio'],
   ),
+  guide(
+    'how-to-get-a-barcode-for-your-product',
+    'Getting a barcode for your product',
+    'How to get a barcode for your product',
+    'How to get a barcode (UPC or EAN) for your product',
+    'Retail barcodes need a number from GS1. How to get one, what it costs to think about, what Amazon and shops accept, and how to make the barcode.',
+    'Where the number comes from, and what to do once you have it.',
+    ['/barcode-generator/upc', '/barcode-generator/ean-13', '/barcode-generator/amazon-fnsku'],
+  ),
+  guide(
+    'upc-vs-ean',
+    'UPC vs EAN',
+    'UPC vs EAN: what’s the difference?',
+    'UPC vs EAN barcodes: what’s the difference?',
+    'UPC-A has 12 digits and EAN-13 has 13, but scanners read both everywhere. Which one to print, how to convert between them, and the small versions.',
+    'Same system, one extra digit. Which one to print.',
+    ['/barcode-generator/upc', '/barcode-generator/ean-13', '/barcode-generator/upc-e'],
+  ),
+  guide(
+    'barcode-size-and-printing',
+    'Barcode size and printing',
+    'What size should a barcode be, and how do I print it?',
+    'Barcode size: minimums, magnification and print tips',
+    'Standard retail barcode sizes, how far you can shrink them, bar width for label barcodes, margins, colours and which file to send your printer.',
+    'Sizes that scan, and the print mistakes that stop them.',
+    ['/barcode-generator/ean-13', '/barcode-generator/code-128', '/barcode-generator/itf-14'],
+  ),
+  guide(
+    'how-to-print-amazon-fnsku-labels',
+    'Printing Amazon FNSKU labels',
+    'How to print Amazon FNSKU labels',
+    'How to print Amazon FNSKU labels (thermal or sheets)',
+    'Print Amazon FBA labels on a Zebra, Rollo or DYMO thermal printer or on label sheets: sizes, printer settings, and fixes for labels that won’t scan.',
+    'Labels Amazon’s warehouse can scan, first time.',
+    ['/barcode-generator/amazon-fnsku', '/barcode-generator/bulk', '/barcode-generator/code-128'],
+  ),
 ]
 
 const alt = (
@@ -1047,9 +1084,14 @@ export const ALTERNATIVES: ContentPage[] = [
   ),
 ]
 
+const BARCODE_GUIDES = [
+  '/guides/barcode-size-and-printing',
+  '/guides/how-to-get-a-barcode-for-your-product',
+]
+
 const barcodePage = (
   slug: string,
-  barcode: BarcodeType,
+  barcode: BarcodeType | MatrixType | undefined,
   label: string,
   h1: string,
   title: string,
@@ -1067,7 +1109,7 @@ const barcodePage = (
   updated: U,
   barcode,
   related: related.map((r) => `/barcode-generator/${r}`),
-  guides: ['/guides/qr-code-size-for-print', '/guides/how-to-print-qr-codes-on-packaging'],
+  guides: BARCODE_GUIDES,
 })
 
 /** The barcode generator and one page per type. Static, made in the browser, like static QR codes. */
@@ -1077,7 +1119,7 @@ export const BARCODE_HOME: ContentPage = barcodePage(
   'Barcode generator',
   'Free barcode generator',
   'Free barcode generator: UPC, EAN, Code 128 and more',
-  'Make UPC, EAN-13, Code 128, ITF-14, ISBN and Amazon FNSKU barcodes in your browser. Checked digits, a scan test, free PNG downloads, no sign-up.',
+  'Make UPC, EAN, Code 128, GS1-128, Data Matrix, ISBN and Amazon FNSKU barcodes in your browser. Checked digits, a scan test, free PNG, no sign-up.',
   'Pick a type, type the number, download. Every barcode is scan-tested before you print.',
   ['upc', 'ean-13', 'amazon-fnsku'],
 )
@@ -1172,6 +1214,56 @@ export const BARCODE_PAGES: ContentPage[] = [
     'Make Code 39 barcodes for ID badges, older industrial systems and libraries: capital letters, digits and a few symbols. Scan-tested, free PNG.',
     'An older barcode many systems still expect: capitals, digits and a few symbols.',
     ['code-128', 'itf-14', 'ean-13'],
+  ),
+  barcodePage(
+    'gs1-128',
+    'gs1128',
+    'GS1-128',
+    'Free GS1-128 barcode generator',
+    'Free GS1-128 barcode generator (UCC/EAN-128)',
+    'Make GS1-128 barcodes with application identifiers: GTIN, batch, expiry date, SSCC and weight. We check every field and test the scan. Free PNG.',
+    'Code 128 with GS1 fields, for pallets, cases and supply chains. Type each field in brackets.',
+    ['itf-14', 'code-128', 'data-matrix'],
+  ),
+  barcodePage(
+    'data-matrix',
+    'datamatrix',
+    'Data Matrix',
+    'Free Data Matrix code generator',
+    'Free Data Matrix code generator, square or rectangular',
+    'Make Data Matrix codes for parts marking, electronics, healthcare and small labels. Holds text or numbers in a tiny square. Scan-tested, free PNG.',
+    'A tiny square code for parts, electronics and small labels. Type any text or number.',
+    ['aztec', 'pdf417', 'gs1-128'],
+  ),
+  barcodePage(
+    'pdf417',
+    'pdf417',
+    'PDF417',
+    'Free PDF417 barcode generator',
+    'Free PDF417 barcode generator for IDs and tickets',
+    'Make PDF417 barcodes, the stacked code on boarding passes, ID cards and shipping documents. Holds long text, scan-tested before you download. Free.',
+    'The stacked barcode on boarding passes and ID cards, for long text.',
+    ['aztec', 'data-matrix', 'code-128'],
+  ),
+  barcodePage(
+    'aztec',
+    'aztec',
+    'Aztec',
+    'Free Aztec code generator',
+    'Free Aztec code generator for tickets and passes',
+    'Make Aztec codes like the ones on train tickets and mobile boarding passes. No margin needed, reads from screens and paper. Scan-tested, free PNG.',
+    'The code on train tickets and mobile passes. Reads well from phone screens.',
+    ['pdf417', 'data-matrix', 'code-128'],
+  ),
+  barcodePage(
+    'bulk',
+    undefined,
+    'Bulk barcodes',
+    'Make barcodes in bulk from a spreadsheet',
+    'Bulk barcode generator: paste a list or upload a CSV',
+    'Make up to 1,000 barcodes at once from a spreadsheet or CSV: UPC, EAN, Code 128, FNSKU labels and more. Every row checked. Free PNG zip.',
+    'Paste a column from your spreadsheet or upload a CSV, and download every barcode at once.',
+    ['code-128', 'amazon-fnsku', 'upc'],
   ),
 ]
 

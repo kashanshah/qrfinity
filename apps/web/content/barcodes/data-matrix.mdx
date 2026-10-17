@@ -1,0 +1,36 @@
+export const faq = [
+  {
+    q: 'Data Matrix or QR code?',
+    a: 'Both are square 2D codes. Data Matrix fits more data into a smaller space and is the standard for parts marking, electronics and healthcare packaging, read by industrial scanners. QR codes are better when people will scan with a phone, since every camera app reads them.',
+  },
+  {
+    q: 'Can phones read Data Matrix codes?',
+    a: 'Many scanner apps and Google Lens can, but the built-in camera on most phones only opens QR codes. If the public will scan it, use a QR code.',
+  },
+  {
+    q: 'When should I use the rectangular shape?',
+    a: 'When the space is long and narrow, such as a cable, a tube or the edge of a label. Square codes are smaller overall and are the default.',
+  },
+  {
+    q: 'How small can I print it?',
+    a: 'Each square (module) should be at least 0.25 mm for printed labels; 0.5 mm reads easily with any scanner. A short serial number makes a code just a few millimetres wide.',
+  },
+]
+
+Data Matrix is the tiny square code on circuit boards, medical devices, medicine packs and machine parts. It packs text or numbers into a very small space and still reads when part of it is scratched or smudged. Type your text, choose square or rectangular, and download a scan-tested code. PNG and JPG are free.
+
+## Where Data Matrix is used
+
+- **Electronics and parts:** serial numbers on boards, components and tools, often laser-etched.
+- **Healthcare:** medicine packs and medical devices, usually as a GS1 Data Matrix carrying the GTIN, batch, expiry and serial number.
+- **Small labels:** vials, test tubes, jewellery tags and anywhere a barcode won’t fit.
+- **Mail and documents:** postage marks and document tracking.
+
+## Tips for readable Data Matrix codes
+
+- **Keep the data short.** Fewer characters mean fewer, bigger squares at the same size.
+- **Leave a margin.** Keep blank space at least one module wide around the code; we include it in the download.
+- **High contrast.** Dark on light reads best. Laser etching and dot peen marking need a scanner that handles low contrast.
+- **Test at the final size.** Print one, then scan it with the scanner your team uses before marking parts in bulk.
+
+Need it for people to scan with a phone? Use a [QR code](/qr-code-generator). For tickets and passes, [Aztec](/barcode-generator/aztec) reads well from screens.

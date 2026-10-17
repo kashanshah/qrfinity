@@ -9,7 +9,7 @@ import { pageMetadata } from '@/lib/seo'
 export const dynamicParams = false
 
 export function generateStaticParams() {
-  return BARCODE_PAGES.map((p) => ({ slug: p.path.split('/').pop()! }))
+  return BARCODE_PAGES.filter((p) => p.barcode).map((p) => ({ slug: p.path.split('/').pop()! }))
 }
 
 type Props = { params: Promise<{ slug: string }> }

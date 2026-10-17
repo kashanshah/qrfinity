@@ -1,8 +1,11 @@
-import type { BarcodeType } from '@qrfinity/core'
+import type { BarcodeType, MatrixType } from '@qrfinity/core'
+
+/** Every type the generator makes: linear barcodes and 2D codes. */
+export type AnyBarcode = BarcodeType | MatrixType
 
 /** What each barcode type is called, what it's for, and an example people can try. */
 export const BARCODE_INFO: Record<
-  BarcodeType,
+  AnyBarcode,
   { name: string; use: string; example: string; label: string; hint: string; slug: string }
 > = {
   code128: {
@@ -77,19 +80,55 @@ export const BARCODE_INFO: Record<
     hint: '10 letters and digits, from Seller Central → Inventory → Manage FBA inventory.',
     slug: 'amazon-fnsku',
   },
+  gs1128: {
+    name: 'GS1-128',
+    use: 'Logistics labels: GTIN, batch, expiry, SSCC',
+    example: '(01)09501101530003(17)271231(10)LOT42',
+    label: 'GS1 data',
+    hint: 'Each field as (AI) then its data, like (01) GTIN, (17) expiry YYMMDD, (10) batch.',
+    slug: 'gs1-128',
+  },
+  datamatrix: {
+    name: 'Data Matrix',
+    use: 'Small parts, electronics and healthcare',
+    example: 'SKU A-1042 / Lot 7',
+    label: 'Text or number',
+    hint: 'Up to 1,000 characters. Small, square and readable even when partly damaged.',
+    slug: 'data-matrix',
+  },
+  pdf417: {
+    name: 'PDF417',
+    use: 'ID cards, boarding passes and shipping documents',
+    example: 'Shipment 48213 / 12 cartons / Toronto',
+    label: 'Text',
+    hint: 'Up to 800 characters. A wide stacked barcode that holds a lot of text.',
+    slug: 'pdf417',
+  },
+  aztec: {
+    name: 'Aztec',
+    use: 'Tickets and transport passes',
+    example: 'TICKET 2027-0042 SEAT 14C',
+    label: 'Text',
+    hint: 'Up to 1,500 characters. Needs no blank margin, so it fits tight spaces.',
+    slug: 'aztec',
+  },
 }
 
 /** The order types appear in pickers and menus. */
-export const BARCODE_ORDER: BarcodeType[] = [
+export const BARCODE_ORDER: AnyBarcode[] = [
   'code128',
   'upca',
   'ean13',
   'fnsku',
   'isbn',
   'itf14',
+  'gs1128',
+  'datamatrix',
+  'pdf417',
+  'aztec',
   'ean8',
   'upce',
   'code39',
 ]
 
-export const barcodePath = (type: BarcodeType) => `/barcode-generator/${BARCODE_INFO[type].slug}`
+export const barcodePath = (type: AnyBarcode) => `/barcode-generator/${BARCODE_INFO[type].slug}`

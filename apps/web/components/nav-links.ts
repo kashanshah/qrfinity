@@ -26,6 +26,8 @@ export const NAV: NavItem[] = [
       { href: '/barcode-generator/isbn', label: 'ISBN for books' },
       { href: '/barcode-generator/code-128', label: 'Code 128' },
       { href: '/barcode-generator/itf-14', label: 'ITF-14 for cartons' },
+      { href: '/barcode-generator/data-matrix', label: 'Data Matrix' },
+      { href: '/barcode-generator/bulk', label: 'Bulk from a spreadsheet' },
     ],
   },
   {

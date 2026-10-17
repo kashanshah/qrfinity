@@ -1,0 +1,68 @@
+export const faq = [
+  {
+    q: 'What is the standard size of a UPC barcode?',
+    a: 'At 100% (the nominal size), a UPC-A or EAN-13 is about 37.3 mm wide including its blank margins, with bars about 22.9 mm tall. You can scale it from 80% to 200%: roughly 30 mm to 75 mm wide.',
+  },
+  {
+    q: 'Can I make the bars shorter to save space?',
+    a: 'Cutting the height (truncation) makes a barcode harder to scan, because the scanner has less to aim at. GS1 discourages it for retail products. If you must, keep at least half the standard height and test it with a till scanner.',
+  },
+  {
+    q: 'What dpi should a barcode image be?',
+    a: 'For office and offset printing, at least 300 dpi at the final size, with every bar a whole number of pixels. Our PNG downloads are built that way. For thermal printers, match the printer’s resolution exactly (203 or 300 dpi) and print at 100%.',
+  },
+  {
+    q: 'Can a barcode be in colour?',
+    a: 'Yes, as long as the bars are dark and the background is light. Black, dark blue, dark green and dark brown bars work. Red, orange and yellow bars don’t: many scanners use red light, which makes red look white.',
+  },
+]
+
+A retail barcode (UPC-A or EAN-13) is about 37 mm wide at its standard size, and you can print it anywhere from 80% to 200% of that. Label barcodes like Code 128 have no fixed size: keep the narrowest bar at least 0.19 mm wide, and wider for scanning at a distance. Whatever the type, keep the blank margins, use dark bars on a light background, and send your printer a file that keeps every bar sharp.
+
+## Retail barcodes: the standard sizes
+
+| Type                                | Width at 100% with margins    | Allowed range                                    |
+| ----------------------------------- | ----------------------------- | ------------------------------------------------ |
+| [UPC-A](/barcode-generator/upc)     | 37.3 mm                       | 80% to 200% (about 30 to 75 mm)                  |
+| [EAN-13](/barcode-generator/ean-13) | 37.3 mm                       | 80% to 200%                                      |
+| [EAN-8](/barcode-generator/ean-8)   | 26.7 mm                       | 80% to 200%                                      |
+| [UPC-E](/barcode-generator/upc-e)   | 22.1 mm                       | 80% to 200%                                      |
+| [ITF-14](/barcode-generator/itf-14) | About 152 mm with bearer bars | About 50% to 100%, depending on the print method |
+
+Our generator starts each retail type at 100% and tells you the size as you change it. Bigger is easier to scan; going below 80% is the most common reason a retail barcode fails at the till.
+
+## Label barcodes: bar width matters
+
+For [Code 128](/barcode-generator/code-128), [Code 39](/barcode-generator/code-39) and [GS1-128](/barcode-generator/gs1-128), the size comes from the narrowest bar (the X-dimension) and how much data you encode.
+
+- **0.19 mm:** the practical minimum, for close-range scanning on good printers.
+- **0.25 to 0.33 mm:** a safe choice for most labels.
+- **0.5 mm and up:** for warehouse labels scanned from a distance.
+
+The generator shows the narrowest bar as you resize and warns when it gets too thin. To make a long code narrower, shorten the data rather than shrinking the bars.
+
+For 2D codes ([Data Matrix](/barcode-generator/data-matrix), [Aztec](/barcode-generator/aztec), [PDF417](/barcode-generator/pdf417)), the same idea applies to each square: 0.25 mm is a sensible minimum for scanners, more for phones.
+
+## Margins: don’t trim them
+
+Every barcode needs blank space on both sides, called the quiet zone. Scanners use it to find where the code starts and ends. A UPC-A needs about 9 bar widths on each side; Code 128 needs at least 10. Our downloads include the margins: don’t crop them, and don’t let a box edge, text or a design element run into them.
+
+## Colours and backgrounds
+
+- **Dark bars, light background.** Black on white is best. Dark blue, green or brown on white, cream or light grey also work.
+- **Avoid red, orange and yellow bars.** Many scanners use red light, so red bars look like background.
+- **No reversed barcodes.** Light bars on a dark background fail on many scanners.
+- **Transparent backgrounds** are fine only if what’s behind is plain and light.
+
+## Which file to send your printer
+
+- **PNG at the final size:** for office printers, labels and most digital printing. Every bar is a whole number of pixels, so widths stay exact. Don’t resize it afterwards.
+- **SVG, PDF or EPS:** for packaging and print shops. Vector files stay sharp at any size and let the printer adjust bar width for ink spread. These come with a paid plan.
+- **Thermal printers:** print at 100% at the printer’s own resolution; resized images print uneven bars. Zebra users can use ZPL.
+
+## Before the print run
+
+1. Print one proof at the final size on the real material.
+2. Scan it with the kind of scanner that will read it: a till, a warehouse gun or a phone app.
+3. Check the number it reads matches your records.
+4. Look at curved or shiny surfaces: bars running around a bottle should run up and down, not around.

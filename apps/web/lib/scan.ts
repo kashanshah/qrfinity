@@ -40,9 +40,12 @@ function post(
   })
 }
 
-/** Reads a linear barcode (EAN, UPC, Code 128…) from rendered pixels (the image is transferred). */
-export async function decodeBarcodeImage(image: ImageData): Promise<string | null> {
-  return (await post(image, false, false, ['AllLinear'])).text
+/** Reads a barcode from rendered pixels: linear by default, or the given zxing formats (the image is transferred). */
+export async function decodeBarcodeImage(
+  image: ImageData,
+  formats: string[] = ['AllLinear'],
+): Promise<string | null> {
+  return (await post(image, false, false, formats)).text
 }
 
 async function decode(image: ImageData, photo = false): Promise<string | null> {
