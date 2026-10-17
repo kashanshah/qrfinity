@@ -1,7 +1,7 @@
 'use client'
 
 import { formatPrintSize } from '@qrfinity/core'
-import { Download, Lock, Sticker } from 'lucide-react'
+import { Crown, Download, Sticker } from 'lucide-react'
 import Link from 'next/link'
 import { useId, useState } from 'react'
 import {
@@ -146,18 +146,27 @@ export function ExportPanel({ job, scanFailed }: { job: ExportJob | null; scanFa
               {busy === label ? `${label}…` : label}
             </Button>
           ) : (
-            <Button
-              key={label}
-              disabled={!job}
-              aria-describedby={upsell ? `${widthId}-upsell` : undefined}
-              icon={<Lock aria-hidden="true" size={16} strokeWidth={1.75} />}
-              onClick={() => {
-                setUpsell(true)
-                track('upgrade_prompt_shown', { feature: 'vectorFormats' })
-              }}
-            >
-              {label}
-            </Button>
+            // A crown badge on the corner marks a paid format, as on the pricing page.
+            <span key={label} className="relative flex">
+              <Button
+                className="w-full"
+                aria-label={`${label}, with a paid plan`}
+                disabled={!job}
+                aria-describedby={upsell ? `${widthId}-upsell` : undefined}
+                onClick={() => {
+                  setUpsell(true)
+                  track('upgrade_prompt_shown', { feature: 'vectorFormats' })
+                }}
+              >
+                {label}
+              </Button>
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -top-2 -right-2 flex size-6 items-center justify-center rounded-full border border-hairline bg-surface text-ink shadow-card"
+              >
+                <Crown size={14} strokeWidth={2} />
+              </span>
+            </span>
           ),
         )}
       </div>
@@ -196,7 +205,7 @@ export function ExportPanel({ job, scanFailed }: { job: ExportJob | null; scanFa
             ? 'Fix the scan warning before you print.'
             : vector
               ? 'No watermark, in every format.'
-              : 'PNG and JPG are free, with no watermark and no sign-up.')}
+              : 'PNG and JPG are free, with no watermark and no sign-up. Formats with a crown come with a paid plan.')}
       </p>
       {downloaded && PRINT_PARTNER_URL ? (
         <a
