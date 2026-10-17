@@ -72,6 +72,11 @@ const FILLS = {
   calendly: [['Website address', 'https://calendly.com/amira-haddad/30min']],
   zoom: [['Website address', 'https://us02web.zoom.us/j/81234567890?pwd=MapleCafe2026']],
   'link-in-bio': [['Website address', 'https://linktr.ee/maplecafe']],
+  'google-drive': [
+    ['Website address', 'https://docs.google.com/document/d/1MapleCafeStaffHandbook2026/view'],
+  ],
+  reddit: [['Website address', 'https://www.reddit.com/r/toronto']],
+  threads: [['Username or profile link', 'maplecafe']],
   'google-forms': [['Website address', 'https://forms.gle/M4pLeCaFe2026']],
   resume: [['Website address', 'https://amirahaddad.design/portfolio']],
   wedding: [['Website address', 'https://withjoy.com/amira-and-sam/rsvp']],
