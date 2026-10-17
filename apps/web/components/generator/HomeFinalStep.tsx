@@ -2,7 +2,9 @@
 
 import { ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { track } from '@/lib/analytics'
 import { saveDraft } from '@/lib/draft'
+import { useViewerPlan } from '@/lib/plan-client'
 import { Button } from '../ui/Button'
 import { ExportPanel } from './ExportPanel'
 import type { FinalStepProps } from './Generator'
@@ -18,6 +20,7 @@ export function HomeFinalStep({
   scanFailed,
 }: FinalStepProps) {
   const router = useRouter()
+  const viewer = useViewerPlan()
   if (kind === 'static') {
     return (
       <div className="rounded-lg border border-hairline bg-surface p-4 shadow-card md:p-6">
@@ -40,6 +43,7 @@ export function HomeFinalStep({
         icon={<ArrowRight aria-hidden="true" size={18} strokeWidth={1.75} />}
         onClick={() => {
           saveDraft({ kind, type, fields, design })
+          track('dynamic_continue', { content_type: type, signed_in: Boolean(viewer?.signedIn) })
           router.push('/dashboard/new')
         }}
       >

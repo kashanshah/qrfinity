@@ -13,6 +13,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useId, useState, useSyncExternalStore, useTransition } from 'react'
 import { setRulesAction } from '@/app/dashboard/actions'
+import { track } from '@/lib/analytics'
 import { Button } from '@/components/ui/Button'
 import { Checkbox, SelectField, TextField } from '@/components/ui/Field'
 import { AdvancedSection, type AdvancedAccess } from '@/components/dashboard/Advanced'
@@ -402,8 +403,15 @@ export function RulesEditor({
     start(async () => {
       setError(null)
       const r = await setRulesAction(id, drafts.map(toRule))
-      if (!r.ok) setError(r.error)
-      else {
+      if (!r.ok) {
+        setError(r.error)
+        track('code_feature_failed', { feature: 'rules', code: r.code })
+      } else {
+        track('code_feature_saved', {
+          feature: 'rules',
+          on: r.data.length > 0,
+          count: r.data.length,
+        })
         setDrafts(r.data.map(fromRule))
         setSaved(true)
         router.refresh()

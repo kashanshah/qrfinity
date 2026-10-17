@@ -28,6 +28,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState, useTransition } from 'react'
 import { setPageStyleAction } from '@/app/dashboard/actions'
+import { track } from '@/lib/analytics'
+import { TrackEvent } from '@/components/TrackEvent'
 import { Button } from '@/components/ui/Button'
 import { ColorField } from '@/components/ui/ColorField'
 import { Checkbox } from '@/components/ui/Field'
@@ -97,8 +99,11 @@ export function PageStyleEditor({
     start(async () => {
       setMessage(null)
       const r = await setPageStyleAction(id, { template, accent })
-      if (!r.ok) setMessage(r.error)
-      else {
+      if (!r.ok) {
+        setMessage(r.error)
+        track('code_feature_failed', { feature: 'page_style', code: r.code })
+      } else {
+        track('code_feature_saved', { feature: 'page_style', on: true, count: 0, template })
         setMessage('Saved. Scans show the new look right away.')
         router.refresh()
       }
@@ -163,9 +168,14 @@ export function PageStyleEditor({
           <p className="body-small -mt-3 text-ink-muted">{PAGE_TEMPLATE_LABEL[template].hint}.</p>
           {locked ? (
             <p role="status" className="body-small rounded-md bg-mint px-3 py-2 text-ink">
+              <TrackEvent name="upgrade_prompt_shown" props={{ feature: 'contact_templates' }} />
               <strong>{PAGE_TEMPLATE_LABEL[template].name}</strong> comes with {lockedPlan} and
               above. Preview it here;{' '}
-              <Link href="/pricing" className="font-bold text-evergreen underline">
+              <Link
+                href="/pricing"
+                className="font-bold text-evergreen underline"
+                onClick={() => track('upgrade_prompt_clicked', { feature: 'contact_templates' })}
+              >
                 choose a plan
               </Link>{' '}
               to use it.

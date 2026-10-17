@@ -5,6 +5,7 @@ import type { CodeContent } from '@qrfinity/db'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { saveCodeAction } from '@/app/dashboard/actions'
+import { track } from '@/lib/analytics'
 import { ExportPanel } from '@/components/generator/ExportPanel'
 import { Generator, type FinalStepProps } from '@/components/generator/Generator'
 import { Button } from '@/components/ui/Button'
@@ -77,6 +78,11 @@ function SaveStep({
                 ...(designChanged ? { design: p.design } : {}),
               })
               if (r.ok) {
+                track('code_updated', {
+                  content_type: p.type,
+                  destination: destinationChanged,
+                  design: designChanged,
+                })
                 setMessage(
                   cardChanged
                     ? 'Saved. Scans show the updated card right away; a phone that just scanned it may take up to a minute.'
@@ -85,7 +91,10 @@ function SaveStep({
                       : 'Saved.',
                 )
                 router.refresh()
-              } else setMessage(r.error)
+              } else {
+                setMessage(r.error)
+                track('code_update_failed', { content_type: p.type, code: r.code })
+              }
             })
           }
         >

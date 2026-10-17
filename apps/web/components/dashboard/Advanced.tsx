@@ -1,6 +1,7 @@
 import { Crown, type LucideIcon } from 'lucide-react'
-import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { TrackEvent } from '../TrackEvent'
+import { TrackedLink } from '../TrackedLink'
 
 /**
  * Where an account stands with advanced features, for the crown that marks them:
@@ -101,11 +102,16 @@ export function AdvancedSection({
 
       {blocked ? (
         <>
+          <TrackEvent name="upgrade_prompt_shown" props={{ feature: id }} />
           <p className="rounded-md bg-surface-sunk px-4 py-3 text-ink">
             You’re using advanced features on {used} of {codesWord(allowance)}.{' '}
-            <Link href="/pricing#plans" className="text-evergreen underline">
+            <TrackedLink
+              href="/pricing#plans"
+              className="text-evergreen underline"
+              event={{ name: 'upgrade_prompt_clicked', props: { feature: id } }}
+            >
               Choose a plan
-            </Link>{' '}
+            </TrackedLink>{' '}
             to {what}. Your first plan comes with a month free.
           </p>
           {/* Shown faded so it's clear what a plan unlocks; not usable until then. */}

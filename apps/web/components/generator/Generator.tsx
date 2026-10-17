@@ -17,10 +17,17 @@ import {
   type SceneInfo,
 } from '@qrfinity/core'
 import { useId, useMemo, type ReactNode } from 'react'
+import { trackOnce } from '@/lib/analytics'
 import { useAutoLogo } from '@/lib/brand-logo'
 import type { ExportJob } from '@/lib/export'
 import { useFrameText } from '@/lib/frame-text'
-import { GeneratorProvider, useGenerator } from '@/lib/generator-context'
+import {
+  SurfaceContext,
+  useGeneratorTracking,
+  useStuckProblem,
+  type GeneratorSurface,
+} from '@/lib/generator-analytics'
+import { GeneratorProvider, useGenerator, useGeneratorStore } from '@/lib/generator-context'
 import { useScanCheck } from '@/lib/scan'
 import { DYNAMIC_TYPES, type CodeKind, type GeneratorInit } from '@/lib/store'
 import { OptionGroup } from '../ui/OptionGroup'
@@ -94,6 +101,13 @@ type Render =
     }
   | { kind: 'empty' | 'invalid' | 'too-long' }
 
+/** Why a design fails the scan check, for analytics: a check's id, or what failMessage() names. */
+function failReason(design: Design, info: SceneInfo): string {
+  if (design.logo && info.logoCoverage > 0.12) return 'logo-coverage'
+  if (design.quietZone < 2) return 'margin'
+  return 'unreadable'
+}
+
 function failMessage(design: Design, info: SceneInfo): ScanSummary['message'] {
   if (design.logo && info.logoCoverage > 0.12) {
     return { text: 'The logo covers too much of the code.', strong: 'Make the logo smaller.' }
@@ -123,6 +137,8 @@ function GeneratorBody({
   const design = useGenerator((s) => s.design)
   const printWidthMm = useGenerator((s) => s.printWidthMm)
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '')
+  const surface: GeneratorSurface = fixedContent ? 'restyle' : shortLink ? 'code_page' : 'generator'
+  useGeneratorTracking(useGeneratorStore(), surface)
   useAutoLogo()
   const frameText = useFrameText(design.frame.style === 'none' ? '' : design.frame.text.trim())
 
@@ -202,6 +218,37 @@ function GeneratorBody({
       warnings: checks.warnings,
     }
   }, [ok, design, printWidthMm, scan])
+
+  // A problem that outlasts a few seconds is one people are stuck on.
+  const fail = useMemo(
+    () =>
+      ok && summary?.state === 'fail'
+        ? (checkDesign(design, ok.info, printWidthMm).blockers[0]?.id ??
+          failReason(design, ok.info))
+        : null,
+    [ok, summary, design, printWidthMm],
+  )
+  useStuckProblem(fail, (reason) =>
+    trackOnce(`scan_fail:${reason}`, 'scan_check_failed', { reason, content_type: type }),
+  )
+  useStuckProblem(
+    render.kind === 'too-long' || render.kind === 'invalid' ? render.kind : null,
+    (reason) =>
+      trackOnce(`content:${type}:${reason}`, 'content_problem', {
+        content_type: type,
+        kind,
+        reason,
+      }),
+  )
+  const warningIds = summary?.state === 'pass' ? summary.warnings.map((w) => w.id).join(',') : ''
+  useStuckProblem(
+    warningIds || null,
+    (ids) => {
+      for (const warning of ids.split(','))
+        trackOnce(`warning:${warning}`, 'scan_warning_shown', { warning })
+    },
+    2000,
+  )
 
   // Downloads wait for the frame text's outlines, so no format falls back to a system font.
   const job: ExportJob | null = ok && !frameText.pending ? { ...ok.job, printWidthMm } : null
@@ -287,93 +334,95 @@ function GeneratorBody({
   const stepProps: FinalStepProps = { kind, type, fields, design, content, job, scanFailed }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start xl:grid-cols-[minmax(0,1fr)_440px]">
-      {/* Phones: a compact preview stays in view while editing. */}
-      <div className="sticky top-0 z-10 -mx-4 border-b border-hairline bg-ground/95 px-4 py-3 backdrop-blur lg:hidden">
-        <div className="flex items-center gap-4">
-          {preview(true)}
-          <div className="flex min-w-0 flex-col gap-2">
-            <div className="flex flex-wrap gap-2">
-              <CodeTypeBadge type={kind} />
-              {fixedContent ? null : <NeverExpiresBadge />}
+    <SurfaceContext.Provider value={surface}>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start xl:grid-cols-[minmax(0,1fr)_440px]">
+        {/* Phones: a compact preview stays in view while editing. */}
+        <div className="sticky top-0 z-10 -mx-4 border-b border-hairline bg-ground/95 px-4 py-3 backdrop-blur lg:hidden">
+          <div className="flex items-center gap-4">
+            {preview(true)}
+            <div className="flex min-w-0 flex-col gap-2">
+              <div className="flex flex-wrap gap-2">
+                <CodeTypeBadge type={kind} />
+                {fixedContent ? null : <NeverExpiresBadge />}
+              </div>
+              {summary ? <ScanResult summary={{ ...summary, warnings: [] }} /> : null}
             </div>
-            {summary ? <ScanResult summary={{ ...summary, warnings: [] }} /> : null}
           </div>
         </div>
-      </div>
 
-      <div className="flex flex-col gap-6">
-        <section
-          aria-labelledby="step-content"
-          className="rounded-lg border border-hairline bg-surface p-4 shadow-card md:p-6"
-        >
-          <h2 id="step-content" className="subheading mb-4 text-ink">
-            {contentTitle ?? '1. What should the code open?'}
-          </h2>
-          {fixedContent ? (
-            fixedContent.panel
-          ) : (
-            <div className="flex flex-col gap-6">
-              {kindChoice ? <KindChoice value={kind} onChange={setKind} /> : null}
-              <OptionGroup
-                label="Content type"
-                hideLabel
-                value={type}
-                onChange={setType}
-                columns={
-                  // Full rows where possible: 13 types as 7 + 6, the 7 dynamic ones as 4 + 3.
-                  // On phones a last tile left alone spans its row.
-                  typeOptions.length > 8
-                    ? 'grid-cols-3 sm:grid-cols-5 xl:grid-cols-7 max-sm:[&>*:last-child:nth-child(3n+1)]:col-span-3'
-                    : 'grid-cols-4'
-                }
-                options={typeOptions}
-              />
-              <ContentForm result={content} />
-            </div>
-          )}
-        </section>
+        <div className="flex flex-col gap-6">
+          <section
+            aria-labelledby="step-content"
+            className="rounded-lg border border-hairline bg-surface p-4 shadow-card md:p-6"
+          >
+            <h2 id="step-content" className="subheading mb-4 text-ink">
+              {contentTitle ?? '1. What should the code open?'}
+            </h2>
+            {fixedContent ? (
+              fixedContent.panel
+            ) : (
+              <div className="flex flex-col gap-6">
+                {kindChoice ? <KindChoice value={kind} onChange={setKind} /> : null}
+                <OptionGroup
+                  label="Content type"
+                  hideLabel
+                  value={type}
+                  onChange={setType}
+                  columns={
+                    // Full rows where possible: 13 types as 7 + 6, the 7 dynamic ones as 4 + 3.
+                    // On phones a last tile left alone spans its row.
+                    typeOptions.length > 8
+                      ? 'grid-cols-3 sm:grid-cols-5 xl:grid-cols-7 max-sm:[&>*:last-child:nth-child(3n+1)]:col-span-3'
+                      : 'grid-cols-4'
+                  }
+                  options={typeOptions}
+                />
+                <ContentForm result={content} />
+              </div>
+            )}
+          </section>
 
-        <section
-          aria-labelledby="step-design"
-          className="rounded-lg border border-hairline bg-surface p-4 shadow-card md:p-6"
-        >
-          <h2 id="step-design" className="subheading mb-2 text-ink">
-            2. Make it yours
-          </h2>
-          <DesignPanel frameMissing={frameText.missing} />
-        </section>
-      </div>
-
-      <aside aria-label="Your QR code" className="flex flex-col gap-6 lg:sticky lg:top-6">
-        <div className="flex flex-col gap-4 rounded-lg border border-hairline bg-surface p-4 shadow-card md:p-6">
-          <div className="hidden flex-col gap-4 lg:flex">
-            {preview(false)}
-            {summary ? <ScanResult summary={summary} live /> : null}
-          </div>
-          {/* Phones see the full warning list here, below the sticky summary. */}
-          {summary && summary.warnings.length ? (
-            <div className="lg:hidden">
-              <ScanResult summary={summary} />
-            </div>
-          ) : null}
-          <div className="flex flex-col gap-2 border-t border-hairline pt-4">
-            {badges}
-            <p className="body-small text-ink-muted">
-              {fixedContent
-                ? fixedContent.note
-                : kind === 'static'
-                  ? 'The content is stored in the code itself, so it works forever without us. It can’t be edited or tracked after printing.'
-                  : type === 'vcard'
-                    ? 'The code holds a short link to your contact page, with a Save contact button. Update your details any time; the printed code keeps working and is never deactivated.'
-                    : shortLink
-                      ? 'The code holds this short link. Change where it goes any time; the printed code keeps working and is never deactivated.'
-                      : 'The code holds a short link that sends people to your destination. Change it any time and see scan stats. Free with an account, never deactivated.'}
-            </p>
-          </div>
+          <section
+            aria-labelledby="step-design"
+            className="rounded-lg border border-hairline bg-surface p-4 shadow-card md:p-6"
+          >
+            <h2 id="step-design" className="subheading mb-2 text-ink">
+              2. Make it yours
+            </h2>
+            <DesignPanel frameMissing={frameText.missing} />
+          </section>
         </div>
-        {(finalStep ?? ((p: FinalStepProps) => <HomeFinalStep {...p} />))(stepProps)}
-      </aside>
-    </div>
+
+        <aside aria-label="Your QR code" className="flex flex-col gap-6 lg:sticky lg:top-6">
+          <div className="flex flex-col gap-4 rounded-lg border border-hairline bg-surface p-4 shadow-card md:p-6">
+            <div className="hidden flex-col gap-4 lg:flex">
+              {preview(false)}
+              {summary ? <ScanResult summary={summary} live /> : null}
+            </div>
+            {/* Phones see the full warning list here, below the sticky summary. */}
+            {summary && summary.warnings.length ? (
+              <div className="lg:hidden">
+                <ScanResult summary={summary} />
+              </div>
+            ) : null}
+            <div className="flex flex-col gap-2 border-t border-hairline pt-4">
+              {badges}
+              <p className="body-small text-ink-muted">
+                {fixedContent
+                  ? fixedContent.note
+                  : kind === 'static'
+                    ? 'The content is stored in the code itself, so it works forever without us. It can’t be edited or tracked after printing.'
+                    : type === 'vcard'
+                      ? 'The code holds a short link to your contact page, with a Save contact button. Update your details any time; the printed code keeps working and is never deactivated.'
+                      : shortLink
+                        ? 'The code holds this short link. Change where it goes any time; the printed code keeps working and is never deactivated.'
+                        : 'The code holds a short link that sends people to your destination. Change it any time and see scan stats. Free with an account, never deactivated.'}
+              </p>
+            </div>
+          </div>
+          {(finalStep ?? ((p: FinalStepProps) => <HomeFinalStep {...p} />))(stepProps)}
+        </aside>
+      </div>
+    </SurfaceContext.Provider>
   )
 }

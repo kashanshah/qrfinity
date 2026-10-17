@@ -86,6 +86,7 @@ export default async function AccountPage({
         subscription={subscription}
         billingOn={billing !== null}
         justSubscribed={checkout !== null}
+        checkoutId={checkout}
         portalError={params.billing === 'error'}
       />
 

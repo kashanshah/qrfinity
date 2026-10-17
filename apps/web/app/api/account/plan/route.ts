@@ -18,5 +18,6 @@ export async function GET() {
     effectivePlanFor(db, user.id),
     getEntitlements(db, user.id),
   ])
-  return Response.json({ signedIn: true, plan, features: [...features] }, { headers })
+  const newAccount = Date.now() - new Date(user.createdAt).getTime() < 60 * 60 * 1000
+  return Response.json({ signedIn: true, plan, features: [...features], newAccount }, { headers })
 }

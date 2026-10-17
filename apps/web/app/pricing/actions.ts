@@ -47,7 +47,7 @@ export async function choosePlanAction(input: { plan: string; interval: string }
     const url = await planChangeUrl(getDb(), billing, user.id, input.plan, input.interval, {
       // Stripe fills in {CHECKOUT_SESSION_ID}; the account page uses it to show the plan at once.
       success: `${app}/dashboard/account?checkout={CHECKOUT_SESSION_ID}`,
-      cancel: `${app}/pricing`,
+      cancel: `${app}/pricing?checkout=cancelled`,
       portalReturn: `${app}/dashboard/account`,
     })
     return { ok: true as const, url }
