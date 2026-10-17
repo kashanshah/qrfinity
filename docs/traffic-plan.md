@@ -85,9 +85,9 @@ after the Keyword Planner check. The strongest candidates by intent:
   wallet.
 - **Social and apps:** done 2026-10-16: TikTok, LinkedIn, Facebook, X, Snapchat, Pinterest,
   Discord, Calendly, Zoom, link in bio, Google Forms, résumé, wedding; guides on not scanning,
-  editing, tampering, making a code and high-resolution files; nonprofit and school pages. Left:
-  Reddit, Threads.
-- **Work tools:** left: Google Docs/Drive (Forms, Calendly, Zoom and link in bio done).
+  editing, tampering, making a code and high-resolution files; nonprofit and school pages; then Reddit, Threads, Google Drive, hotels, gyms, churches, retail,
+  how to scan, free vs paid, and ChatGPT/Canva/Google (2026-10-17).
+- **Work tools:** done.
 - **Places and business:** restaurant table tent, real-estate sign, hotel room, gym, church giving,
   parking.
 - **Events and personal:** wedding, birthday invitation, résumé/CV, conference badge, museum label,
@@ -143,6 +143,9 @@ visit.
 - **Browser extension:** "QR code for this page", made in the browser.
 
 ### P7. One data story (2–3 weeks, once)
+
+In progress: collection guide, method and the checking script are in `docs/data-story.md`.
+
 
 - **Research:** collect 300–500 QR codes from real menus, posters and packaging (photos, plus public
   image search). Decode them, follow them, and report what share are dead, and why (expired trials,

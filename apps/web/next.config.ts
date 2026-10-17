@@ -66,13 +66,14 @@ const nextConfig: NextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
         ],
       },
-      // The scanner and checker read codes with the camera; every other page keeps it off.
+      // The scanner, checker and WeChat restyle page read codes with the camera; every other page
+      // keeps it off.
       {
-        source: '/:path((?!qr-code-scanner$|qr-code-checker$).*)',
+        source: '/:path((?!qr-code-scanner$|qr-code-checker$|qr-code-generator/wechat$).*)',
         headers: [{ key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' }],
       },
       {
-        source: '/:path(qr-code-scanner|qr-code-checker)',
+        source: '/:path(qr-code-scanner|qr-code-checker|qr-code-generator/wechat)',
         headers: [
           { key: 'Permissions-Policy', value: 'camera=(self), microphone=(), geolocation=()' },
         ],

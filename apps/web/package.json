@@ -14,7 +14,8 @@
     "test": "vitest run --passWithNoTests",
     "test:e2e": "playwright test",
     "db:migrate": "pnpm --dir ../.. db:migrate",
-    "stripe:setup": "tsx scripts/stripe-setup.ts"
+    "stripe:setup": "tsx scripts/stripe-setup.ts",
+    "data-story": "tsx scripts/data-story.ts"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",

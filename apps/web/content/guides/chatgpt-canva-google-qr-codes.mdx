@@ -1,0 +1,59 @@
+export const faq = [
+  {
+    q: 'Can ChatGPT make a QR code that scans?',
+    a: 'Sometimes. ChatGPT’s image tool draws pictures, and a drawn QR code can look right but fail to scan. If you use it, scan the result before you print, or ask it to write the code with a QR code library instead of drawing one.',
+  },
+  {
+    q: 'Does Google have a QR code generator?',
+    a: 'Chrome does: it can make a QR code for the page you’re viewing, from the share menu, and you can download the image. It’s a plain code for that one page.',
+  },
+  {
+    q: 'Are Canva QR codes free?',
+    a: 'Canva can add static and dynamic QR codes to designs. Its help pages put features such as scan analytics and expiry dates on paid plans, and different help pages list different plans, so check your own plan in Canva.',
+  },
+  {
+    q: 'Can I use a QRfinity code in Canva?',
+    a: 'Yes. Download a PNG, or an SVG or PDF with a plan, and upload it to your Canva design like any image.',
+  },
+]
+
+Yes, all three can make a QR code, but for different jobs. Chrome makes a plain code for the page you’re looking at. Canva adds codes to the designs you make there. ChatGPT can try to draw one, but the result needs checking before you trust it. For a code you’ll print, change later or want to track, a dedicated generator is still the safer choice.
+
+## Google Chrome
+
+Chrome has a built-in QR code maker for the page you’re viewing. On a computer, click Share in the address bar and choose QR code, then Download. On Android and iPhone it’s in the Share menu. {/* source: https://support.google.com/chrome/answer/9979877, seen 2026-10-17 */}
+
+**Good for:** quickly showing a page to someone across a table, or a one-off code for a web page.
+
+**Not for:** anything other than a web page (Wi-Fi, contacts, payments), your own colours or logo, editing where it goes, or counting scans.
+
+## Canva
+
+Canva can add QR codes to any design. It offers static codes and dynamic codes you can edit after printing. {/* source: https://www.canva.com/help/create-and-manage-dynamic-qr-codes/, seen 2026-10-17 */} Its help pages put scan analytics and expiry dates on paid plans, and its English and Australian help pages list different plans for analytics. {/* source: https://www.canva.com/help/create-and-manage-dynamic-qr-codes/ and https://www.canva.com/en_au/help/create-and-manage-dynamic-qr-codes/, seen 2026-10-17 */}
+
+**Good for:** a code that’s part of a Canva design you’re already making.
+
+**Check:** which features your Canva plan includes, and what happens to dynamic codes if your plan changes or you delete them.
+
+## ChatGPT
+
+ChatGPT makes images from a description. {/* source: https://help.openai.com/en/articles/11084440-chatgpt-images, seen 2026-10-17 */} A QR code, though, has to be exact to the module: one wrong square in the wrong place and it won’t scan. An image model draws something that looks like a QR code, which may or may not be one.
+
+**If you use it:** ask ChatGPT to make the code with a QR code library (for example, with Python) rather than to draw it, and scan the result with two phones before you print.
+
+**Not for:** codes you’ll print in quantity, unless you’ve tested them.
+
+## When a dedicated generator is better
+
+| You need | Chrome | Canva | ChatGPT | QRfinity |
+| --- | --- | --- | --- | --- |
+| A quick code for a web page | Yes | Yes | Needs checking | Yes |
+| Wi-Fi, contact, payment and other types | No | Check | Needs checking | Yes |
+| Your colours and pattern | No | Yes | Needs checking | Yes, plus a logo and a frame |
+| Change where it goes after printing | No | Yes | No | Yes, free |
+| Scan counts | No | On paid plans | No | Yes, free |
+| A scan check before you download | No | Check | No | Yes |
+
+{/* source: Canva’s QR code page lists colour, corner and pattern options, https://www.canva.com/create/qr-codes/, seen 2026-10-17 */}
+
+QRfinity makes static and dynamic codes, with design, scan counts and PNG and JPG downloads, free, and its codes never expire. Every design is checked as you make it, so you know it scans before you print. You can then place the code in Canva or any other design tool. [Make a QR code](/).
